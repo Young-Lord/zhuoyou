@@ -94,8 +94,8 @@ class Player:
             return
         try:
             eval("self.{}_(command)".format(command[0]))
-        #except AttributeError:
-        #    action_result = "你遇到bug了！告诉作者！（详情：命令对应的函数不存在）"
+        except AttributeError:
+            action_result = "你遇到bug了！告诉作者！（详情：命令对应的函数不存在）"
         except IndexError as e:
             if str(e) == "list index out of range":
                 action_result = "命令参数过少！"
@@ -103,7 +103,11 @@ class Player:
     def debug_handle(self,command):
         if command[0] == 'debug_eval':
             command = command[1]
-            eval(command)
+            try:
+                eval(command)
+            except Exception as e:
+                print("[debug_eval] 命令执行时出错。详情：")
+                print(e)
         elif command[0] == 'debug_showbuff':
             print(self.buff)
         elif command[0] == 'debug_showitem':
@@ -254,22 +258,19 @@ class Player:
         if self.life <= 0:
             has_drug=True
             drug_index = -999
-            while has_drug and self.life<=0:
-                has_drug=False
-                for i in self.item:
-                    if type(i) == drug:
-                        has_drug = True
-                        drug_index = self.item.index(i)
-                        break
-                if has_drug:
-                    input_str = ""
-                    while input_str != "yes" and input_str != "no":
-                        input_str = input("你要使用背包里的药吗？(yes/no)")
-                    if input_str == "yes":
-                        print(drug_index)
-                        self.use_(["use", str(drug_index+1)])
-                    else:
-                        break
+            while self.life<=0:
+                drugs=[i for i in self.item if type(i)==drug]
+                if len(drugs)==0:
+                    break
+                input_str = ""
+                while input_str != "yes" and input_str != "no":
+                    input_str = input("你要使用背包里的药吗？(yes/no)")
+                if input_str == "yes":
+                    self.life+=drugs[0].value
+                    self.item.remove(drugs[0])
+                    drugs.pop(0)
+                else:
+                    break
             for i in players:
                 if self.life>=1:
                     break
@@ -285,6 +286,7 @@ class Player:
                         input_str=input("输入你的操作：")
                     if input_str=="end":
                         end_round=True
+                        cls()
                         break
                     if input_str=="item":
                         i.item_()
@@ -306,7 +308,7 @@ class Player:
                 if end_round:
                     cls()
                     continue
-        if self.life<0:
+        if self.life<=0:
             print("玩家{}({})彻底无了！".format(myid+1, self.name))
             self.alive = False
         else:
