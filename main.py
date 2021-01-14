@@ -1,3 +1,4 @@
+# https://www.jianshu.com/p/8e508c6a05ce
 # 桌游_命令行
 # -*- coding: UTF-8 -*-
 DEBUG=False
@@ -9,11 +10,18 @@ class MapError(GameError):
 
 class Player:
 	life=-1
+	energy=-1
 	pos=(-1,-1)
 	is_dead=False
 	team=0
 	role=None
 	item=list()
+	buff=list()
+	weapon=None
+	attack_add=0
+	attack_percent=100
+	damage_minus=0
+	damage_percent=100
 	def attack(self,target):
 		pass
 	def damage(self):
