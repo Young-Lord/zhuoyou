@@ -14,6 +14,11 @@ class Player:
 	team=0
 	role=None
 	item=list()
+	def attack(self,target):
+		pass
+	def damage(self):
+		pass
+	
 
 
 def exit(code):
