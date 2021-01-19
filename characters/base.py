@@ -1,3 +1,4 @@
+print(123)
 class Player:
     life = -1
     energy = -1

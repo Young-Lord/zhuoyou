@@ -1,11 +1,20 @@
 # https://www.jianshu.com/p/8e508c6a05ce
 # 桌游_命令行
 # -*- coding: UTF-8 -*-
-from characters import *
 import platform
 
 import sys
 import os
+import importlib
+current_file = os.path.abspath(__file__)
+current_dir = current_file[0:(-(current_file[::-
+											 1].replace("/", "\\").find("\\")))-1]
+os.chdir(current_dir)
+characters=os.listdir(os.path.join(os.getcwd(),"characters"))
+characters=[i.replace(".py","") for i in characters]
+for i in characters:
+	from characters.i import *
+
 DEBUG = False
 
 
@@ -50,10 +59,6 @@ def cls():
 print("你正在使用的系统是：{}".format(platform.platform()))
 is_windows = (platform.platform().find("Windows")) != -1
 print("Python版本：{}".format(platform.python_version()))
-current_file = os.path.abspath(__file__)
-current_dir = current_file[0:(-(current_file[::-
-											 1].replace("/", "\\").find("\\")))-1]
-os.chdir(current_dir)
 print("程序目录：{}".format(current_dir))
 
 try:
