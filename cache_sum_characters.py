@@ -8,7 +8,7 @@ class Player:
     life = 80
     energy = 80
     pos = (-1, -1)
-    is_dead = False
+    alive = True
     team = 0
     item = list()
     buff = list() # 这是存各种主动技能的标记（如“义”）用的

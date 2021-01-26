@@ -72,18 +72,44 @@ def cls():
                 cls_return_value_handler = os.system("clear")
 
 
+def inputCoordinates(msg=""):
+        rawstr=input(msg)
+        rawstr=rawstr.replace("(","").replace(")","")
+        rawstr=rawstr.replace(","," ")
+        a,b=[int(i) for i in rawstr.split()]
+        return (a,b)
+def drawAll():
+        drawInfo()
+        drawPlayers()
+        drawMap()
+def drawInfo():
+        pass
+def drawPlayers():
+        pass
 def drawMap():
         global game_map,special_blocks
         display_map=game_map
         for i in range(len(players)):
                 if players[i].alive:
-                        display_map[players[i].pos[0],players[i].pos[1]]=chr(ord('A')+i)
+                        display_map[players[i].pos[0]]=display_map[players[i].pos[0]][:players[i].pos[1]]+chr(ord('A')+i)+" "+display_map[players[i].pos[0]][players[i].pos[1]+1:]
+                        #same as display_map[players[i].pos[0]][players[i].pos[1]]=chr(ord('A')+i)
         for i in special_blocks:
                 if display_map[i[0]][i[1]]=='0':
                         display_map[i[0]][i[1]]='O'
         display_map=[i.replace("0", "□").replace("1", "■") for i in display_map]
         for i in display_map:
                 print(i)
+def isBlockEmpty(a,b=None):
+        if type(a)==tuple or type(a)==list:
+                a,b=a
+        global players,game_map
+        if game_map[a][b]=='1':
+                return False
+        for i in players:
+                if i.alive:
+                        if i.pos==(a,b):#type((a,b))==tuple
+                                return False
+        return True
 
 print("你正在使用的系统是：{}".format(platform.platform()))
 is_windows = (platform.platform().find("Windows")) != -1
@@ -142,6 +168,20 @@ except MapError:
 print("[信息]成功加载大小为{}x{}的地图".format(chang, kuan))
 cls()
 drawMap()
+for i in range(player_count):
+        a,b=inputCoordinates("请输入玩家"+str(i+1)+"的坐标：")
+        while not isBlockEmpty(a,b):
+                a,b=inputCoordinates("此位置已被占用，请换一个位置：")
+        current_player=Player()
+        current_player.pos=(a,b)
+        players.append(current_player)
+        cls()
+        drawMap()
+cls()
+print("#############")
+print("#  游戏开始  #")
+print("############")
+drawAll()
 
-
+os.system("pause")
 exit(0)
