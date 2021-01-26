@@ -5,23 +5,30 @@ import platform
 
 import sys
 import os
-import importlib
 import codecs
-from items import *
 from time import sleep
+import random
+
+from items import *
 import astar
+from game_config import *
+from glo import globalVal
 chesslist=["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"]
 current_file = os.path.abspath(__file__)
 current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 os.chdir(current_dir)
-players=list()
-special_blocks=list()
+players=globalVal.players
+special_blocks=globalVal.special_blocks
+DEBUG=globalVal.DEBUG
+isBlockEmpty=globalVal.isBlockEmpty
+gameMapWithPlayers=globalVal.gameMapWithPlayers
+random_step=globalVal.random_step
 # importing characters
 characters=os.listdir(os.path.join(os.getcwd(),"characters"))
 characters=[i.replace(".py","") for i in characters if i[-3:]=='.py']
 characters=["base",]+[i for i in characters if i!='base' and i!='cache_sum_characters']
 sum_characters=codecs.open("cache_sum_characters.py","w", encoding='utf-8')
-sum_characters.write("# 警告：本文件是在每次运行时自动生成的，修改此文件没有任何意义\r\nfrom items import *\r\n")
+sum_characters.write("# 警告：本文件是在每次运行时自动生成的，修改此文件没有任何意义\r\nfrom items import *\r\nglobal players\r\n")
 for i in characters:
         sum_characters.write("\r\n\r\n# Code from "+i+".py:\r\n")
         with codecs.open("characters/"+i+".py","r", encoding='utf-8') as f:
@@ -82,6 +89,7 @@ def str2coordinates(s):
                 return (a,b)
         except:
                 return inputCoordinates(msg="坐标非法，请重输：")
+
 def inputCoordinates(msg=""):
         rawstr=input(msg)
         return str2coordinates(rawstr)
@@ -97,12 +105,14 @@ def drawInfo():
         print("* 玩家数:{}/{}".format(len([i for i in players if i.alive]),len(players)))
 def drawPlayers():
         global players
+        display_index=1
         for i in players:
-                print(i.name,end="\t:")
+                print("玩家"+str(display_index)+"  "+i.name,end="\t:")
                 if i.alive:
                         print("生命 {};能量 {}".format(i.life,i.energy))
                 else:
                         print("已死亡")
+                display_index+=1
 def drawMap():
         global game_map,special_blocks
         display_map=[i[:] for i in game_map]
@@ -176,7 +186,8 @@ except MapError:
         print("[错误]map.txt格式错误！")
         exit(103)
 
-player_count = int(input("输入玩家数量："))
+if player_count==None:
+        player_count = int(input("输入玩家数量："))
 if player_count <= 1:
         print("[错误]玩家过少")
         exit(110)
@@ -213,16 +224,20 @@ running=True
 turn = 1
 current_player_id=0
 drawAll()
+random_step=random.choice(random_steps)
 while running:
+        print(globalVal.random_step)
         if current_player_id==len(players):
                 current_player_id=0
                 turn+=1
         if len([i for i in players if i.alive])==0:
                 print("？？？你们是怎么做到所有人都死亡的，能给我（作者）康康吗")
                 running=False
+                break
         if len([i for i in players if i.alive])==1:
                 print("游戏结束！\r\n玩家{} {}胜利！\r\n".format(players.index([i for i in players if i.alive][0])+1,[i for i in players if i.alive][0].name))
                 running=False
+                break
         while not players[current_player_id].alive:
                 current_player_id+=1
                 if current_player_id==len(players):
@@ -230,36 +245,9 @@ while running:
                         turn+=1
         current_player=players[current_player_id]
         print("玩家{}操作".format(current_player_id+1))
-        print("攻击：\"attack 玩家序号\"；移动：\"goto 坐标\"")
-        command=input().split(' ',1)
-        if len(command)!=2:
-                continue
-        if command[0]=='attack':
-                if int(command[1])-1==current_player_id:
-                        print("最好不要自刀，当然你要真想也可以...")
-                        sleep(1 if not DEBUG else 0)
-                current_player.attack(players[int(command[1])-1])
-        elif command[0]=='goto':
-                a,b=str2coordinates(command[1])
-                if not isBlockEmpty(a,b):
-                        print("此位置已被占用，请换一个位置。")
-                        continue
-                if current_player.pos==(a,b):
-                        print("我 走 我 自 己")
-                        continue
-                route=(astar.astar(gameMapWithPlayers(current_player),current_player.pos[0],current_player.pos[1],a,b))
-                if route==list():
-                        print("无法到达！")
-                        continue
-                if len(route)>1000:#TODO add shoes
-                        print("太远了！")
-                        continue
-                print("走法",end="：")
-                for i in route:
-                        print(i,end="")
-                print("")
-                current_player.pos=(a,b)
+        current_player.action()
         current_player_id+=1
+        random_step=random.choice(random_steps)
         cls()
         drawAll()
 os.system("pause")
