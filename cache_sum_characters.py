@@ -1,3 +1,8 @@
+# 警告：本文件是在每次运行时自动生成的，修改此文件没有任何意义
+from items import *
+
+
+# Code from base.py:
 class Player:
     name="默认角色"
     life = 80
@@ -23,3 +28,8 @@ class Player:
         self.update()
     def update(self):
         pass
+
+
+# Code from try1.py:
+class tryyy:
+    life = 1
