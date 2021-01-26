@@ -8,6 +8,8 @@ import os
 import importlib
 import codecs
 from items import *
+from time import sleep
+chesslist=["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"]
 current_file = os.path.abspath(__file__)
 current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 os.chdir(current_dir)
@@ -31,7 +33,7 @@ from cache_sum_characters import *
 #print(tester2.life)
 
 
-DEBUG = False
+DEBUG = True
 
 
 class GameError(RuntimeError):
@@ -72,26 +74,41 @@ def cls():
                 cls_return_value_handler = os.system("clear")
 
 
+def str2coordinates(s):
+        try:
+                s=s.replace("(","").replace(")","")
+                s=s.replace(","," ")
+                a,b=[int(i) for i in s.split()]
+                return (a,b)
+        except:
+                return inputCoordinates(msg="坐标非法，请重输：")
 def inputCoordinates(msg=""):
         rawstr=input(msg)
-        rawstr=rawstr.replace("(","").replace(")","")
-        rawstr=rawstr.replace(","," ")
-        a,b=[int(i) for i in rawstr.split()]
-        return (a,b)
+        return str2coordinates(rawstr)
 def drawAll():
         drawInfo()
+        print("")
         drawPlayers()
+        print("")
         drawMap()
 def drawInfo():
-        pass
+        global turn,players,current_player
+        print("* 第{}轮".format(turn))
+        print("* 玩家数:{}/{}".format(len([i for i in players if i.alive]),len(players)))
 def drawPlayers():
-        pass
+        global players
+        for i in players:
+                print(i.name,end="\t:")
+                if i.alive:
+                        print("生命 {};能量 {}".format(i.life,i.energy))
+                else:
+                        print("已死亡")
 def drawMap():
         global game_map,special_blocks
-        display_map=game_map
+        display_map=[i[:] for i in game_map]
         for i in range(len(players)):
                 if players[i].alive:
-                        display_map[players[i].pos[0]]=display_map[players[i].pos[0]][:players[i].pos[1]]+chr(ord('A')+i)+" "+display_map[players[i].pos[0]][players[i].pos[1]+1:]
+                        display_map[players[i].pos[0]]=display_map[players[i].pos[0]][:players[i].pos[1]]+chesslist[i]+display_map[players[i].pos[0]][players[i].pos[1]+1:]
                         #same as display_map[players[i].pos[0]][players[i].pos[1]]=chr(ord('A')+i)
         for i in special_blocks:
                 if display_map[i[0]][i[1]]=='0':
@@ -100,6 +117,9 @@ def drawMap():
         for i in display_map:
                 print(i)
 def isBlockEmpty(a,b=None):
+        global chang,kuan
+        if a>=kuan or b>=chang:
+                return False
         if type(a)==tuple or type(a)==list:
                 a,b=a
         global players,game_map
@@ -179,9 +199,44 @@ for i in range(player_count):
         drawMap()
 cls()
 print("#############")
-print("#  游戏开始  #")
-print("############")
+print("#  游戏开始 #")
+print("#############")
+running=True
+turn = 1
+current_player=0
 drawAll()
-
+while running:
+        if current_player==len(players):
+                current_player=0
+                turn+=1
+        if len([i for i in players if i.alive])==0:
+                print("？？？你们是怎么做到所有人都死亡的，能给我（作者）康康吗")
+                running=False
+        if len([i for i in players if i.alive])==1:
+                print("游戏结束！\r\n玩家{} {}胜利！\r\n".format(players.index([i for i in players if i.alive][0])+1,[i for i in players if i.alive][0].name))
+                running=False
+        while not players[current_player].alive:
+                current_player+=1
+                if current_player==len(players):
+                        current_player=0
+                        turn+=1
+        print("玩家{}操作".format(current_player+1))
+        print("攻击：\"attack 玩家序号\"；移动：\"goto 坐标\"")
+        command=input().split(' ',1)
+        if len(command)!=2:
+                continue
+        if command[0]=='attack':
+                if int(command[1])-1==current_player:
+                        print("最好不要自刀，当然你要真想也可以...")
+                        sleep(1 if not DEBUG else 0)
+                players[current_player].attack(players[int(command[1])-1])
+        elif command[0]=='goto':
+                a,b=str2coordinates(command[1])
+                while not isBlockEmpty(a,b):
+                        a,b=inputCoordinates("此位置已被占用，请换一个位置：")
+                players[current_player].pos=(a,b)
+        current_player+=1
+        cls()
+        drawAll()
 os.system("pause")
 exit(0)

@@ -33,3 +33,8 @@ class Player:
 # Code from try1.py:
 class tryyy:
     life = 1
+
+# Code from 李逵.py:
+class likui(Player):
+    life=80
+    energy=0
