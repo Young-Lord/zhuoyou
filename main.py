@@ -11,6 +11,8 @@ from items import *
 current_file = os.path.abspath(__file__)
 current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 os.chdir(current_dir)
+players=list()
+special_blocks=list()
 # importing characters
 characters=os.listdir(os.path.join(os.getcwd(),"characters"))
 characters=[i.replace(".py","") for i in characters if i[-3:]=='.py']
@@ -70,6 +72,19 @@ def cls():
                 cls_return_value_handler = os.system("clear")
 
 
+def drawMap():
+        global game_map,special_blocks
+        display_map=game_map
+        for i in range(len(players)):
+                if players[i].alive:
+                        display_map[players[i].pos[0],players[i].pos[1]]=chr(ord('A')+i)
+        for i in special_blocks:
+                if display_map[i[0]][i[1]]=='0':
+                        display_map[i[0]][i[1]]='O'
+        display_map=[i.replace("0", "□").replace("1", "■") for i in display_map]
+        for i in display_map:
+                print(i)
+
 print("你正在使用的系统是：{}".format(platform.platform()))
 is_windows = (platform.platform().find("Windows")) != -1
 print("Python版本：{}".format(platform.python_version()))
@@ -77,27 +92,27 @@ print("程序目录：{}".format(current_dir))
 
 try:
         map_file = open("map.txt", "r")
-        map = [i.strip() for i in map_file.readlines()]
+        game_map = [i.strip() for i in map_file.readlines()]
         map_file.close()
 except IOError:
         print("[错误]请将map.txt放在程序目录下！")
         exit(101)
 
 try:
-        if len(map) <= 2:
+        if len(game_map) <= 2:
                 raise MapError
         else:
-                if len(map[0]) <= 2:
+                if len(game_map[0]) <= 2:
                         raise MapError
 except MapError:
         print("[错误]地图过小！")
         exit(102)
 
-chang = len(map[0])
-kuan = len(map)
+chang = len(game_map[0])
+kuan = len(game_map)
 
 try:
-        for i in map:
+        for i in game_map:
                 if len(i) != chang:
                         raise MapError
                 for j in i:
@@ -116,7 +131,7 @@ if player_count > 10:
         exit(110)
 void_block = 0
 try:
-        for i in map:
+        for i in game_map:
                 void_block += i.count('0')
         if void_block < player_count:
                 raise MapError
@@ -126,7 +141,7 @@ except MapError:
 
 print("[信息]成功加载大小为{}x{}的地图".format(chang, kuan))
 cls()
-for i in map:
-        print(i.replace("0", "□").replace("1", "■"))
+drawMap()
+
 
 exit(0)
