@@ -4,7 +4,7 @@ None:{"name":"无","value":5,"count":"0","distance":1},
 "测试-伤害15":{"name":"测试2","value":"15","count":"0","distance":5},
 "屠龙宝刀":{"name":"屠龙宝刀1","value":"1000","count":"0","distance":100}
     }
-armors={
+shields={
 None:{"name":"无","value":0,"count":"0"},
 "测试-防御1":{"name":"测试1","value":1,"count":"0"},
 "测试-防御3":{"name":"测试2","value":3,"count":"0"}

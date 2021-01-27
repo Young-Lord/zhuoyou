@@ -10,7 +10,7 @@ class Player:
     item = list()
     buff = list() # 这是存各种技能的标记（如“义”）用的
     weapon = None
-    armor=None
+    shield=None
     shoe=None
     attack_add = 0 #先add在percent
     attack_percent = 100
@@ -18,7 +18,7 @@ class Player:
     damage_percent = 100
     speed_add = 0
     random_step=0
-    actions_bak={"attack":{"name":"攻击","arg":"玩家序号","count":1},"goto":{"name":"移动","arg":"坐标","count":1},"info":{"name":"查看","arg":"","count":-1},"use":{"name":"使用","arg":"物品ID","count":-1},"end":{"name":"结束回合","arg":"","count":1}}
+    self.actions_bak={"attack":{"name":"攻击","arg":"玩家序号","count":1},"goto":{"name":"移动","arg":"坐标","count":1},"info":{"name":"查看","arg":"","count":-1},"use":{"name":"使用","arg":"物品ID","count":-1},"end":{"name":"结束回合","arg":"","count":1}}
     def __init__(self):
         self.actions=dict()
         for i in self.actions_bak.keys():
@@ -77,7 +77,7 @@ class Player:
                 print("此位置已被占用，请换一个位置。")
                 return
             if self.pos==(a,b):
-                actions[command[0]]["count"]-=1
+                self.actions[command[0]]["count"]-=1
                 return
             route=(astar.astar(gameMapWithPlayers(self),self.pos[0],self.pos[1],a,b))
             if route==list():
@@ -113,8 +113,8 @@ class Player:
         target.damage((weapons[self.weapon]["value"]+self.attack_add)*self.attack_percent//100)
         self.update()
     def damage(self,value):
-        if ((value-armors[self.armor]["value"]-self.damage_minus)*self.damage_percent//100)>0:
-            self.life-=(value-armors[self.armor]["value"]-self.damage_minus)*self.damage_percent//100
+        if ((value-shields[self.shield]["value"]-self.damage_minus)*self.damage_percent//100)>0:
+            self.life-=(value-shields[self.shield]["value"]-self.damage_minus)*self.damage_percent//100
         self.update()
     def update(self):
         if self.life<=0:
