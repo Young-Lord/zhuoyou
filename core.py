@@ -215,6 +215,11 @@ current_player_id=0
 drawAll()
 random_step=random.choice(random_steps)
 while running:
+        current_player=players[current_player_id]
+        print("玩家{}操作".format(current_player_id+1))
+        current_player.random_step=random_step
+        current_player.round()
+        current_player_id+=1
         if current_player_id==len(players):
                 current_player_id=0
                 turn+=1
@@ -231,11 +236,6 @@ while running:
                 if current_player_id==len(players):
                         current_player_id=0
                         turn+=1
-        current_player=players[current_player_id]
-        print("玩家{}操作".format(current_player_id+1))
-        current_player.random_step=random_step
-        current_player.action()
-        current_player_id+=1
         cls()
         drawAll()
 os.system("pause")
