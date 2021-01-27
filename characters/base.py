@@ -1,19 +1,3 @@
-import random
-from time import sleep
-from items import *
-import astar
-from game_config import *
-from glo import globalVal
-players=globalVal.players
-special_blocks=globalVal.special_blocks
-DEBUG=globalVal.DEBUG
-isBlockEmpty=globalVal.isBlockEmpty
-gameMapWithPlayers=globalVal.gameMapWithPlayers
-random_step=globalVal.random_step
-
-def getJuli(pos1,pos2):
-    return abs(pos1[0]-pos2[0])+abs(pos1[1]-pos2[1])
-
 class Player:
     name="默认角色"
     life = 80
@@ -33,18 +17,25 @@ class Player:
     damage_minus = 0
     damage_percent = 100
     speed_add = 0
+    random_step=0
     def action(self):
-        global players,DEBUG,random_step
+        global players,DEBUG
         print("攻击：\"attack 玩家序号\"；移动：\"goto 坐标\"")
-        print("你可以走的距离为："+str(random_step+shoes[self.shoe]["value"]+self.speed_add))
+        print("你可以走的距离为："+str(self.random_step+shoes[self.shoe]["value"]+self.speed_add))
         command=input().split(' ',1)
         if len(command)!=2:
             return self.action()
         if command[0]=='attack':
             if players[int(command[1])-1]==self:
+                self.attack(self)
                 print("最好不要自刀，当然你要真想也可以...")
                 sleep(1 if not DEBUG else 0)
-            if getJuli(players[int(command[1])-1].pos,self.pos)>weapons[self.weapon]["distance"]:
+                return
+            route=(astar.astar(gameMapWithPlayers(self,players[int(command[1])-1]),self.pos[0],self.pos[1],players[int(command[1])-1].pos[0],players[int(command[1])-1].pos[1]))
+            if route==list():
+                print("无法到达！")
+                return self.action()
+            if len(route)>weapons[self.weapon]["distance"]:
                 print("太远了！")
                 return self.action()
             self.attack(players[int(command[1])-1])
@@ -64,7 +55,7 @@ class Player:
             if route==list():
                 print("无法到达！")
                 return self.action()
-            if len(route)>(random_step+shoes[self.shoe]["value"]+self.speed_add):
+            if len(route)>(self.random_step+shoes[self.shoe]["value"]+self.speed_add):
                 print("太远了！")
                 return self.action()
             print("走法",end="：")
@@ -92,5 +83,6 @@ class Player:
     def end_of_round(self):
         self.energy+=10
         self.update()
+        
 
 
