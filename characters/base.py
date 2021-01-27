@@ -12,6 +12,7 @@ class Player:
     weapon = None
     shield=None
     shoe=None
+    energy_book
     attack_add = 0 #先add在percent
     attack_percent = 100
     damage_minus = 0
