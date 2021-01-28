@@ -2,8 +2,6 @@
 # 桌游_命令行
 # -*- coding: UTF-8 -*-
 
-DEBUG=True
-
 import platform
 
 import sys
@@ -53,6 +51,7 @@ def exit(code):
 def cls():
         global is_windows
         if DEBUG:
+                print("######cls#####")
                 return
         if is_windows:
                 cls_return_value_handler = os.system("cls")

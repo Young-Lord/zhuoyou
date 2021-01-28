@@ -37,6 +37,7 @@ class Player:
     def round(self):
         global random_step
         self.random_step=random_step
+        print("="*10)
         if len(cards)>get_cards:
             for i in range(get_cards):
                 selected=random.choice(cards)
@@ -44,18 +45,21 @@ class Player:
                 cards.remove(selected)
                 self.item.append(selected)
         while self.actions["end"]["count"]:
-            #print("HELLO!")
             self.action()
         self.end_of_round()
     def action(self):
         global players,DEBUG
+        print("="*10)
         for i in list(self.actions.keys()):
             if self.actions[i]["count"]!=0:
                 print("{}：{} {}".format(self.actions[i]["name"],i,self.actions[i]["arg"]))
         if self.actions["goto"]["count"]!=0:
             print("你可以走的距离为："+str(self.random_step+shoes[self.shoe]["value"]+self.speed_add))
         command=input().split(' ',1)
-        if (command[0] not in list(self.actions.keys())) and command[0].find("debug")=="-1":
+        cls()
+        drawAll()
+        print("="*10)
+        if (command[0] not in list(self.actions.keys())) and command[0].find("debug")==-1:
             print("未知命令")
             return
         if command[0].find("debug")=="-1" and self.actions[command[0]]["count"]==0:
@@ -66,9 +70,6 @@ class Player:
                 self.attack(self)
                 self.actions[command[0]]["count"]-=1
                 print("最好不要自刀，当然你要真想也可以...")
-                cls()
-                drawAll()
-                sleep(1 if not DEBUG else 0)
                 return
             route=(astar.astar(gameMapWithPlayers(self,players[int(command[1])-1]),self.pos[0],self.pos[1],players[int(command[1])-1].pos[0],players[int(command[1])-1].pos[1]))
             if route==list():
@@ -79,8 +80,6 @@ class Player:
                 return
             self.attack(players[int(command[1])-1])
             self.actions[command[0]]["count"]-=1
-            cls()
-            drawAll()
         elif command[0]=='goto':
             try:
                 command[1]=command[1].replace("(","").replace(")","")
@@ -332,7 +331,10 @@ class steal:
             print("太远了！")
             return True
         i=0
-        while [i.value for i in target.item].count(None)!=len(target.item) and i<self.value:
+        if len(target.item)==0:
+            print("他的背包什么都没有！")
+            return True
+        while len(target.item)!=0 and i<self.value:
             selected=random.choice(target.item)
             while selected.value==None:
                 selected=random.choice(target.item)
@@ -356,7 +358,7 @@ class kp:
 random_steps = [1,2,3,4,5,6]#这里是可能随机得到的步数列表
 player_count = 2#这是固定的玩家数，如果要固定就将None改为玩家数，否则写None
 get_cards = 2#每局摸牌数
-DEBUG=False#是否开启调试模式，True是“是”，False是“否”
+DEBUG=True#是否开启调试模式，True是“是”，False是“否”
 cards_dict={"drug":1,
             "tlbd":2,
             "shoe":2,
@@ -385,8 +387,6 @@ cards=eval(cards)
 # https://www.jianshu.com/p/8e508c6a05ce
 # 桌游_命令行
 # -*- coding: UTF-8 -*-
-
-DEBUG=True
 
 import platform
 
@@ -437,6 +437,7 @@ def exit(code):
 def cls():
         global is_windows
         if DEBUG:
+                print("######cls#####")
                 return
         if is_windows:
                 cls_return_value_handler = os.system("cls")

@@ -33,6 +33,7 @@ class Player:
     def round(self):
         global random_step
         self.random_step=random_step
+        print("="*10)
         if len(cards)>get_cards:
             for i in range(get_cards):
                 selected=random.choice(cards)
@@ -40,18 +41,21 @@ class Player:
                 cards.remove(selected)
                 self.item.append(selected)
         while self.actions["end"]["count"]:
-            #print("HELLO!")
             self.action()
         self.end_of_round()
     def action(self):
         global players,DEBUG
+        print("="*10)
         for i in list(self.actions.keys()):
             if self.actions[i]["count"]!=0:
                 print("{}：{} {}".format(self.actions[i]["name"],i,self.actions[i]["arg"]))
         if self.actions["goto"]["count"]!=0:
             print("你可以走的距离为："+str(self.random_step+shoes[self.shoe]["value"]+self.speed_add))
         command=input().split(' ',1)
-        if (command[0] not in list(self.actions.keys())) and command[0].find("debug")=="-1":
+        cls()
+        drawAll()
+        print("="*10)
+        if (command[0] not in list(self.actions.keys())) and command[0].find("debug")==-1:
             print("未知命令")
             return
         if command[0].find("debug")=="-1" and self.actions[command[0]]["count"]==0:
@@ -62,9 +66,6 @@ class Player:
                 self.attack(self)
                 self.actions[command[0]]["count"]-=1
                 print("最好不要自刀，当然你要真想也可以...")
-                cls()
-                drawAll()
-                sleep(1 if not DEBUG else 0)
                 return
             route=(astar.astar(gameMapWithPlayers(self,players[int(command[1])-1]),self.pos[0],self.pos[1],players[int(command[1])-1].pos[0],players[int(command[1])-1].pos[1]))
             if route==list():
@@ -75,8 +76,6 @@ class Player:
                 return
             self.attack(players[int(command[1])-1])
             self.actions[command[0]]["count"]-=1
-            cls()
-            drawAll()
         elif command[0]=='goto':
             try:
                 command[1]=command[1].replace("(","").replace(")","")
@@ -103,8 +102,6 @@ class Player:
             print("")
             self.pos=(a,b)
             self.actions[command[0]]["count"]-=1
-            cls()
-            drawAll()
         elif command[0]=='end':
             self.actions[command[0]]["count"]-=1
             return
