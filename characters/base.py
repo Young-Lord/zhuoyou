@@ -4,6 +4,7 @@ class Player:
     max_life = 80
     energy = 80
     max_energy = 80
+    max_energy_bak = 80
     pos = (-1, -1)
     alive = True
     team = 0
@@ -12,16 +13,19 @@ class Player:
     weapon = None
     shield=None
     shoe=None
-    energy_book
+    energy_book=None
     attack_add = 0 #先add在percent
     attack_percent = 100
     damage_minus = 0
     damage_percent = 100
     speed_add = 0
     random_step=0
-    self.actions_bak={"attack":{"name":"攻击","arg":"玩家序号","count":1},"goto":{"name":"移动","arg":"坐标","count":1},"info":{"name":"查看","arg":"","count":-1},"use":{"name":"使用","arg":"物品ID","count":-1},"end":{"name":"结束回合","arg":"","count":1}}
+    actions_bak={"attack":{"name":"攻击","arg":"玩家序号","count":1},"goto":{"name":"移动","arg":"坐标","count":1},"item":{"name":"查看背包","arg":"","count":-1},"use":{"name":"使用","arg":"物品ID (目标ID(如果有的话))","count":-1},"end":{"name":"结束回合","arg":"","count":1}}
     def __init__(self):
         self.actions=dict()
+        self.item = list()
+        buff = list()
+        #WARNING: 每个可变对象（list,dict）等都必须在这里初始化，否则不同的实例会共享一个对象
         for i in self.actions_bak.keys():
             self.actions[i]=self.actions_bak[i].copy()
         self.life=self.max_life
@@ -29,6 +33,12 @@ class Player:
     def round(self):
         global random_step
         self.random_step=random_step
+        if len(cards)>get_cards:
+            for i in range(get_cards):
+                selected=random.choice(cards)
+                print("你摸到了1张"+selected.name+"！")
+                cards.remove(selected)
+                self.item.append(selected)
         while self.actions["end"]["count"]:
             #print("HELLO!")
             self.action()
@@ -41,10 +51,10 @@ class Player:
         if self.actions["goto"]["count"]!=0:
             print("你可以走的距离为："+str(self.random_step+shoes[self.shoe]["value"]+self.speed_add))
         command=input().split(' ',1)
-        if command[0] not in list(self.actions.keys()):
+        if (command[0] not in list(self.actions.keys())) and command[0].find("debug")=="-1":
             print("未知命令")
             return
-        if self.actions[command[0]]["count"]==0:
+        if command[0].find("debug")=="-1" and self.actions[command[0]]["count"]==0:
             print("你已经进行过此操作了！")
             return
         if command[0]=='attack':
@@ -98,16 +108,48 @@ class Player:
         elif command[0]=='end':
             self.actions[command[0]]["count"]-=1
             return
-        elif command[0]=='info':
+        elif command[0]=='item':
             if self.item==list():
                 print("你的背包什么都没有！")
             else:
                 print("你的背包的物品为：")
-                print("未开发")
+                unnamed_id=1
                 for i in self.item:
-                    print(i)#TODO add item
+                    print(unnamed_id,end=" ")
+                    unnamed_id+=1
+                    print(i.name)
         elif command[0]=='use':
-            print("未开发")
+            command=command[1].split()
+            command[0]=int(command[0])
+            if command[0]>len(self.item):
+                print("此ID的物品不存在！")
+                return
+            return_value=True
+            try:
+                return_value=self.item[command[0]-1].use(self,players[int(command[1])-1])
+            except IndexError:
+                try:
+                    return_value=self.item[command[0]-1].use(self)
+                except TypeError:
+                    print("你没有指定目标！")
+            if return_value!=True:
+                self.item.pop(command[0]-1)
+        elif command[0]=='debug_eval':
+            command=command[1]
+            eval(command)
+        elif command[0]=='debug_showitem':
+            command=command[1].split()
+            command[0]=int(command[0])
+            target=players[command[0]-1]
+            if target.item==list():
+                print("他的背包什么都没有！")
+            else:
+                print("他的背包的物品为：")
+                unnamed_id=1
+                for i in target.item:
+                    print(unnamed_id,end=" ")
+                    unnamed_id+=1
+                    print(i.name)
         else:
             print("你遇到bug了！告诉作者！")
     def attack(self, target):
@@ -122,6 +164,7 @@ class Player:
             self.alive=False
         if self.life>self.max_life:
             self.life=self.max_life
+        self.max_energy=self.max_energy_bak+energy_books[self.energy_book]["value"]
         if self.energy>self.max_energy:
             self.energy=self.max_energy
     def end_of_round(self):

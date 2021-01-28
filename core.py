@@ -12,9 +12,7 @@ import codecs
 from time import sleep
 import random
 
-from items import *
 import astar
-from game_config import *
 chesslist=["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"]
 current_file = os.path.abspath(__file__)
 current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -136,6 +134,9 @@ def inputPlayerCount():
         except:
                 return inputPlayerCount()
 def getDistance(pos1,pos2):
+        if type(pos1)!=tuple and type(pos1)!=list:
+                pos1=pos1.pos
+                pos2=pos2.pos
         return abs(pos1[0]-pos2[0])+abs(pos1[1]-pos2[1])
 
 print("你正在使用的系统是：{}".format(platform.platform()))
@@ -213,8 +214,8 @@ running=True
 turn = 1
 current_player_id=0
 drawAll()
-random_step=random.choice(random_steps)
 while running:
+        random_step=random.choice(random_steps)
         current_player=players[current_player_id]
         print("玩家{}操作".format(current_player_id+1))
         current_player.random_step=random_step

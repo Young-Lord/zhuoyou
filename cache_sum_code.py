@@ -1,6 +1,6 @@
 # 警告：本文件是在每次运行时自动生成的，修改此文件没有任何意义
 
-# Code from base.py:
+#@# Code from base.py:
 
 class Player:
     name="默认角色"
@@ -8,6 +8,7 @@ class Player:
     max_life = 80
     energy = 80
     max_energy = 80
+    max_energy_bak = 80
     pos = (-1, -1)
     alive = True
     team = 0
@@ -16,15 +17,19 @@ class Player:
     weapon = None
     shield=None
     shoe=None
+    energy_book=None
     attack_add = 0 #先add在percent
     attack_percent = 100
     damage_minus = 0
     damage_percent = 100
     speed_add = 0
     random_step=0
-    self.actions_bak={"attack":{"name":"攻击","arg":"玩家序号","count":1},"goto":{"name":"移动","arg":"坐标","count":1},"info":{"name":"查看","arg":"","count":-1},"use":{"name":"使用","arg":"物品ID","count":-1},"end":{"name":"结束回合","arg":"","count":1}}
+    actions_bak={"attack":{"name":"攻击","arg":"玩家序号","count":1},"goto":{"name":"移动","arg":"坐标","count":1},"item":{"name":"查看背包","arg":"","count":-1},"use":{"name":"使用","arg":"物品ID (目标ID(如果有的话))","count":-1},"end":{"name":"结束回合","arg":"","count":1}}
     def __init__(self):
         self.actions=dict()
+        self.item = list()
+        buff = list()
+        #WARNING: 每个可变对象（list,dict）等都必须在这里初始化，否则不同的实例会共享一个对象
         for i in self.actions_bak.keys():
             self.actions[i]=self.actions_bak[i].copy()
         self.life=self.max_life
@@ -32,6 +37,12 @@ class Player:
     def round(self):
         global random_step
         self.random_step=random_step
+        if len(cards)>get_cards:
+            for i in range(get_cards):
+                selected=random.choice(cards)
+                print("你摸到了1张"+selected.name+"！")
+                cards.remove(selected)
+                self.item.append(selected)
         while self.actions["end"]["count"]:
             #print("HELLO!")
             self.action()
@@ -44,10 +55,10 @@ class Player:
         if self.actions["goto"]["count"]!=0:
             print("你可以走的距离为："+str(self.random_step+shoes[self.shoe]["value"]+self.speed_add))
         command=input().split(' ',1)
-        if command[0] not in list(self.actions.keys()):
+        if (command[0] not in list(self.actions.keys())) and command[0].find("debug")=="-1":
             print("未知命令")
             return
-        if self.actions[command[0]]["count"]==0:
+        if command[0].find("debug")=="-1" and self.actions[command[0]]["count"]==0:
             print("你已经进行过此操作了！")
             return
         if command[0]=='attack':
@@ -101,16 +112,48 @@ class Player:
         elif command[0]=='end':
             self.actions[command[0]]["count"]-=1
             return
-        elif command[0]=='info':
+        elif command[0]=='item':
             if self.item==list():
                 print("你的背包什么都没有！")
             else:
                 print("你的背包的物品为：")
-                print("未开发")
+                unnamed_id=1
                 for i in self.item:
-                    print(i)#TODO add item
+                    print(unnamed_id,end=" ")
+                    unnamed_id+=1
+                    print(i.name)
         elif command[0]=='use':
-            print("未开发")
+            command=command[1].split()
+            command[0]=int(command[0])
+            if command[0]>len(self.item):
+                print("此ID的物品不存在！")
+                return
+            return_value=True
+            try:
+                return_value=self.item[command[0]-1].use(self,players[int(command[1])-1])
+            except IndexError:
+                try:
+                    return_value=self.item[command[0]-1].use(self)
+                except TypeError:
+                    print("你没有指定目标！")
+            if return_value!=True:
+                self.item.pop(command[0]-1)
+        elif command[0]=='debug_eval':
+            command=command[1]
+            eval(command)
+        elif command[0]=='debug_showitem':
+            command=command[1].split()
+            command[0]=int(command[0])
+            target=players[command[0]-1]
+            if target.item==list():
+                print("他的背包什么都没有！")
+            else:
+                print("他的背包的物品为：")
+                unnamed_id=1
+                for i in target.item:
+                    print(unnamed_id,end=" ")
+                    unnamed_id+=1
+                    print(i.name)
         else:
             print("你遇到bug了！告诉作者！")
     def attack(self, target):
@@ -125,6 +168,7 @@ class Player:
             self.alive=False
         if self.life>self.max_life:
             self.life=self.max_life
+        self.max_energy=self.max_energy_bak+energy_books[self.energy_book]["value"]
         if self.energy>self.max_energy:
             self.energy=self.max_energy
     def end_of_round(self):
@@ -135,22 +179,209 @@ class Player:
         
 
 
-# Code from try1.py:
+#@# Code from try1.py:
 
 class tryyy:
-    life = 1# Code from 李逵.py:
+    life = 1#@# Code from 李逵.py:
 
 class likui(Player):
     life=80
     max_life=80
     energy=0
     max_energy=0
+    max_energy_bak=0
     def update(self):
         if life<=0:
             self.alive=False
         energy=0
         max_energy=0
-# Core code:
+    actions_bak={"attack":{"name":"攻击","arg":"玩家序号","count":3},"goto":{"name":"移动","arg":"坐标","count":1},"info":{"name":"查看","arg":"","count":-1},"use":{"name":"使用","arg":"物品ID","count":-1},"end":{"name":"结束回合","arg":"","count":1}}
+
+#@# Items:
+import astar
+import random
+
+weapons={
+None:{"name":"无","value":5,"distance":1},
+"测试-伤害10":{"name":"测试1","value":10,"distance":3},
+"测试-伤害15":{"name":"测试2","value":15,"distance":5},
+"屠龙宝刀":{"name":"屠龙宝刀1","value":1000,"distance":100}
+    }
+shields={
+None:{"name":"无","value":0},
+"盾牌":{"name":"盾牌","value":1},
+"测试-防御3":{"name":"测试2","value":3}
+    }
+shoes={
+None:{"name":"无","value":0},
+"鞋子":{"name":"鞋子","value":3},
+"测试-加速1":{"name":"测试1","value":1},
+"测试-加速3":{"name":"测试2","value":3}
+    }
+energy_books={
+None:{"name":"无","value":0},
+"魔法书":{"name":"魔法书","value":3}
+    }
+#-药- -武器- -鞋子- -盾牌- -能量书- ~钩爪~ ~偷窃~ -五雷天罡法- ~无懈可击(被动)~
+class drug:
+    name="药"
+    value=5
+    def use(self,sender,*arg):
+        sender.life+=self.value
+        sender.update()
+
+class weapon:
+    name="武器_父类"
+    value="测试-伤害10"
+    def use(self,sender,*arg):
+        sender.weapon=self.value
+class weapon_None(weapon):
+    name="不使用武器"
+    value=None
+class tlbd(weapon):
+    name="屠龙宝刀"
+    value="屠龙宝刀"
+
+class shoe:
+    name="鞋子"
+    value="鞋子"
+    def use(self,sender,*arg):
+        sender.shoe=self.value
+class shoe_None(shoe):
+    name="不使用鞋子"
+    value=None
+
+class shield:
+    name="盾牌"
+    value="盾牌"
+    def use(self,sender,*arg):
+        sender.shield=self.value
+class shield_None(shield):
+    name="不使用盾牌"
+    value=None
+
+class energy_book:
+    name="魔法书"
+    value="魔法书"
+    def use(self,sender,*arg):
+        sender.energy_book=self.value
+class energy_book_None(energy_book):
+    name="不使用能量书"
+    value=None
+
+#直线上没有障碍物：偷窃必须，五雷天罡法可以没有
+class remote_attack:
+    name="远程攻击_父类"
+    value=1
+    distance=1
+    def use(self,sender,target,*arg):
+        route=(astar.astar(gameMapWithPlayers(sender,target),sender.pos[0],sender.pos[1],target.pos[0],target.pos[1]))
+        if route==list():
+            print("无法到达！")
+            return True
+        if len(route)>self.distance:
+            print("太远了！")
+            return True
+        target.damage(self.value)
+        sender.update()
+class wltg(remote_attack):
+    name="五雷天罡法"
+    value=30
+    distance=5
+    def use(self,sender,target,*arg):
+        if sender==target:
+            print("别对自己下手！")
+            return True
+        if getDistance(sender.pos,target.pos)>self.distance:
+            print("太远了！")
+            return True
+        target.damage(self.value)
+        sender.update()
+class gz(remote_attack):
+    name="钩爪"
+    value=10
+    distance=4
+    def use(self,sender,target,*arg):
+        if sender==target:
+            print("别对自己下手！")
+            return True
+        print("***几何什么的最烦了 钩爪拐弯就随他吧！")
+        route=(astar.astar(gameMapWithPlayers(sender,target),sender.pos[0],sender.pos[1],target.pos[0],target.pos[1]))
+        if route==list():
+            print("无法到达！")
+            return True
+        if len(route)>self.distance:
+            print("太远了！")
+            return True
+        target.damage(self.value)
+        sender.update()
+
+class steal:
+    name="偷窃"
+    value=2
+    distance=5
+    def use(self,sender,target,*arg):
+        if sender==target:
+            print("别对自己下手！")
+            return True
+        route=(astar.astar(gameMapWithPlayers(sender,target),sender.pos[0],sender.pos[1],target.pos[0],target.pos[1]))
+        if route==list():
+            print("无法到达！")
+            return True
+        if len(route)>self.distance:
+            print("太远了！")
+            return True
+        i=0
+        while [i.value for i in target.item].count(None)!=len(target.item) and i<self.value:
+            selected=random.choice(target.item)
+            while selected.value==None:
+                selected=random.choice(target.item)
+            print("* 你偷到了他的"+selected.name+"!")
+            i+=1
+            sender.item.append(selected)
+            target.item.remove(selected)
+            sender.update()
+            target.update()
+
+class kp:
+    name="看破"
+    value=1
+    def use(self,*arg):
+        print("这张牌属于被动牌！")
+        return True
+
+
+#@# Configs:
+#“#”号后面的内容没有实际作用，只用于说明
+random_steps = [1,2,3,4,5,6]#这里是可能随机得到的步数列表
+player_count = 2#这是固定的玩家数，如果要固定就将None改为玩家数，否则写None
+get_cards = 2#每局摸牌数
+DEBUG=False#是否开启调试模式，True是“是”，False是“否”
+cards_dict={"drug":1,
+            "tlbd":2,
+            "shoe":2,
+            "shield":2,
+            "energy_book":2,
+            "wltg":2,
+            "steal":2,
+            "gz":2,
+            "kp":2
+            }
+#这是牌堆
+            
+
+
+#不要修改下面的内容
+if type(random_steps)==int:
+    random_steps=list(random_steps)
+cards="["
+for i in cards_dict.keys():
+    cards+=(i+"(),")*cards_dict[i]
+cards+="]"
+cards=eval(cards)
+
+
+#@# Core code:
 # https://www.jianshu.com/p/8e508c6a05ce
 # 桌游_命令行
 # -*- coding: UTF-8 -*-
@@ -165,9 +396,7 @@ import codecs
 from time import sleep
 import random
 
-from items import *
 import astar
-from game_config import *
 chesslist=["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"]
 current_file = os.path.abspath(__file__)
 current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -289,6 +518,9 @@ def inputPlayerCount():
         except:
                 return inputPlayerCount()
 def getDistance(pos1,pos2):
+        if type(pos1)!=tuple and type(pos1)!=list:
+                pos1=pos1.pos
+                pos2=pos2.pos
         return abs(pos1[0]-pos2[0])+abs(pos1[1]-pos2[1])
 
 print("你正在使用的系统是：{}".format(platform.platform()))
@@ -366,8 +598,8 @@ running=True
 turn = 1
 current_player_id=0
 drawAll()
-random_step=random.choice(random_steps)
 while running:
+        random_step=random.choice(random_steps)
         current_player=players[current_player_id]
         print("玩家{}操作".format(current_player_id+1))
         current_player.random_step=random_step

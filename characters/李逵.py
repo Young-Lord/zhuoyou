@@ -3,10 +3,11 @@ class likui(Player):
     max_life=80
     energy=0
     max_energy=0
+    max_energy_bak=0
     def update(self):
         if life<=0:
             self.alive=False
         energy=0
         max_energy=0
-    self.actions_bak={"attack":{"name":"攻击","arg":"玩家序号","count":3},"goto":{"name":"移动","arg":"坐标","count":1},"info":{"name":"查看","arg":"","count":-1},"use":{"name":"使用","arg":"物品ID","count":-1},"end":{"name":"结束回合","arg":"","count":1}}
+    actions_bak={"attack":{"name":"攻击","arg":"玩家序号","count":3},"goto":{"name":"移动","arg":"坐标","count":1},"info":{"name":"查看","arg":"","count":-1},"use":{"name":"使用","arg":"物品ID","count":-1},"end":{"name":"结束回合","arg":"","count":1}}
 
