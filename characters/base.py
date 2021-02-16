@@ -33,46 +33,51 @@ class Player:
     def round(self):
         global random_step
         self.random_step=random_step
-        print("="*10)
+        global error_hint
+        error_hint=""
         if len(cards)>get_cards:
+            print("="*10)
             for i in range(get_cards):
                 selected=random.choice(cards)
                 print("你摸到了1张"+selected.name+"！")
                 cards.remove(selected)
                 self.item.append(selected)
+            print("="*10)
         while self.actions["end"]["count"]:
+            if error_hint!="":
+                print("="*10)
+                print(error_hint)
+                print("="*10)
+            drawAll()
             self.action()
+            cls()
         self.end_of_round()
     def action(self):
-        global players,DEBUG
-        print("="*10)
+        global players,DEBUG,error_hint
         for i in list(self.actions.keys()):
             if self.actions[i]["count"]!=0:
                 print("{}：{} {}".format(self.actions[i]["name"],i,self.actions[i]["arg"]))
         if self.actions["goto"]["count"]!=0:
             print("你可以走的距离为："+str(self.random_step+shoes[self.shoe]["value"]+self.speed_add))
         command=input().split(' ',1)
-        cls()
-        drawAll()
-        print("="*10)
         if (command[0] not in list(self.actions.keys())) and command[0].find("debug")==-1:
-            print("未知命令")
+            error_hint="未知命令"
             return
         if command[0].find("debug")=="-1" and self.actions[command[0]]["count"]==0:
-            print("你已经进行过此操作了！")
+            error_hint="你已经进行过此操作了！"
             return
         if command[0]=='attack':
             if players[int(command[1])-1]==self:
                 self.attack(self)
                 self.actions[command[0]]["count"]-=1
-                print("最好不要自刀，当然你要真想也可以...")
+                error_hint="最好不要自刀，当然你要真想也可以..."
                 return
             route=(astar.astar(gameMapWithPlayers(self,players[int(command[1])-1]),self.pos[0],self.pos[1],players[int(command[1])-1].pos[0],players[int(command[1])-1].pos[1]))
             if route==list():
-                print("无法到达！")
+                error_hint="无法到达！"
                 return
             if len(route)>weapons[self.weapon]["distance"]:
-                print("太远了！")
+                error_hint="太远了！"
                 return
             self.attack(players[int(command[1])-1])
             self.actions[command[0]]["count"]-=1
@@ -84,22 +89,21 @@ class Player:
             except:
                 return
             if (not isBlockEmpty(a,b)) and self.pos!=(a,b):
-                print("此位置已被占用，请换一个位置。")
+                error_hint="此位置已被占用，请换一个位置。"
                 return
             if self.pos==(a,b):
                 self.actions[command[0]]["count"]-=1
                 return
             route=(astar.astar(gameMapWithPlayers(self),self.pos[0],self.pos[1],a,b))
             if route==list():
-                print("无法到达！")
+                error_hint="无法到达！"
                 return
             if len(route)>(self.random_step+shoes[self.shoe]["value"]+self.speed_add):
-                print("太远了！")
-                return self.action()
-            print("走法",end="：")
+                error_hint="太远了！"
+                return
+            error_hint="走法：\n"
             for i in route:
-                print(i,end="")
-            print("")
+                error_hint+=i
             self.pos=(a,b)
             self.actions[command[0]]["count"]-=1
         elif command[0]=='end':
@@ -107,19 +111,22 @@ class Player:
             return
         elif command[0]=='item':
             if self.item==list():
-                print("你的背包什么都没有！")
+                error_hint="你的背包什么都没有！"
             else:
-                print("你的背包的物品为：")
+                error_hint="你的背包的物品为：\n"
                 unnamed_id=1
                 for i in self.item:
-                    print(unnamed_id,end=" ")
+                    error_hint+=str(unnamed_id)+' '
                     unnamed_id+=1
-                    print(i.name)
+                    error_hint+=i.name+'\n'
         elif command[0]=='use':
             command=command[1].split()
             command[0]=int(command[0])
             if command[0]>len(self.item):
-                print("此ID的物品不存在！")
+                error_hint="此ID的物品不存在！"
+                return
+            if int(command[1])-1<0:
+                error_hint="玩家ID错误！"
                 return
             return_value=True
             try:
@@ -127,8 +134,8 @@ class Player:
             except IndexError:
                 try:
                     return_value=self.item[command[0]-1].use(self)
-                except TypeError:
-                    print("你没有指定目标！")
+                except IOError:
+                    error_hint="你没有指定目标！"
             if return_value!=True:
                 self.item.pop(command[0]-1)
         elif command[0]=='debug_eval':
@@ -139,16 +146,16 @@ class Player:
             command[0]=int(command[0])
             target=players[command[0]-1]
             if target.item==list():
-                print("他的背包什么都没有！")
+                error_hint="他的背包什么都没有！"
             else:
-                print("他的背包的物品为：")
+                error_hint="他的背包的物品为：\n"
                 unnamed_id=1
                 for i in target.item:
-                    print(unnamed_id,end=" ")
+                    error_hint+=str(unnamed_id)+' '
                     unnamed_id+=1
-                    print(i.name)
+                    error_hint+=i.name+'\n'
         else:
-            print("你遇到bug了！告诉作者！")
+            error_hint="你遇到bug了！告诉作者！"
     def attack(self, target):
         target.damage((weapons[self.weapon]["value"]+self.attack_add)*self.attack_percent//100)
         self.update()

@@ -17,6 +17,7 @@ current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 os.chdir(current_dir)
 players=list()
 special_blocks=list()
+error_hint=str()
 
 
 
@@ -50,6 +51,7 @@ def exit(code):
 
 def cls():
         global is_windows
+        global DEBUG
         if DEBUG:
                 print("######cls#####")
                 return
@@ -96,11 +98,10 @@ def drawMap():
         display_map=[i[:] for i in game_map]
         for i in range(len(players)):
                 if players[i].alive:
-                        display_map[players[i].pos[0]]=display_map[players[i].pos[0]][:players[i].pos[1]]+chesslist[i]+display_map[players[i].pos[0]][players[i].pos[1]+1:]
-                        #same as display_map[players[i].pos[0]][players[i].pos[1]]=chr(ord('A')+i)
+                        setblock(display_map,players[i].pos[0],players[i].pos[1],chesslist[i])
         for i in special_blocks:
                 if display_map[i[0]][i[1]]=='0':
-                        display_map[i[0]][i[1]]='O'
+                        setblock(display_map,i[0],i[1],'O')
         display_map=[i.replace("0", "□").replace("1", "■") for i in display_map]
         for i in display_map:
                 print(i)
@@ -124,8 +125,7 @@ def gameMapWithPlayers(*paichu):
         gen_map=[i[:] for i in game_map]
         for i in players:
                 if i.alive and (i not in paichu):
-                        gen_map[i.pos[0]]=gen_map[i.pos[0]][:i.pos[1]]+"1"+gen_map[i.pos[0]][i.pos[1]+1:]
-                        #same as gen_map[i.pos[0]][i.pos[1]]="1"
+                        setblock(gen_map,i.pos[0],i.pos[1],"1")
         return gen_map
 def inputPlayerCount():
         try:
@@ -133,10 +133,39 @@ def inputPlayerCount():
         except:
                 return inputPlayerCount()
 def getDistance(pos1,pos2):
-        if type(pos1)!=tuple and type(pos1)!=list:
-                pos1=pos1.pos
-                pos2=pos2.pos
         return abs(pos1[0]-pos2[0])+abs(pos1[1]-pos2[1])
+
+def setblock(mapp, x, y, to):
+    x=round(x)
+    y=round(y)
+    cchang = len(mapp[0])
+    ckuan = len(mapp)
+    if x>=ckuan:
+        x=ckuan
+    if y>=cchang:
+        y=cchang
+    mapp[x] = mapp[x][:y]+to+mapp[x][y+1:]
+
+def posOnLine(mapp,a, b):
+    result=list()
+    chax = abs(a[0]-b[0])
+    chay = abs(a[1]-b[1])
+    k = (a[1]-b[1])/(a[0]-b[0])  # y=kx+d
+    d = a[1]-a[0]*k
+    #print("函数解析式：y={}x+{}".format(k, d))
+    if chax > chay:
+        #print("x>y")
+        for i in range(a[0], b[0]):#i is x in function y=kx+d
+            if i == a[0]:
+                continue
+            result.append(tuple([round(i,k*i)+round(d)]))
+    else:
+        #print("y>x")
+        for i in range(a[1], b[1]):#i is y in function y=kx+d
+            if i == a[1]:
+                continue
+            result.append(tuple([round((i-d)/k),round(i)]))
+    return result
 
 print("你正在使用的系统是：{}".format(platform.platform()))
 is_windows = (platform.platform().find("Windows")) != -1
@@ -212,7 +241,6 @@ print("#############")
 running=True
 turn = 1
 current_player_id=0
-drawAll()
 while running:
         random_step=random.choice(random_steps)
         current_player=players[current_player_id]
@@ -236,7 +264,5 @@ while running:
                 if current_player_id==len(players):
                         current_player_id=0
                         turn+=1
-        cls()
-        drawAll()
 os.system("pause")
 exit(0)

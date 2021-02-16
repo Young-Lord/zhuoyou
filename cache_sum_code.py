@@ -37,46 +37,51 @@ class Player:
     def round(self):
         global random_step
         self.random_step=random_step
-        print("="*10)
+        global error_hint
+        error_hint=""
         if len(cards)>get_cards:
+            print("="*10)
             for i in range(get_cards):
                 selected=random.choice(cards)
                 print("你摸到了1张"+selected.name+"！")
                 cards.remove(selected)
                 self.item.append(selected)
+            print("="*10)
         while self.actions["end"]["count"]:
+            if error_hint!="":
+                print("="*10)
+                print(error_hint)
+                print("="*10)
+            drawAll()
             self.action()
+            cls()
         self.end_of_round()
     def action(self):
-        global players,DEBUG
-        print("="*10)
+        global players,DEBUG,error_hint
         for i in list(self.actions.keys()):
             if self.actions[i]["count"]!=0:
                 print("{}：{} {}".format(self.actions[i]["name"],i,self.actions[i]["arg"]))
         if self.actions["goto"]["count"]!=0:
             print("你可以走的距离为："+str(self.random_step+shoes[self.shoe]["value"]+self.speed_add))
         command=input().split(' ',1)
-        cls()
-        drawAll()
-        print("="*10)
         if (command[0] not in list(self.actions.keys())) and command[0].find("debug")==-1:
-            print("未知命令")
+            error_hint="未知命令"
             return
         if command[0].find("debug")=="-1" and self.actions[command[0]]["count"]==0:
-            print("你已经进行过此操作了！")
+            error_hint="你已经进行过此操作了！"
             return
         if command[0]=='attack':
             if players[int(command[1])-1]==self:
                 self.attack(self)
                 self.actions[command[0]]["count"]-=1
-                print("最好不要自刀，当然你要真想也可以...")
+                error_hint="最好不要自刀，当然你要真想也可以..."
                 return
             route=(astar.astar(gameMapWithPlayers(self,players[int(command[1])-1]),self.pos[0],self.pos[1],players[int(command[1])-1].pos[0],players[int(command[1])-1].pos[1]))
             if route==list():
-                print("无法到达！")
+                error_hint="无法到达！"
                 return
             if len(route)>weapons[self.weapon]["distance"]:
-                print("太远了！")
+                error_hint="太远了！"
                 return
             self.attack(players[int(command[1])-1])
             self.actions[command[0]]["count"]-=1
@@ -88,44 +93,44 @@ class Player:
             except:
                 return
             if (not isBlockEmpty(a,b)) and self.pos!=(a,b):
-                print("此位置已被占用，请换一个位置。")
+                error_hint="此位置已被占用，请换一个位置。"
                 return
             if self.pos==(a,b):
                 self.actions[command[0]]["count"]-=1
                 return
             route=(astar.astar(gameMapWithPlayers(self),self.pos[0],self.pos[1],a,b))
             if route==list():
-                print("无法到达！")
+                error_hint="无法到达！"
                 return
             if len(route)>(self.random_step+shoes[self.shoe]["value"]+self.speed_add):
-                print("太远了！")
-                return self.action()
-            print("走法",end="：")
+                error_hint="太远了！"
+                return
+            error_hint="走法：\n"
             for i in route:
-                print(i,end="")
-            print("")
+                error_hint+=i
             self.pos=(a,b)
             self.actions[command[0]]["count"]-=1
-            cls()
-            drawAll()
         elif command[0]=='end':
             self.actions[command[0]]["count"]-=1
             return
         elif command[0]=='item':
             if self.item==list():
-                print("你的背包什么都没有！")
+                error_hint="你的背包什么都没有！"
             else:
-                print("你的背包的物品为：")
+                error_hint="你的背包的物品为：\n"
                 unnamed_id=1
                 for i in self.item:
-                    print(unnamed_id,end=" ")
+                    error_hint+=str(unnamed_id)+' '
                     unnamed_id+=1
-                    print(i.name)
+                    error_hint+=i.name+'\n'
         elif command[0]=='use':
             command=command[1].split()
             command[0]=int(command[0])
             if command[0]>len(self.item):
-                print("此ID的物品不存在！")
+                error_hint="此ID的物品不存在！"
+                return
+            if int(command[1])-1<0:
+                error_hint="玩家ID错误！"
                 return
             return_value=True
             try:
@@ -133,8 +138,8 @@ class Player:
             except IndexError:
                 try:
                     return_value=self.item[command[0]-1].use(self)
-                except TypeError:
-                    print("你没有指定目标！")
+                except IOError:
+                    error_hint="你没有指定目标！"
             if return_value!=True:
                 self.item.pop(command[0]-1)
         elif command[0]=='debug_eval':
@@ -145,16 +150,16 @@ class Player:
             command[0]=int(command[0])
             target=players[command[0]-1]
             if target.item==list():
-                print("他的背包什么都没有！")
+                error_hint="他的背包什么都没有！"
             else:
-                print("他的背包的物品为：")
+                error_hint="他的背包的物品为：\n"
                 unnamed_id=1
                 for i in target.item:
-                    print(unnamed_id,end=" ")
+                    error_hint+=str(unnamed_id)+' '
                     unnamed_id+=1
-                    print(i.name)
+                    error_hint+=i.name+'\n'
         else:
-            print("你遇到bug了！告诉作者！")
+            error_hint="你遇到bug了！告诉作者！"
     def attack(self, target):
         target.damage((weapons[self.weapon]["value"]+self.attack_add)*self.attack_percent//100)
         self.update()
@@ -200,156 +205,204 @@ class likui(Player):
 import astar
 import random
 
-weapons={
-None:{"name":"无","value":5,"distance":1},
-"测试-伤害10":{"name":"测试1","value":10,"distance":3},
-"测试-伤害15":{"name":"测试2","value":15,"distance":5},
-"屠龙宝刀":{"name":"屠龙宝刀1","value":1000,"distance":100}
-    }
-shields={
-None:{"name":"无","value":0},
-"盾牌":{"name":"盾牌","value":1},
-"测试-防御3":{"name":"测试2","value":3}
-    }
-shoes={
-None:{"name":"无","value":0},
-"鞋子":{"name":"鞋子","value":3},
-"测试-加速1":{"name":"测试1","value":1},
-"测试-加速3":{"name":"测试2","value":3}
-    }
-energy_books={
-None:{"name":"无","value":0},
-"魔法书":{"name":"魔法书","value":3}
-    }
-#-药- -武器- -鞋子- -盾牌- -能量书- ~钩爪~ ~偷窃~ -五雷天罡法- ~无懈可击(被动)~
+weapons = {
+    None: {"name": "无", "value": 5, "distance": 1},
+    "测试-伤害10": {"name": "测试1", "value": 10, "distance": 3},
+    "测试-伤害15": {"name": "测试2", "value": 15, "distance": 5},
+    "屠龙宝刀": {"name": "屠龙宝刀1", "value": 1000, "distance": 100}
+}
+shields = {
+    None: {"name": "无", "value": 0},
+    "盾牌": {"name": "盾牌", "value": 1},
+    "测试-防御3": {"name": "测试2", "value": 3}
+}
+shoes = {
+    None: {"name": "无", "value": 0},
+    "鞋子": {"name": "鞋子", "value": 3},
+    "测试-加速1": {"name": "测试1", "value": 1},
+    "测试-加速3": {"name": "测试2", "value": 3}
+}
+energy_books = {
+    None: {"name": "无", "value": 0},
+    "魔法书": {"name": "魔法书", "value": 3}
+}
+# -药- -武器- -鞋子- -盾牌- -能量书- ~钩爪~ ~偷窃~ -五雷天罡法- ~无懈可击(被动)~
+
+
 class drug:
-    name="药"
-    value=5
-    def use(self,sender,*arg):
-        sender.life+=self.value
+    name = "药"
+    value = 5
+
+    def use(self, sender, *arg):
+        sender.life += self.value
         sender.update()
+
 
 class weapon:
-    name="武器_父类"
-    value="测试-伤害10"
-    def use(self,sender,*arg):
-        sender.weapon=self.value
+    name = "武器_父类"
+    value = "测试-伤害10"
+
+    def use(self, sender, *arg):
+        sender.weapon = self.value
+
+
 class weapon_None(weapon):
-    name="不使用武器"
-    value=None
+    name = "不使用武器"
+    value = None
+
+
 class tlbd(weapon):
-    name="屠龙宝刀"
-    value="屠龙宝刀"
+    name = "屠龙宝刀"
+    value = "屠龙宝刀"
+
 
 class shoe:
-    name="鞋子"
-    value="鞋子"
-    def use(self,sender,*arg):
-        sender.shoe=self.value
+    name = "鞋子"
+    value = "鞋子"
+
+    def use(self, sender, *arg):
+        sender.shoe = self.value
+
+
 class shoe_None(shoe):
-    name="不使用鞋子"
-    value=None
+    name = "不使用鞋子"
+    value = None
+
 
 class shield:
-    name="盾牌"
-    value="盾牌"
-    def use(self,sender,*arg):
-        sender.shield=self.value
+    name = "盾牌"
+    value = "盾牌"
+
+    def use(self, sender, *arg):
+        sender.shield = self.value
+
+
 class shield_None(shield):
-    name="不使用盾牌"
-    value=None
+    name = "不使用盾牌"
+    value = None
+
 
 class energy_book:
-    name="魔法书"
-    value="魔法书"
-    def use(self,sender,*arg):
-        sender.energy_book=self.value
-class energy_book_None(energy_book):
-    name="不使用能量书"
-    value=None
+    name = "魔法书"
+    value = "魔法书"
 
-#直线上没有障碍物：偷窃必须，五雷天罡法可以没有
+    def use(self, sender, *arg):
+        sender.energy_book = self.value
+
+
+class energy_book_None(energy_book):
+    name = "不使用能量书"
+    value = None
+
+# 直线上没有障碍物：偷窃必须，五雷天罡法可以没有
+
+
 class remote_attack:
-    name="远程攻击_父类"
-    value=1
-    distance=1
-    def use(self,sender,target,*arg):
-        route=(astar.astar(gameMapWithPlayers(sender,target),sender.pos[0],sender.pos[1],target.pos[0],target.pos[1]))
-        if route==list():
-            print("无法到达！")
+    name = "远程攻击_父类"
+    value = 1
+    distance = 1
+
+    def use(self, sender, target, *arg):
+        route = (astar.astar(gameMapWithPlayers(sender, target),
+                             sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
+        if route == list():
+            error_hint="无法到达！"
             return True
-        if len(route)>self.distance:
-            print("太远了！")
+        if len(route) > self.distance:
+            error_hint="太远了！"
             return True
         target.damage(self.value)
         sender.update()
+
+
 class wltg(remote_attack):
-    name="五雷天罡法"
-    value=30
-    distance=5
-    def use(self,sender,target,*arg):
-        if sender==target:
-            print("别对自己下手！")
+    name = "五雷天罡法"
+    value = 30
+    distance = 5
+
+    def use(self, sender, target, *arg):
+        if sender == target:
+            error_hint="别对自己下手！"
             return True
-        if getDistance(sender.pos,target.pos)>self.distance:
-            print("太远了！")
+        if getDistance(sender.pos, target.pos) > self.distance:
+            error_hint="太远了！"
             return True
         target.damage(self.value)
         sender.update()
+
+
 class gz(remote_attack):
-    name="钩爪"
-    value=10
-    distance=4
-    def use(self,sender,target,*arg):
-        if sender==target:
-            print("别对自己下手！")
+    name = "钩爪"
+    value = 10
+    distance = 4
+
+    def use(self, sender, target, *arg):
+        global game_map
+        if sender == target:
+            error_hint="别对自己下手！"
             return True
-        print("***几何什么的最烦了 钩爪拐弯就随他吧！")
-        route=(astar.astar(gameMapWithPlayers(sender,target),sender.pos[0],sender.pos[1],target.pos[0],target.pos[1]))
-        if route==list():
-            print("无法到达！")
+        #error_hint="***几何什么的最烦了 钩爪拐弯就随他吧！"
+        route = (astar.astar(gameMapWithPlayers(sender, target),
+                             sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
+        if route == list():
+            error_hint="无法到达！"
             return True
-        if len(route)>self.distance:
-            print("太远了！")
+        distance= getDistance(sender.pos, target.pos)
+        if distance>self.distance:
+            error_hint="太远了！"
             return True
         target.damage(self.value)
+        if distance == 1 or (distance == 2 and (abs(sender.pos[0]-target.pos[0]) == 1)):#即target在sender附近8格
+            pass
+        else:
+            poss=posOnLine(game_map,sender.pos, target.pos)
+            for i in poss:
+                if game_map[i[0]][i[1]]!='0':
+                    error_hint="直线上存在障碍物！"
+                    return True
+            target.pos=poss[0]
         sender.update()
+
 
 class steal:
-    name="偷窃"
-    value=2
-    distance=5
-    def use(self,sender,target,*arg):
-        if sender==target:
-            print("别对自己下手！")
+    name = "偷窃"
+    value = 2
+    distance = 5
+
+    def use(self, sender, target, *arg):
+        if sender == target:
+            error_hint="别对自己下手！"
             return True
-        route=(astar.astar(gameMapWithPlayers(sender,target),sender.pos[0],sender.pos[1],target.pos[0],target.pos[1]))
-        if route==list():
-            print("无法到达！")
+        route = (astar.astar(gameMapWithPlayers(sender, target),
+                             sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
+        if route == list():
+            error_hint="无法到达！"
             return True
-        if len(route)>self.distance:
-            print("太远了！")
+        if len(route) > self.distance:
+            error_hint="太远了！"
             return True
-        i=0
-        if len(target.item)==0:
-            print("他的背包什么都没有！")
+        i = 0
+        if len(target.item) == 0:
+            error_hint="他的背包什么都没有！"
             return True
-        while len(target.item)!=0 and i<self.value:
-            selected=random.choice(target.item)
-            while selected.value==None:
-                selected=random.choice(target.item)
-            print("* 你偷到了他的"+selected.name+"!")
-            i+=1
+        while len(target.item) != 0 and i < self.value:
+            selected = random.choice(target.item)
+            while selected.value == None:
+                selected = random.choice(target.item)
+            error_hint="* 你偷到了他的"+selected.name+"!"
+            i += 1
             sender.item.append(selected)
             target.item.remove(selected)
             sender.update()
             target.update()
 
+
 class kp:
-    name="看破"
-    value=1
-    def use(self,*arg):
-        print("这张牌属于被动牌！")
+    name = "看破"
+    value = 1
+
+    def use(self, *arg):
+        error_hint="这张牌属于被动牌！"
         return True
 
 
@@ -358,7 +411,7 @@ class kp:
 random_steps = [1,2,3,4,5,6]#这里是可能随机得到的步数列表
 player_count = 2#这是固定的玩家数，如果要固定就将None改为玩家数，否则写None
 get_cards = 2#每局摸牌数
-DEBUG=True#是否开启调试模式，True是“是”，False是“否”
+DEBUG = True#是否开启调试模式，True是“是”，False是“否”
 cards_dict={"drug":1,
             "tlbd":2,
             "shoe":2,
@@ -403,6 +456,7 @@ current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 os.chdir(current_dir)
 players=list()
 special_blocks=list()
+error_hint=str()
 
 
 
@@ -436,6 +490,7 @@ def exit(code):
 
 def cls():
         global is_windows
+        global DEBUG
         if DEBUG:
                 print("######cls#####")
                 return
@@ -482,11 +537,10 @@ def drawMap():
         display_map=[i[:] for i in game_map]
         for i in range(len(players)):
                 if players[i].alive:
-                        display_map[players[i].pos[0]]=display_map[players[i].pos[0]][:players[i].pos[1]]+chesslist[i]+display_map[players[i].pos[0]][players[i].pos[1]+1:]
-                        #same as display_map[players[i].pos[0]][players[i].pos[1]]=chr(ord('A')+i)
+                        setblock(display_map,players[i].pos[0],players[i].pos[1],chesslist[i])
         for i in special_blocks:
                 if display_map[i[0]][i[1]]=='0':
-                        display_map[i[0]][i[1]]='O'
+                        setblock(display_map,i[0],i[1],'O')
         display_map=[i.replace("0", "□").replace("1", "■") for i in display_map]
         for i in display_map:
                 print(i)
@@ -510,8 +564,7 @@ def gameMapWithPlayers(*paichu):
         gen_map=[i[:] for i in game_map]
         for i in players:
                 if i.alive and (i not in paichu):
-                        gen_map[i.pos[0]]=gen_map[i.pos[0]][:i.pos[1]]+"1"+gen_map[i.pos[0]][i.pos[1]+1:]
-                        #same as gen_map[i.pos[0]][i.pos[1]]="1"
+                        setblock(gen_map,i.pos[0],i.pos[1],"1")
         return gen_map
 def inputPlayerCount():
         try:
@@ -519,10 +572,39 @@ def inputPlayerCount():
         except:
                 return inputPlayerCount()
 def getDistance(pos1,pos2):
-        if type(pos1)!=tuple and type(pos1)!=list:
-                pos1=pos1.pos
-                pos2=pos2.pos
         return abs(pos1[0]-pos2[0])+abs(pos1[1]-pos2[1])
+
+def setblock(mapp, x, y, to):
+    x=round(x)
+    y=round(y)
+    cchang = len(mapp[0])
+    ckuan = len(mapp)
+    if x>=ckuan:
+        x=ckuan
+    if y>=cchang:
+        y=cchang
+    mapp[x] = mapp[x][:y]+to+mapp[x][y+1:]
+
+def posOnLine(mapp,a, b):
+    result=list()
+    chax = abs(a[0]-b[0])
+    chay = abs(a[1]-b[1])
+    k = (a[1]-b[1])/(a[0]-b[0])  # y=kx+d
+    d = a[1]-a[0]*k
+    #print("函数解析式：y={}x+{}".format(k, d))
+    if chax > chay:
+        #print("x>y")
+        for i in range(a[0], b[0]):#i is x in function y=kx+d
+            if i == a[0]:
+                continue
+            result.append(tuple([round(i,k*i)+round(d)]))
+    else:
+        #print("y>x")
+        for i in range(a[1], b[1]):#i is y in function y=kx+d
+            if i == a[1]:
+                continue
+            result.append(tuple([round((i-d)/k),round(i)]))
+    return result
 
 print("你正在使用的系统是：{}".format(platform.platform()))
 is_windows = (platform.platform().find("Windows")) != -1
@@ -598,7 +680,6 @@ print("#############")
 running=True
 turn = 1
 current_player_id=0
-drawAll()
 while running:
         random_step=random.choice(random_steps)
         current_player=players[current_player_id]
@@ -622,8 +703,6 @@ while running:
                 if current_player_id==len(players):
                         current_player_id=0
                         turn+=1
-        cls()
-        drawAll()
 os.system("pause")
 exit(0)
 
