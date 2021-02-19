@@ -407,39 +407,76 @@ class kp:
 
 
 #@# Configs:
-#“#”号后面的内容没有实际作用，只用于说明
-#GUI设置
-screen_width=640
-screen_height=480
-bg_img_file="./imgs/bg_img.png"
+# “#”号后面的内容没有实际作用，只用于说明
+# GUI设置
+screen_width = 640
+screen_height = 480
+bg_img_file = "./imgs/bg_img.png"
 
-#游戏设置
-random_steps = [1,2,3,4,5,6]#这里是可能随机得到的步数列表
-player_count = 2#这是固定的玩家数，如果要固定就将None改为玩家数，否则写None
-get_cards = 2#每局摸牌数
-DEBUG = False#是否开启调试模式，True是“是”，False是“否”
-cards_dict={"drug":1,
-            "tlbd":2,
-            "shoe":2,
-            "shield":2,
-            "energy_book":2,
-            "wltg":2,
-            "steal":2,
-            "gz":2,
-            "kp":2
-            }
-#这是牌堆
-            
+GRID_X_LEN = 10
+GRID_Y_LEN = 12
+
+REC_SIZE = 50
+
+# 游戏设置
+random_steps = [1, 2, 3, 4, 5, 6]  # 这里是可能随机得到的步数列表
+player_count = 2  # 这是固定的玩家数，如果要固定就将None改为玩家数，否则写None
+get_cards = 2  # 每局摸牌数
+DEBUG = False  # 是否开启调试模式，True是“是”，False是“否”
+cards_dict = {"drug": 1,
+              "tlbd": 2,
+              "shoe": 2,
+              "shield": 2,
+              "energy_book": 2,
+              "wltg": 2,
+              "steal": 2,
+              "gz": 2,
+              "kp": 2
+              }
+# 这是牌堆
 
 
-#不要修改下面的内容
-if type(random_steps)==int:
-    random_steps=list(random_steps)
-cards="["
+# 不要修改下面的内容
+if type(random_steps) == int:
+    random_steps = list(random_steps)
+cards = "["
 for i in cards_dict.keys():
-    cards+=(i+"(),")*cards_dict[i]
-cards+="]"
-cards=eval(cards)
+    cards += (i+"(),")*cards_dict[i]
+cards += "]"
+cards = eval(cards)
+
+
+def set_map(changg, kuann):
+    global GRID_X_LEN, GRID_Y_LEN, MAP_WIDTH, MAP_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHTSCREEN_SIZE, screen
+    GRID_X_LEN = changg
+    GRID_Y_LEN = kuann
+    MAP_WIDTH = GRID_X_LEN * REC_SIZE
+    MAP_HEIGHT = GRID_Y_LEN * REC_SIZE
+    SCREEN_WIDTH = MAP_WIDTH
+    SCREEN_HEIGHT = MAP_HEIGHT
+    SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
+    screen = pygame.display.set_mode(SCREEN_SIZE)
+
+
+MAP_WIDTH = GRID_X_LEN * REC_SIZE
+MAP_HEIGHT = GRID_Y_LEN * REC_SIZE
+
+
+SCREEN_WIDTH = MAP_WIDTH
+SCREEN_HEIGHT = MAP_HEIGHT
+SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
+
+
+WHITE = (255, 255, 255)
+NAVYBLUE = (60,  60, 100)
+SKY_BLUE = (39, 145, 251)
+BLACK = (0,   0,   0)
+GREY = (127,   127,   127)
+LIGHTYELLOW = (247, 238, 214)
+RED = (255,   0,   0)
+PURPLE = (255,   0, 255)
+GOLD = (255, 215,   0)
+GREEN = (0, 255,   0)
 
 
 #@# Core code:
@@ -466,6 +503,12 @@ os.chdir(current_dir)
 players=list()
 special_blocks=list()
 error_hint=str()
+
+pygame.init()
+screen = pygame.display.set_mode(SCREEN_SIZE)
+pygame.display.set_caption("桌游")  # 标题
+pygame.font.Font("./msyh.ttc", 20)#微软雅黑
+bg_img = pygame.image.load(bg_img_file)  # 相对路径
 
 
 
@@ -542,17 +585,45 @@ def drawPlayers():
             print("已死亡")
         display_index+=1
 def drawMap():
+    pygame.display.flip()
     global game_map,special_blocks
+    pygame.draw.rect(screen, LIGHTYELLOW, pygame.Rect(0, 0, MAP_WIDTH, MAP_HEIGHT))    
+    print((GRID_X_LEN,GRID_Y_LEN))
+    for x in range(GRID_X_LEN):
+        for y in range(GRID_Y_LEN):
+            if game_map[y][x]=='0':
+                color = GOLD
+            else:
+                color = GREY
+            pygame.draw.rect(screen, color, (x * REC_SIZE, y * REC_SIZE, 
+                    REC_SIZE, REC_SIZE))
+    
+    for y in range(GRID_Y_LEN):
+        # draw a horizontal line
+        start_pos = (0, 0 + REC_SIZE * y)
+        end_pos = (MAP_WIDTH, REC_SIZE * y)
+        pygame.draw.line(screen, BLACK, start_pos, end_pos, 1)
+
+    for x in range(GRID_X_LEN):
+        # draw a horizontal line
+        start_pos = (REC_SIZE * x, 0) 
+        end_pos = (REC_SIZE * x, MAP_HEIGHT)
+        pygame.draw.line(screen, BLACK, start_pos, end_pos, 1)
     display_map=[i[:] for i in game_map]
     for i in range(len(players)):
         if players[i].alive:
             setblock(display_map,players[i].pos[0],players[i].pos[1],chesslist[i])
+            textSurfaceObj = pygame.font.Font.render(chesslist[i], True, BLACK, background=None)
+            textRectObj = textSurfaceObj.get_rect()
+            textRectObj.topleft = (players[i].pos[0]*REC_SIZE, players[i].pos[1]*REC_SIZE)
     for i in special_blocks:
         if display_map[i[0]][i[1]]=='0':
             setblock(display_map,i[0],i[1],'O')
     display_map=[i.replace("0", "□").replace("1", "■") for i in display_map]
-    for i in display_map:
-        print(i)
+    #for i in display_map:
+    #    print(i)
+    
+    
 def isBlockEmpty(a,b=None):
     global chang,kuan
     if a>=kuan or b>=chang:
@@ -671,35 +742,23 @@ except MapError:
     exit(104)
 
 print("[信息]成功加载大小为{}x{}的地图".format(chang, kuan))
+set_map(chang,kuan)
 cls()
 drawMap()
 
-# 初始化游戏
-pygame.init()
-# 设置屏幕的分辨率
-screen = pygame.display.set_mode((screen_width, screen_height))  # 大小为___px乘以___px
 
-pygame.display.set_caption("桌游")  # 标题
-# 存储背景的变量
-bg_img = pygame.image.load(bg_img_file)  # 相对路径
-# 开始游戏的主循环
 while True:
-# 为了防止游戏窗口启动会立马关闭，在其中增加一个游戏循环(无限循环)，
     for event in pygame.event.get():
         # 每次循环都会重新绘制屏幕
         if event.type==pygame.MOUSEMOTION:
             continue
-        screen.blit(bg_img, [0, 0])  # 绘制图像
         if event.type == pygame.QUIT:  # QUIT用户请求程序关闭
             sys.exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            print('[mouse button down]', ' #', event.pos, event.button)
-            pos1=event.pos
-        elif event.type == pygame.MOUSEBUTTONUP:
-            print('[mouse button up]', ' #', event.pos, event.button)
-            pos2=event.pos
-            my_rect=pygame.Rect(min(pos1[0],pos2[0]),min(pos1[1],pos2[1]),abs(pos2[0]-pos1[0]),abs(pos2[1]-pos1[1]))
-            pygame.draw.rect(screen,[255,0,0],my_rect,0)
+            pass
+        elif event.type == pygame.KEYDOWN:
+            if event.unicode=='d':
+                drawMap()
     pygame.display.flip()
 
 
