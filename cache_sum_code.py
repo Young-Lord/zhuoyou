@@ -686,10 +686,20 @@ bg_img = pygame.image.load(bg_img_file)  # 相对路径
 while True:
 # 为了防止游戏窗口启动会立马关闭，在其中增加一个游戏循环(无限循环)，
     for event in pygame.event.get():
-    # 每次循环都会重新绘制屏幕
+        # 每次循环都会重新绘制屏幕
+        if event.type==pygame.MOUSEMOTION:
+            continue
         screen.blit(bg_img, [0, 0])  # 绘制图像
         if event.type == pygame.QUIT:  # QUIT用户请求程序关闭
             sys.exit()
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            print('[mouse button down]', ' #', event.pos, event.button)
+            pos1=event.pos
+        elif event.type == pygame.MOUSEBUTTONUP:
+            print('[mouse button up]', ' #', event.pos, event.button)
+            pos2=event.pos
+            my_rect=pygame.Rect(min(pos1[0],pos2[0]),min(pos1[1],pos2[1]),abs(pos2[0]-pos1[0]),abs(pos2[1]-pos1[1]))
+            pygame.draw.rect(screen,[255,0,0],my_rect,0)
     pygame.display.flip()
 
 
