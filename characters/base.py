@@ -67,6 +67,10 @@ class Player:
             error_hint="你已经进行过此操作了！"
             return
         if command[0]=='attack':
+            if "chanzhang_cd" in self.buff:
+                error_hint="禅杖冷却中..."
+                self.actions[command[0]]["count"]-=1
+                return
             if players[int(command[1])-1]==self:
                 self.attack(self)
                 self.actions[command[0]]["count"]-=1
@@ -125,9 +129,10 @@ class Player:
             if command[0]>len(self.item):
                 error_hint="此ID的物品不存在！"
                 return
-            if int(command[1])-1<0:
-                error_hint="玩家ID错误！"
-                return
+            if len(command)>=2:
+                if int(command[1])-1<0:
+                    error_hint="玩家ID错误！"
+                    return
             return_value=True
             try:
                 return_value=self.item[command[0]-1].use(self,players[int(command[1])-1])
@@ -141,6 +146,8 @@ class Player:
         elif command[0]=='debug_eval':
             command=command[1]
             eval(command)
+        elif command[0]=='debug_showbuff':
+            print(self.buff)
         elif command[0]=='debug_showitem':
             command=command[1].split()
             command[0]=int(command[0])
@@ -157,6 +164,8 @@ class Player:
         else:
             error_hint="你遇到bug了！告诉作者！"
     def attack(self, target):
+        if self.weapon=="禅杖":
+            self.buff.append("chanzhang_cd")
         target.damage((weapons[self.weapon]["value"]+self.attack_add)*self.attack_percent//100)
         self.update()
     def damage(self,value):
@@ -176,6 +185,8 @@ class Player:
         for i in self.actions_bak.keys():
             self.actions[i]=self.actions_bak[i].copy()
         self.update()
-        
-
-
+        if "chanzhang_cd_2" in self.buff:
+            self.buff.remove("chanzhang_cd")
+            self.buff.remove("chanzhang_cd_2")
+        if "chanzhang_cd" in self.buff:
+            self.buff.append("chanzhang_cd_2")

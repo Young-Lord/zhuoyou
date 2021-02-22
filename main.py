@@ -14,26 +14,26 @@ characters=["base",]+[i for i in characters if i!='base' and i!='cache_sum_chara
 for i in characters:
         sum_code.write("#@# Code from "+i+".py:\r\n\r\n")
         with codecs.open("characters/"+i+".py","r", encoding='utf-8') as f:
-                sum_code.write(f.read())
+                sum_code.write(f.read().replace("\xef\xbb\xbf",''))
 
 # generating items
-sum_code.write("#@# Items:\r\n")
+sum_code.write("\r\n\r\n#@# Items:\r\n")
 item_file=codecs.open("items.py","r", encoding='utf-8')
-sum_code.write(item_file.read())
+sum_code.write(item_file.read().replace("\xef\xbb\xbf",''))
 item_file.close()
 sum_code.write("\r\n\r\n")
 
 # generating game_config
 sum_code.write("#@# Configs:\r\n")
 config_file=codecs.open("game_config.py","r", encoding='utf-8')
-sum_code.write(config_file.read())
+sum_code.write(config_file.read().replace("\xef\xbb\xbf",''))
 config_file.close()
 sum_code.write("\r\n\r\n")
 
 # generating core code
 sum_code.write("#@# Core code:\r\n")
 core_file=codecs.open("core.py","r", encoding='utf-8')
-sum_code.write(core_file.read())
+sum_code.write(core_file.read().replace("\xef\xbb\xbf",''))
 core_file.close()
 sum_code.write("\r\n\r\n")
 sum_code.close()

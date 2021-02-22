@@ -5,6 +5,7 @@ weapons = {
     None: {"name": "无", "value": 5, "distance": 1},
     "测试-伤害10": {"name": "测试1", "value": 10, "distance": 3},
     "测试-伤害15": {"name": "测试2", "value": 15, "distance": 5},
+    "禅杖": {"name": "禅杖", "value": 20, "distance": 100},
     "屠龙宝刀": {"name": "屠龙宝刀1", "value": 1000, "distance": 100}
 }
 shields = {
@@ -50,6 +51,11 @@ class weapon_None(weapon):
 class tlbd(weapon):
     name = "屠龙宝刀"
     value = "屠龙宝刀"
+
+
+class cz(weapon):
+    name = "禅杖"
+    value = "禅杖"
 
 
 class shoe:

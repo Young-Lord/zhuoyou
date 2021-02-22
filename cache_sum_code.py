@@ -71,6 +71,10 @@ class Player:
             error_hint="你已经进行过此操作了！"
             return
         if command[0]=='attack':
+            if "chanzhang_cd" in self.buff:
+                error_hint="禅杖冷却中..."
+                self.actions[command[0]]["count"]-=1
+                return
             if players[int(command[1])-1]==self:
                 self.attack(self)
                 self.actions[command[0]]["count"]-=1
@@ -129,9 +133,10 @@ class Player:
             if command[0]>len(self.item):
                 error_hint="此ID的物品不存在！"
                 return
-            if int(command[1])-1<0:
-                error_hint="玩家ID错误！"
-                return
+            if len(command)>=2:
+                if int(command[1])-1<0:
+                    error_hint="玩家ID错误！"
+                    return
             return_value=True
             try:
                 return_value=self.item[command[0]-1].use(self,players[int(command[1])-1])
@@ -145,6 +150,8 @@ class Player:
         elif command[0]=='debug_eval':
             command=command[1]
             eval(command)
+        elif command[0]=='debug_showbuff':
+            print(self.buff)
         elif command[0]=='debug_showitem':
             command=command[1].split()
             command[0]=int(command[0])
@@ -161,6 +168,8 @@ class Player:
         else:
             error_hint="你遇到bug了！告诉作者！"
     def attack(self, target):
+        if self.weapon=="禅杖":
+            self.buff.append("chanzhang_cd")
         target.damage((weapons[self.weapon]["value"]+self.attack_add)*self.attack_percent//100)
         self.update()
     def damage(self,value):
@@ -180,9 +189,11 @@ class Player:
         for i in self.actions_bak.keys():
             self.actions[i]=self.actions_bak[i].copy()
         self.update()
-        
-
-
+        if "chanzhang_cd_2" in self.buff:
+            self.buff.remove("chanzhang_cd")
+            self.buff.remove("chanzhang_cd_2")
+        if "chanzhang_cd" in self.buff:
+            self.buff.append("chanzhang_cd_2")
 #@# Code from try1.py:
 
 class tryyy:
@@ -201,6 +212,8 @@ class likui(Player):
         max_energy=0
     actions_bak={"attack":{"name":"攻击","arg":"玩家序号","count":3},"goto":{"name":"移动","arg":"坐标","count":1},"info":{"name":"查看","arg":"","count":-1},"use":{"name":"使用","arg":"物品ID","count":-1},"end":{"name":"结束回合","arg":"","count":1}}
 
+
+
 #@# Items:
 import astar
 import random
@@ -209,6 +222,7 @@ weapons = {
     None: {"name": "无", "value": 5, "distance": 1},
     "测试-伤害10": {"name": "测试1", "value": 10, "distance": 3},
     "测试-伤害15": {"name": "测试2", "value": 15, "distance": 5},
+    "禅杖": {"name": "禅杖", "value": 20, "distance": 100},
     "屠龙宝刀": {"name": "屠龙宝刀1", "value": 1000, "distance": 100}
 }
 shields = {
@@ -254,6 +268,11 @@ class weapon_None(weapon):
 class tlbd(weapon):
     name = "屠龙宝刀"
     value = "屠龙宝刀"
+
+
+class cz(weapon):
+    name = "禅杖"
+    value = "禅杖"
 
 
 class shoe:
@@ -407,33 +426,77 @@ class kp:
 
 
 #@# Configs:
-#“#”号后面的内容没有实际作用，只用于说明
-random_steps = [1,2,3,4,5,6]#这里是可能随机得到的步数列表
-player_count = 2#这是固定的玩家数，如果要固定就将None改为玩家数，否则写None
-get_cards = 2#每局摸牌数
-DEBUG = False#是否开启调试模式，True是“是”，False是“否”
-cards_dict={"drug":1,
-            "tlbd":2,
-            "shoe":2,
-            "shield":2,
-            "energy_book":2,
-            "wltg":2,
-            "steal":2,
-            "gz":2,
-            "kp":2
-            }
-#这是牌堆
-            
+# “#”号后面的内容没有实际作用，只用于说明
+# GUI设置
+screen_width = 640
+screen_height = 480
+bg_img_file = "./imgs/bg_img.png"
+
+GRID_X_LEN = 10
+GRID_Y_LEN = 12
+
+REC_SIZE = 50
+
+# 游戏设置
+random_steps = [1, 2, 3, 4, 5, 6]  # 这里是可能随机得到的步数列表
+player_count = 2  # 这是固定的玩家数，如果要固定就将None改为玩家数，否则写None
+get_cards = 2  # 每局摸牌数
+DEBUG = True  # 是否开启调试模式，True是“是”，False是“否”
+cards_dict = {"drug": 1,
+              "tlbd": 2,
+              "cz": 3,
+              "shoe": 2,
+              "shield": 2,
+              "energy_book": 2,
+              "wltg": 2,
+              "steal": 2,
+              "gz": 2,
+              "kp": 2
+              }
+# 这是牌堆
 
 
-#不要修改下面的内容
-if type(random_steps)==int:
-    random_steps=list(random_steps)
-cards="["
+# 不要修改下面的内容
+if type(random_steps) == int:
+    random_steps = list(random_steps)
+cards = "["
 for i in cards_dict.keys():
-    cards+=(i+"(),")*cards_dict[i]
-cards+="]"
-cards=eval(cards)
+    cards += (i+"(),")*cards_dict[i]
+cards += "]"
+cards = eval(cards)
+
+
+def set_map(changg, kuann):
+    global GRID_X_LEN, GRID_Y_LEN, MAP_WIDTH, MAP_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHTSCREEN_SIZE, screen
+    GRID_X_LEN = changg
+    GRID_Y_LEN = kuann
+    MAP_WIDTH = GRID_X_LEN * REC_SIZE
+    MAP_HEIGHT = GRID_Y_LEN * REC_SIZE
+    SCREEN_WIDTH = MAP_WIDTH
+    SCREEN_HEIGHT = MAP_HEIGHT
+    SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
+    screen = pygame.display.set_mode(SCREEN_SIZE)
+
+
+MAP_WIDTH = GRID_X_LEN * REC_SIZE
+MAP_HEIGHT = GRID_Y_LEN * REC_SIZE
+
+
+SCREEN_WIDTH = MAP_WIDTH
+SCREEN_HEIGHT = MAP_HEIGHT
+SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
+
+
+WHITE = (255, 255, 255)
+NAVYBLUE = (60,  60, 100)
+SKY_BLUE = (39, 145, 251)
+BLACK = (0,   0,   0)
+GREY = (127,   127,   127)
+LIGHTYELLOW = (247, 238, 214)
+RED = (255,   0,   0)
+PURPLE = (255,   0, 255)
+GOLD = (255, 215,   0)
+GREEN = (0, 255,   0)
 
 
 #@# Core code:
