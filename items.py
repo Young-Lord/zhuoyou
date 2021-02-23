@@ -56,6 +56,10 @@ class tlbd(weapon):
 class cz(weapon):
     name = "禅杖"
     value = "禅杖"
+    def use(self, sender, *arg):
+        sender.weapon = self.value
+        sender.buff.remove("chanzhang_cd")
+        sender.buff.remove("chanzhang_cd_2")
 
 
 class shoe:
