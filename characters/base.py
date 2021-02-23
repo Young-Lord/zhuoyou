@@ -24,7 +24,7 @@ class Player:
     def __init__(self):
         self.actions=dict()
         self.item = list()
-        buff = list()
+        self.buff = list()
         #WARNING: 每个可变对象（list,dict）等都必须在这里初始化，否则不同的实例会共享一个对象
         for i in self.actions_bak.keys():
             self.actions[i]=self.actions_bak[i].copy()
@@ -49,6 +49,7 @@ class Player:
                 print(error_hint)
                 print("="*10)
             drawAll()
+            error_hint=""
             self.action()
             cls()
         self.end_of_round()
