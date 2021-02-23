@@ -68,82 +68,15 @@ class Player:
             error_hint="你已经进行过此操作了！"
             return
         if command[0]=='attack':
-            if "chanzhang_cd" in self.buff:
-                error_hint="禅杖冷却中..."
-                self.actions[command[0]]["count"]-=1
-                return
-            if players[int(command[1])-1]==self:
-                self.attack(self)
-                self.actions[command[0]]["count"]-=1
-                error_hint="最好不要自刀，当然你要真想也可以..."
-                return
-            route=(astar.astar(gameMapWithPlayers(self,players[int(command[1])-1]),self.pos[0],self.pos[1],players[int(command[1])-1].pos[0],players[int(command[1])-1].pos[1]))
-            if route==list():
-                error_hint="无法到达！"
-                return
-            if len(route)>weapons[self.weapon]["distance"]:
-                error_hint="太远了！"
-                return
-            self.attack(players[int(command[1])-1])
-            self.actions[command[0]]["count"]-=1
+            self.attack_(command)
         elif command[0]=='goto':
-            try:
-                command[1]=command[1].replace("(","").replace(")","")
-                command[1]=command[1].replace(","," ")
-                a,b=[int(i) for i in command[1].split()]
-            except:
-                return
-            if (not isBlockEmpty(a,b)) and self.pos!=(a,b):
-                error_hint="此位置已被占用，请换一个位置。"
-                return
-            if self.pos==(a,b):
-                self.actions[command[0]]["count"]-=1
-                return
-            route=(astar.astar(gameMapWithPlayers(self),self.pos[0],self.pos[1],a,b))
-            if route==list():
-                error_hint="无法到达！"
-                return
-            if len(route)>(self.random_step+shoes[self.shoe]["value"]+self.speed_add):
-                error_hint="太远了！"
-                return
-            error_hint="走法：\n"
-            for i in route:
-                error_hint+=i
-            self.pos=(a,b)
-            self.actions[command[0]]["count"]-=1
+            self.goto_(command)
         elif command[0]=='end':
             self.actions[command[0]]["count"]-=1
-            return
         elif command[0]=='item':
-            if self.item==list():
-                error_hint="你的背包什么都没有！"
-            else:
-                error_hint="你的背包的物品为：\n"
-                unnamed_id=1
-                for i in self.item:
-                    error_hint+=str(unnamed_id)+' '
-                    unnamed_id+=1
-                    error_hint+=i.name+'\n'
+            self.item_(command)
         elif command[0]=='use':
-            command=command[1].split()
-            command[0]=int(command[0])
-            if command[0]>len(self.item):
-                error_hint="此ID的物品不存在！"
-                return
-            if len(command)>=2:
-                if int(command[1])-1<0:
-                    error_hint="玩家ID错误！"
-                    return
-            return_value=True
-            try:
-                return_value=self.item[command[0]-1].use(self,players[int(command[1])-1])
-            except IndexError:
-                try:
-                    return_value=self.item[command[0]-1].use(self)
-                except IOError:
-                    error_hint="你没有指定目标！"
-            if return_value!=True:
-                self.item.pop(command[0]-1)
+            self.use_(command)
         elif command[0]=='debug_eval':
             command=command[1]
             eval(command)
@@ -164,6 +97,83 @@ class Player:
                     error_hint+=i.name+'\n'
         else:
             error_hint="你遇到bug了！告诉作者！"
+    def attack_(self,command):
+        global error_hint
+        if "chanzhang_cd" in self.buff:
+            error_hint="禅杖冷却中..."
+            self.actions[command[0]]["count"]-=1
+            return
+        if players[int(command[1])-1]==self:
+            self.attack(self)
+            self.actions[command[0]]["count"]-=1
+            error_hint="最好不要自刀，当然你要真想也可以..."
+            return
+        route=(astar.astar(gameMapWithPlayers(self,players[int(command[1])-1]),self.pos[0],self.pos[1],players[int(command[1])-1].pos[0],players[int(command[1])-1].pos[1]))
+        if route==list():
+            error_hint="无法到达！"
+            return
+        if len(route)>weapons[self.weapon]["distance"]:
+            error_hint="太远了！"
+            return
+        self.attack(players[int(command[1])-1])
+        self.actions[command[0]]["count"]-=1
+    def goto_(self,command):
+        global error_hint
+        try:
+            command[1]=command[1].replace("(","").replace(")","")
+            command[1]=command[1].replace(","," ")
+            a,b=[int(i) for i in command[1].split()]
+        except:
+            return
+        if (not isBlockEmpty(a,b)) and self.pos!=(a,b):
+            error_hint="此位置已被占用，请换一个位置。"
+            return
+        if self.pos==(a,b):
+            self.actions[command[0]]["count"]-=1
+            return
+        route=(astar.astar(gameMapWithPlayers(self),self.pos[0],self.pos[1],a,b))
+        if route==list():
+            error_hint="无法到达！"
+            return
+        if len(route)>(self.random_step+shoes[self.shoe]["value"]+self.speed_add):
+            error_hint="太远了！"
+            return
+        error_hint="走法：\n"
+        for i in route:
+            error_hint+=i
+        self.pos=(a,b)
+        self.actions[command[0]]["count"]-=1
+    def item_(self,command):
+        global error_hint
+        if self.item==list():
+            error_hint="你的背包什么都没有！"
+        else:
+            error_hint="你的背包的物品为：\n"
+            unnamed_id=1
+            for i in self.item:
+                error_hint+=str(unnamed_id)+' '
+                unnamed_id+=1
+                error_hint+=i.name+'\n'
+    def use_(self,command):
+        command=command[1].split()
+        command[0]=int(command[0])
+        if command[0]>len(self.item):
+            error_hint="此ID的物品不存在！"
+            return
+        if len(command)>=2:
+            if int(command[1])-1<0:
+                error_hint="玩家ID错误！"
+                return
+        return_value=True
+        try:
+            return_value=self.item[command[0]-1].use(self,players[int(command[1])-1])
+        except IndexError:
+            try:
+                return_value=self.item[command[0]-1].use(self)
+            except IOError:
+                error_hint="你没有指定目标！"
+        if return_value!=True:
+            self.item.pop(command[0]-1)
     def attack(self, target):
         if self.weapon=="禅杖":
             self.buff.append("chanzhang_cd")

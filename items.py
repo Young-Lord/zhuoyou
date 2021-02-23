@@ -91,7 +91,6 @@ class shield_None(shield):
 class energy_book:
     name = "魔法书"
     value = "魔法书"
-
     def use(self, sender, *arg):
         sender.energy_book = self.value
 
@@ -130,7 +129,7 @@ class wltg(remote_attack):
         if sender == target:
             error_hint="别对自己下手！"
             return True
-        if getDistance(sender.pos, target.pos) > self.distance:
+        if getDistance_ou(sender.pos, target.pos) > self.distance:
             error_hint="太远了！"
             return True
         target.damage(self.value)
@@ -153,7 +152,7 @@ class gz(remote_attack):
         if route == list():
             error_hint="无法到达！"
             return True
-        distance= getDistance(sender.pos, target.pos)
+        distance= getDistance_ou(sender.pos, target.pos)
         if distance>self.distance:
             error_hint="太远了！"
             return True
