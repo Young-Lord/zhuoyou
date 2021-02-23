@@ -103,7 +103,7 @@ class Player:
             error_hint="你遇到bug了！告诉作者！"
     def attack_(self,command):
         global error_hint
-        if "chanzhang_cd" in self.buff:
+        if "chanzhang_cd_2" in self.buff:
             error_hint="禅杖冷却中..."
             self.actions[command[0]]["count"]-=1
             return
@@ -211,6 +211,7 @@ class tryyy:
     life = 1#@# Code from 李逵.py:
 
 class likui(Player):
+    name="李逵"
     life=80
     max_life=80
     energy=0
@@ -746,7 +747,7 @@ for i in range(player_count):
     a,b=inputCoordinates("请输入玩家"+str(i+1)+"的坐标：")
     while not isBlockEmpty(a,b):
         a,b=inputCoordinates("此位置已被占用，请换一个位置：")
-    current_player_id=Player()
+    current_player_id=likui()
     current_player_id.pos=(a,b)
     players.append(current_player_id)
     cls()

@@ -230,7 +230,7 @@ for i in range(player_count):
     a,b=inputCoordinates("请输入玩家"+str(i+1)+"的坐标：")
     while not isBlockEmpty(a,b):
         a,b=inputCoordinates("此位置已被占用，请换一个位置：")
-    current_player_id=Player()
+    current_player_id=likui()
     current_player_id.pos=(a,b)
     players.append(current_player_id)
     cls()
