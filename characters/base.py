@@ -99,7 +99,7 @@ class Player:
             error_hint="你遇到bug了！告诉作者！"
     def attack_(self,command):
         global error_hint
-        if "chanzhang_cd" in self.buff:
+        if "chanzhang_cd_2" in self.buff:
             error_hint="禅杖冷却中..."
             self.actions[command[0]]["count"]-=1
             return
