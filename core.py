@@ -85,7 +85,7 @@ def drawAll():
 
 def drawInfo():
     global turn, players, current_player_id
-    print("* 第{}轮".format(turn))
+    print("* 第{}轮".format(turn),"玩家{}操作".format(current_player_id+1))
     print(
         "* 玩家数:{}/{}".format(len([i for i in players if i.alive]), len(players)))
 
@@ -269,7 +269,6 @@ current_player_id = 0
 while running:
     random_step = random.choice(random_steps)
     current_player = players[current_player_id]
-    print("玩家{}操作".format(current_player_id+1))
     current_player.random_step = random_step
     current_player.round()
     current_player_id += 1

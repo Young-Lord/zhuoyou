@@ -1,4 +1,3 @@
-from cache_sum_code import *
 import codecs
 import os
 import sys
@@ -40,3 +39,5 @@ sum_code.write(core_file.read().replace("\xef\xbb\xbf", ''))
 core_file.close()
 sum_code.write("\r\n\r\n")
 sum_code.close()
+
+from cache_sum_code import *

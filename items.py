@@ -110,6 +110,7 @@ class remote_attack:
     distance = 1
 
     def use(self, sender, target, *arg):
+        global error_hint
         route = (astar.astar(gameMapWithPlayers(sender, target),
                              sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
         if route == list():
@@ -128,6 +129,7 @@ class wltg(remote_attack):
     distance = 5
 
     def use(self, sender, target, *arg):
+        global error_hint
         if sender == target:
             error_hint = "别对自己下手！"
             return True
@@ -145,6 +147,7 @@ class gz(remote_attack):
 
     def use(self, sender, target, *arg):
         global game_map
+        global error_hint
         if sender == target:
             error_hint = "别对自己下手！"
             return True
@@ -178,6 +181,7 @@ class steal:
     distance = 5
 
     def use(self, sender, target, *arg):
+        global error_hint
         if sender == target:
             error_hint = "别对自己下手！"
             return True
@@ -210,5 +214,6 @@ class kp:
     value = 1
 
     def use(self, *arg):
+        global error_hint
         error_hint = "这张牌属于被动牌！"
         return True

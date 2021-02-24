@@ -68,43 +68,38 @@ class Player:
             print("你可以走的距离为："+str(self.random_step +
                                   shoes[self.shoe]["value"]+self.speed_add))
         command = input().split(' ', 1)
-        if (command[0] not in list(self.actions.keys())) and command[0].find("debug") == -1:
+        if command[0].find("debug")!=-1:#handle debug commands
+            if command[0] == 'debug_eval':
+                command = command[1]
+                eval(command)
+            elif command[0] == 'debug_showbuff':
+                print(self.buff)
+            elif command[0] == 'debug_showitem':
+                command = command[1].split()
+                command[0] = int(command[0])
+                target = players[command[0]-1]
+                if target.item == list():
+                    error_hint = "他的背包什么都没有！"
+                else:
+                    error_hint = "他的背包的物品为：\n"
+                    unnamed_id = 1
+                    for i in target.item:
+                        error_hint += str(unnamed_id)+' '
+                        unnamed_id += 1
+                        error_hint += i.name+'\n'
+            return
+        if command[0] not in list(self.actions.keys()):
             error_hint = "未知命令"
             return
-        if (command[0].find("debug") == -1) and (self.actions[command[0]]["count"] == 0):
+        if self.actions[command[0]]["count"] == 0:
             error_hint = "你已经进行过此操作了！"
             return
-        if command[0] == 'attack':
-            self.attack_(command)
-        elif command[0] == 'goto':
-            self.goto_(command)
-        elif command[0] == 'end':
-            self.actions[command[0]]["count"] -= 1
-        elif command[0] == 'item':
-            eval("self.item_(command)")
-        elif command[0] == 'use':
-            self.use_(command)
-        elif command[0] == 'debug_eval':
-            command = command[1]
-            eval(command)
-        elif command[0] == 'debug_showbuff':
-            print(self.buff)
-        elif command[0] == 'debug_showitem':
-            command = command[1].split()
-            command[0] = int(command[0])
-            target = players[command[0]-1]
-            if target.item == list():
-                error_hint = "他的背包什么都没有！"
-            else:
-                error_hint = "他的背包的物品为：\n"
-                unnamed_id = 1
-                for i in target.item:
-                    error_hint += str(unnamed_id)+' '
-                    unnamed_id += 1
-                    error_hint += i.name+'\n'
-        else:
-            error_hint = "你遇到bug了！告诉作者！"
-
+        try:
+            eval("self.{}_(command)".format(command[0]))
+        except AttributeError:
+            print("你遇到bug了！告诉作者！")
+    def end_(self,command):
+        self.actions[command[0]]["count"] -= 1
     def attack_(self, command):
         global error_hint
         if "chanzhang_cd_2" in self.buff and self.weapon == "禅杖":
@@ -166,8 +161,10 @@ class Player:
                 error_hint += str(unnamed_id)+' '
                 unnamed_id += 1
                 error_hint += i.name+'\n'
+            error_hint=error_hint[:-1]
 
     def use_(self, command):
+        global error_hint
         command = command[1].split()
         command[0] = int(command[0])
         if command[0] > len(self.item):
@@ -184,7 +181,7 @@ class Player:
         except IndexError:
             try:
                 return_value = self.item[command[0]-1].use(self)
-            except IOError:
+            except TypeError:
                 error_hint = "你没有指定目标！"
         if return_value != True:
             self.item.pop(command[0]-1)
@@ -207,8 +204,7 @@ class Player:
             self.alive = False
         if self.life > self.max_life:
             self.life = self.max_life
-        self.max_energy = self.max_energy_bak + \
-            energy_books[self.energy_book]["value"]
+        self.max_energy = self.max_energy_bak + energy_books[self.energy_book]["value"]
         if self.energy > self.max_energy:
             self.energy = self.max_energy
 
