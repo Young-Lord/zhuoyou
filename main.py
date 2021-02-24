@@ -12,7 +12,7 @@ sum_code.write("# 警告：本文件是在每次运行时自动生成的，修�
 characters = os.listdir(os.path.join(os.getcwd(), "characters"))
 characters = [i.replace(".py", "") for i in characters if i[-3:] == '.py']
 characters = ["base", ]+[i for i in characters if i !=
-                         'base' and i != 'cache_sum_characters']
+                         'base']
 for i in characters:
     sum_code.write("#@# Code from "+i+".py:\r\n\r\n")
     with codecs.open("characters/"+i+".py", "r", encoding='utf-8') as f:

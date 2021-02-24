@@ -1,4 +1,5 @@
 class tryyy(Player):
+    name="测试工具人1"
     life = 10000
     def init_custom(self):
         self.actions_bak["zhudong1"]={"name": "回复", "arg": "", "count": 1}

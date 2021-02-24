@@ -26,6 +26,8 @@ class Player:
     random_step = 0
     actions_bak = {"attack": {"name": "攻击", "arg": "玩家序号", "count": 1}, "goto": {"name": "移动", "arg": "坐标", "count": 1}, "item": {
         "name": "查看背包", "arg": "", "count": -1}, "use": {"name": "使用", "arg": "物品ID (目标ID(如果有的话))", "count": -1}, "end": {"name": "结束回合", "arg": "", "count": 1}}
+    def init_custom(self):
+        pass
 
     def __init__(self):
         self.init_custom()
@@ -222,17 +224,12 @@ class Player:
                 i != "chanzhang_cd" and i != "chanzhang_cd_2")]
         if "chanzhang_cd" in self.buff:
             self.buff.append("chanzhang_cd_2")
-#@# Code from try1.py:
+#@# Code from gaoqiu.py:
 
-class tryyy(Player):
-    life = 10000
-    def init_custom(self):
-        self.actions_bak["zhudong1"]={"name": "回复", "arg": "", "count": 1}
-    def zhudong1_(self,command):
-        self.actions["zhudong1"]["count"]-=1
-        self.life+=1000
-        self.update()
-#@# Code from 李逵.py:
+class gaoqiu(Player):
+	name="高俅"
+	max_life=50
+	max_energy=100#@# Code from likui.py:
 
 class likui(Player):
     name = "李逵"
@@ -250,6 +247,17 @@ class likui(Player):
             self.alive = False
         self.energy = 0
         self.max_energy = 0
+#@# Code from tryyy.py:
+
+class tryyy(Player):
+    name="测试工具人1"
+    life = 10000
+    def init_custom(self):
+        self.actions_bak["zhudong1"]={"name": "回复", "arg": "", "count": 1}
+    def zhudong1_(self,command):
+        self.actions["zhudong1"]["count"]-=1
+        self.life+=1000
+        self.update()
 
 
 #@# Items:
@@ -487,8 +495,9 @@ GRID_Y_LEN = 12
 REC_SIZE = 50
 
 # 游戏设置
-random_steps = [1, 2, 3, 4, 5, 6]  # 这里是可能随机得到的步数列表
-player_count = 2  # 这是固定的玩家数，如果要固定就将None改为玩家数，否则写None
+random_steps = [1, 2, 3, 4, 5, 6]  # 可能随机得到的步数列表
+random_characters=3#随机给出的角色数量
+player_count = 2  # 固定的玩家数，如果要固定就将None改为玩家数，否则写None
 get_cards = 2  # 每局摸牌数
 DEBUG = True  # 是否开启调试模式，True是“是”，False是“否”
 cards_dict = {"drug": 1,
@@ -625,6 +634,16 @@ def inputCoordinates(msg=""):
     rawstr = input(msg)
     return str2coordinates(rawstr)
 
+def inputJuese(avaibal,msg=""):
+    rawstr=input(msg)
+    try:
+        val=int(rawstr)
+    except ValueError:
+        return inputJuese(avaibal,msg="角色非法，请重输")
+    if val<=0 or val>len(characters):
+        return inputJuese(avaibal,msg="角色非法，请重输")
+    return val-1
+
 
 def drawAll():
     drawInfo()
@@ -697,7 +716,7 @@ def gameMapWithPlayers(*paichu):
 def inputPlayerCount():
     try:
         return int(input("输入玩家数量："))
-    except:
+    except ValueError:
         return inputPlayerCount()
 
 
@@ -747,6 +766,10 @@ print("你正在使用的系统是：{}".format(platform.platform()))
 is_windows = (platform.platform().find("Windows")) != -1
 print("Python版本：{}".format(platform.python_version()))
 print("程序目录：{}".format(current_dir))
+
+characters = os.listdir(os.path.join(os.getcwd(), "characters"))
+characters = [i.replace(".py", "") for i in characters if i[-3:] == '.py' and i!='base.py']
+characters = [eval(i+"()") for i in characters]
 
 try:
     map_file = open("map.txt", "r")
@@ -801,11 +824,20 @@ except MapError:
 print("[信息]成功加载大小为{}x{}的地图".format(chang, kuan))
 cls()
 drawMap()
+random_characters_new=random_characters
 for i in range(player_count):
     a, b = inputCoordinates("请输入玩家"+str(i+1)+"的坐标：")
     while not isBlockEmpty(a, b):
         a, b = inputCoordinates("此位置已被占用，请换一个位置：")
-    current_player_id = likui()
+    if random_characters_new>len(characters):
+        random_characters_new=len(characters)
+    print("请选择你的角色：")
+    for i in range(len(characters)):
+        print("({}) {}".format(i+1,characters[i].name))
+    juese=inputJuese(random.sample(characters,random_characters_new))
+    juese=characters[juese]
+    characters.remove(juese)
+    current_player_id = juese
     current_player_id.pos = (a, b)
     players.append(current_player_id)
     cls()

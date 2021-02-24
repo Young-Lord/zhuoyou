@@ -74,6 +74,16 @@ def inputCoordinates(msg=""):
     rawstr = input(msg)
     return str2coordinates(rawstr)
 
+def inputJuese(avaibal,msg=""):
+    rawstr=input(msg)
+    try:
+        val=int(rawstr)
+    except ValueError:
+        return inputJuese(avaibal,msg="角色非法，请重输")
+    if val<=0 or val>len(characters):
+        return inputJuese(avaibal,msg="角色非法，请重输")
+    return val-1
+
 
 def drawAll():
     drawInfo()
@@ -146,7 +156,7 @@ def gameMapWithPlayers(*paichu):
 def inputPlayerCount():
     try:
         return int(input("输入玩家数量："))
-    except:
+    except ValueError:
         return inputPlayerCount()
 
 
@@ -196,6 +206,10 @@ print("你正在使用的系统是：{}".format(platform.platform()))
 is_windows = (platform.platform().find("Windows")) != -1
 print("Python版本：{}".format(platform.python_version()))
 print("程序目录：{}".format(current_dir))
+
+characters = os.listdir(os.path.join(os.getcwd(), "characters"))
+characters = [i.replace(".py", "") for i in characters if i[-3:] == '.py' and i!='base.py']
+characters = [eval(i+"()") for i in characters]
 
 try:
     map_file = open("map.txt", "r")
@@ -250,11 +264,20 @@ except MapError:
 print("[信息]成功加载大小为{}x{}的地图".format(chang, kuan))
 cls()
 drawMap()
+random_characters_new=random_characters
 for i in range(player_count):
     a, b = inputCoordinates("请输入玩家"+str(i+1)+"的坐标：")
     while not isBlockEmpty(a, b):
         a, b = inputCoordinates("此位置已被占用，请换一个位置：")
-    current_player_id = likui()
+    if random_characters_new>len(characters):
+        random_characters_new=len(characters)
+    print("请选择你的角色：")
+    for i in range(len(characters)):
+        print("({}) {}".format(i+1,characters[i].name))
+    juese=inputJuese(random.sample(characters,random_characters_new))
+    juese=characters[juese]
+    characters.remove(juese)
+    current_player_id = juese
     current_player_id.pos = (a, b)
     players.append(current_player_id)
     cls()

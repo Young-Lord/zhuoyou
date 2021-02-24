@@ -22,6 +22,8 @@ class Player:
     random_step = 0
     actions_bak = {"attack": {"name": "攻击", "arg": "玩家序号", "count": 1}, "goto": {"name": "移动", "arg": "坐标", "count": 1}, "item": {
         "name": "查看背包", "arg": "", "count": -1}, "use": {"name": "使用", "arg": "物品ID (目标ID(如果有的话))", "count": -1}, "end": {"name": "结束回合", "arg": "", "count": 1}}
+    def init_custom(self):
+        pass
 
     def __init__(self):
         self.init_custom()
