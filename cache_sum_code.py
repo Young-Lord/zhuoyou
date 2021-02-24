@@ -26,6 +26,7 @@ class Player:
     random_step=0
     actions_bak={"attack":{"name":"攻击","arg":"玩家序号","count":1},"goto":{"name":"移动","arg":"坐标","count":1},"item":{"name":"查看背包","arg":"","count":-1},"use":{"name":"使用","arg":"物品ID (目标ID(如果有的话))","count":-1},"end":{"name":"结束回合","arg":"","count":1}}
     def __init__(self):
+        self.init_custom()
         self.actions=dict()
         self.item = list()
         self.buff = list()
@@ -68,7 +69,12 @@ class Player:
         if (command[0] not in list(self.actions.keys())) and command[0].find("debug")==-1:
             error_hint="未知命令"
             return
-        if command[0].find("debug")=="-1" and self.actions[command[0]]["count"]==0:
+        print("find:",(command[0].find("debug")))
+        try:
+            print("count:",self.actions[command[0]]["count"])
+        except:
+            pass
+        if (command[0].find("debug")==-1) and (self.actions[command[0]]["count"]==0):
             error_hint="你已经进行过此操作了！"
             return
         if command[0]=='attack':
@@ -201,8 +207,7 @@ class Player:
             self.actions[i]=self.actions_bak[i].copy()
         self.update()
         if "chanzhang_cd_2" in self.buff:
-            self.buff.remove("chanzhang_cd")
-            self.buff.remove("chanzhang_cd_2")
+            self.buff=[i for i in self.buff if (i!="chanzhang_cd" and i!="chanzhang_cd_2")]
         if "chanzhang_cd" in self.buff:
             self.buff.append("chanzhang_cd_2")
 #@# Code from try1.py:
@@ -212,19 +217,20 @@ class tryyy:
 
 class likui(Player):
     name="李逵"
-    life=80
-    max_life=80
+    life=8000
+    max_life=8000
     energy=0
     max_energy=0
     max_energy_bak=0
+    def init_custom(self):
+        self.actions_bak["attack"]["count"]=3
     def update(self):
-        if life<=0:
+        if self.life<=0:
             self.alive=False
-        energy=0
-        max_energy=0
-    actions_bak={"attack":{"name":"攻击","arg":"玩家序号","count":3},"goto":{"name":"移动","arg":"坐标","count":1},"info":{"name":"查看","arg":"","count":-1},"use":{"name":"使用","arg":"物品ID","count":-1},"end":{"name":"结束回合","arg":"","count":1}}
+        self.energy=0
+        self.max_energy=0
 
-
+        
 
 #@# Items:
 import astar
@@ -287,8 +293,7 @@ class cz(weapon):
     value = "禅杖"
     def use(self, sender, *arg):
         sender.weapon = self.value
-        sender.buff.remove("chanzhang_cd")
-        sender.buff.remove("chanzhang_cd_2")
+        sender.buff=[i for i in sender.buff if (i!="chanzhang_cd" and i!="chanzhang_cd_2")]
 
 
 class shoe:

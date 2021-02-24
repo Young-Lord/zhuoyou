@@ -22,6 +22,7 @@ class Player:
     random_step=0
     actions_bak={"attack":{"name":"攻击","arg":"玩家序号","count":1},"goto":{"name":"移动","arg":"坐标","count":1},"item":{"name":"查看背包","arg":"","count":-1},"use":{"name":"使用","arg":"物品ID (目标ID(如果有的话))","count":-1},"end":{"name":"结束回合","arg":"","count":1}}
     def __init__(self):
+        self.init_custom()
         self.actions=dict()
         self.item = list()
         self.buff = list()
@@ -64,7 +65,7 @@ class Player:
         if (command[0] not in list(self.actions.keys())) and command[0].find("debug")==-1:
             error_hint="未知命令"
             return
-        if command[0].find("debug")=="-1" and self.actions[command[0]]["count"]==0:
+        if (command[0].find("debug")==-1) and (self.actions[command[0]]["count"]==0):
             error_hint="你已经进行过此操作了！"
             return
         if command[0]=='attack':
@@ -197,7 +198,6 @@ class Player:
             self.actions[i]=self.actions_bak[i].copy()
         self.update()
         if "chanzhang_cd_2" in self.buff:
-            self.buff.remove("chanzhang_cd")
-            self.buff.remove("chanzhang_cd_2")
+            self.buff=[i for i in self.buff if (i!="chanzhang_cd" and i!="chanzhang_cd_2")]
         if "chanzhang_cd" in self.buff:
             self.buff.append("chanzhang_cd_2")
