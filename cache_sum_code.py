@@ -69,11 +69,6 @@ class Player:
         if (command[0] not in list(self.actions.keys())) and command[0].find("debug")==-1:
             error_hint="未知命令"
             return
-        print("find:",(command[0].find("debug")))
-        try:
-            print("count:",self.actions[command[0]]["count"])
-        except:
-            pass
         if (command[0].find("debug")==-1) and (self.actions[command[0]]["count"]==0):
             error_hint="你已经进行过此操作了！"
             return
@@ -84,7 +79,7 @@ class Player:
         elif command[0]=='end':
             self.actions[command[0]]["count"]-=1
         elif command[0]=='item':
-            self.item_(command)
+            eval("self.item_(command)")
         elif command[0]=='use':
             self.use_(command)
         elif command[0]=='debug_eval':
@@ -109,7 +104,7 @@ class Player:
             error_hint="你遇到bug了！告诉作者！"
     def attack_(self,command):
         global error_hint
-        if "chanzhang_cd_2" in self.buff:
+        if "chanzhang_cd_2" in self.buff and self.weapon=="禅杖":
             error_hint="禅杖冷却中..."
             self.actions[command[0]]["count"]-=1
             return

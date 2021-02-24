@@ -56,9 +56,11 @@ class tlbd(weapon):
 class cz(weapon):
     name = "禅杖"
     value = "禅杖"
+
     def use(self, sender, *arg):
         sender.weapon = self.value
-        sender.buff=[i for i in sender.buff if (i!="chanzhang_cd" and i!="chanzhang_cd_2")]
+        sender.buff = [i for i in sender.buff if (
+            i != "chanzhang_cd" and i != "chanzhang_cd_2")]
 
 
 class shoe:
@@ -90,6 +92,7 @@ class shield_None(shield):
 class energy_book:
     name = "魔法书"
     value = "魔法书"
+
     def use(self, sender, *arg):
         sender.energy_book = self.value
 
@@ -110,10 +113,10 @@ class remote_attack:
         route = (astar.astar(gameMapWithPlayers(sender, target),
                              sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
         if route == list():
-            error_hint="无法到达！"
+            error_hint = "无法到达！"
             return True
         if len(route) > self.distance:
-            error_hint="太远了！"
+            error_hint = "太远了！"
             return True
         target.damage(self.value)
         sender.update()
@@ -126,10 +129,10 @@ class wltg(remote_attack):
 
     def use(self, sender, target, *arg):
         if sender == target:
-            error_hint="别对自己下手！"
+            error_hint = "别对自己下手！"
             return True
         if getDistance_ou(sender.pos, target.pos) > self.distance:
-            error_hint="太远了！"
+            error_hint = "太远了！"
             return True
         target.damage(self.value)
         sender.update()
@@ -143,28 +146,29 @@ class gz(remote_attack):
     def use(self, sender, target, *arg):
         global game_map
         if sender == target:
-            error_hint="别对自己下手！"
+            error_hint = "别对自己下手！"
             return True
         #error_hint="***几何什么的最烦了 钩爪拐弯就随他吧！"
         route = (astar.astar(gameMapWithPlayers(sender, target),
                              sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
         if route == list():
-            error_hint="无法到达！"
+            error_hint = "无法到达！"
             return True
-        distance= getDistance_ou(sender.pos, target.pos)
-        if distance>self.distance:
-            error_hint="太远了！"
+        distance = getDistance_ou(sender.pos, target.pos)
+        if distance > self.distance:
+            error_hint = "太远了！"
             return True
         target.damage(self.value)
-        if distance == 1 or (distance == 2 and (abs(sender.pos[0]-target.pos[0]) == 1)):#即target在sender附近8格
+        # 即target在sender附近8格
+        if distance == 1 or (distance == 2 and (abs(sender.pos[0]-target.pos[0]) == 1)):
             pass
         else:
-            poss=posOnLine(game_map,sender.pos, target.pos)
+            poss = posOnLine(game_map, sender.pos, target.pos)
             for i in poss:
-                if game_map[i[0]][i[1]]!='0':
-                    error_hint="直线上存在障碍物！"
+                if game_map[i[0]][i[1]] != '0':
+                    error_hint = "直线上存在障碍物！"
                     return True
-            target.pos=poss[0]
+            target.pos = poss[0]
         sender.update()
 
 
@@ -175,25 +179,25 @@ class steal:
 
     def use(self, sender, target, *arg):
         if sender == target:
-            error_hint="别对自己下手！"
+            error_hint = "别对自己下手！"
             return True
         route = (astar.astar(gameMapWithPlayers(sender, target),
                              sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
         if route == list():
-            error_hint="无法到达！"
+            error_hint = "无法到达！"
             return True
         if len(route) > self.distance:
-            error_hint="太远了！"
+            error_hint = "太远了！"
             return True
         i = 0
         if len(target.item) == 0:
-            error_hint="他的背包什么都没有！"
+            error_hint = "他的背包什么都没有！"
             return True
         while len(target.item) != 0 and i < self.value:
             selected = random.choice(target.item)
             while selected.value == None:
                 selected = random.choice(target.item)
-            error_hint="* 你偷到了他的"+selected.name+"!"
+            error_hint = "* 你偷到了他的"+selected.name+"!"
             i += 1
             sender.item.append(selected)
             target.item.remove(selected)
@@ -206,5 +210,5 @@ class kp:
     value = 1
 
     def use(self, *arg):
-        error_hint="这张牌属于被动牌！"
+        error_hint = "这张牌属于被动牌！"
         return True
