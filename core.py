@@ -79,10 +79,10 @@ def inputJuese(avaibal,msg=""):
     try:
         val=int(rawstr)
     except ValueError:
-        return inputJuese(avaibal,msg="角色非法，请重输")
+        return inputJuese(avaibal,msg="角色非法，请重输：")
     if val<=0 or val>len(characters):
-        return inputJuese(avaibal,msg="角色非法，请重输")
-    return val-1
+        return inputJuese(avaibal,msg="角色非法，请重输：")
+    return avaibal[val-1]
 
 
 def drawAll():
@@ -208,8 +208,16 @@ print("Python版本：{}".format(platform.python_version()))
 print("程序目录：{}".format(current_dir))
 
 characters = os.listdir(os.path.join(os.getcwd(), "characters"))
-characters = [i.replace(".py", "") for i in characters if i[-3:] == '.py' and i!='base.py']
-characters = [eval(i+"()") for i in characters]
+characters = [i.replace(".py", "") for i in characters if i[-3:] == '.py' and i!='base.py' and i!='tempCodeR1unnerFile.py']
+error_list_ch=list()
+for i in range(len(characters)):
+    try:
+        characters[i] = eval(characters[i]+"()")
+    except NameError as ne:
+        print("[警告]",ne,"请将警告信息发给作者")
+        error_list_ch.append(characters[i])
+for i in error_list_ch:
+    characters.remove(i)
 
 try:
     map_file = open("map.txt", "r")
@@ -271,11 +279,11 @@ for i in range(player_count):
         a, b = inputCoordinates("此位置已被占用，请换一个位置：")
     if random_characters_new>len(characters):
         random_characters_new=len(characters)
+    avaibal=random.sample(characters,random_characters_new)
     print("请选择你的角色：")
-    for i in range(len(characters)):
-        print("({}) {}".format(i+1,characters[i].name))
-    juese=inputJuese(random.sample(characters,random_characters_new))
-    juese=characters[juese]
+    for i in range(len(avaibal)):
+        print("({}) {}".format(i+1,avaibal[i].name))
+    juese=inputJuese(avaibal)
     characters.remove(juese)
     current_player_id = juese
     current_player_id.pos = (a, b)

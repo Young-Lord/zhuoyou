@@ -30,15 +30,16 @@ class Player:
         pass
 
     def __init__(self):
-        self.init_custom()
         self.actions = dict()
         self.item = list()
         self.buff = list()
         # WARNING: 每个可变对象（list,dict）等都必须在这里初始化，否则不同的实例会共享一个对象
-        for i in self.actions_bak.keys():
-            self.actions[i] = self.actions_bak[i].copy()
+        self.actions_bak=self.actions_bak.copy()
         self.life = self.max_life
         self.energy = self.max_energy
+        self.init_custom()
+        for i in self.actions_bak.keys():
+            self.actions[i] = self.actions_bak[i].copy()
 
     def round(self):
         global random_step
@@ -103,7 +104,7 @@ class Player:
         try:
             eval("self.{}_(command)".format(command[0]))
         except AttributeError:
-            print("你遇到bug了！告诉作者！")
+            error_hint = "你遇到bug了！告诉作者！"
     def end_(self,command):
         self.actions[command[0]]["count"] -= 1
     def attack_(self, command):
@@ -247,9 +248,9 @@ class likui(Player):
             self.alive = False
         self.energy = 0
         self.max_energy = 0
-#@# Code from tryyy.py:
+#@# Code from try1.py:
 
-class tryyy(Player):
+class try1(Player):
     name="测试工具人1"
     life = 10000
     def init_custom(self):
@@ -258,6 +259,14 @@ class tryyy(Player):
         self.actions["zhudong1"]["count"]-=1
         self.life+=1000
         self.update()
+#@# Code from try2.py:
+
+class try2(Player):
+    name="测试工具人2"
+#@# Code from try3.py:
+
+class try3(Player):
+    name="测试工具人3"
 
 
 #@# Items:
@@ -639,10 +648,10 @@ def inputJuese(avaibal,msg=""):
     try:
         val=int(rawstr)
     except ValueError:
-        return inputJuese(avaibal,msg="角色非法，请重输")
+        return inputJuese(avaibal,msg="角色非法，请重输：")
     if val<=0 or val>len(characters):
-        return inputJuese(avaibal,msg="角色非法，请重输")
-    return val-1
+        return inputJuese(avaibal,msg="角色非法，请重输：")
+    return avaibal[val-1]
 
 
 def drawAll():
@@ -768,8 +777,16 @@ print("Python版本：{}".format(platform.python_version()))
 print("程序目录：{}".format(current_dir))
 
 characters = os.listdir(os.path.join(os.getcwd(), "characters"))
-characters = [i.replace(".py", "") for i in characters if i[-3:] == '.py' and i!='base.py']
-characters = [eval(i+"()") for i in characters]
+characters = [i.replace(".py", "") for i in characters if i[-3:] == '.py' and i!='base.py' and i!='tempCodeR1unnerFile.py']
+error_list_ch=list()
+for i in range(len(characters)):
+    try:
+        characters[i] = eval(characters[i]+"()")
+    except NameError as ne:
+        print("[警告]",ne,"请将警告信息发给作者")
+        error_list_ch.append(characters[i])
+for i in error_list_ch:
+    characters.remove(i)
 
 try:
     map_file = open("map.txt", "r")
@@ -831,11 +848,11 @@ for i in range(player_count):
         a, b = inputCoordinates("此位置已被占用，请换一个位置：")
     if random_characters_new>len(characters):
         random_characters_new=len(characters)
+    avaibal=random.sample(characters,random_characters_new)
     print("请选择你的角色：")
-    for i in range(len(characters)):
-        print("({}) {}".format(i+1,characters[i].name))
-    juese=inputJuese(random.sample(characters,random_characters_new))
-    juese=characters[juese]
+    for i in range(len(avaibal)):
+        print("({}) {}".format(i+1,avaibal[i].name))
+    juese=inputJuese(avaibal)
     characters.remove(juese)
     current_player_id = juese
     current_player_id.pos = (a, b)

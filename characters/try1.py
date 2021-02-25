@@ -1,4 +1,4 @@
-class tryyy(Player):
+class try1(Player):
     name="测试工具人1"
     life = 10000
     def init_custom(self):

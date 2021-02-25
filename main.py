@@ -10,7 +10,7 @@ sum_code.write("# 警告：本文件是在每次运行时自动生成的，修�
 
 # generating characters
 characters = os.listdir(os.path.join(os.getcwd(), "characters"))
-characters = [i.replace(".py", "") for i in characters if i[-3:] == '.py']
+characters = [i.replace(".py", "") for i in characters if i[-3:] == '.py' and i!="tempCodeRunnerFile.py"]
 characters = ["base", ]+[i for i in characters if i !=
                          'base']
 for i in characters:

@@ -26,15 +26,16 @@ class Player:
         pass
 
     def __init__(self):
-        self.init_custom()
         self.actions = dict()
         self.item = list()
         self.buff = list()
         # WARNING: 每个可变对象（list,dict）等都必须在这里初始化，否则不同的实例会共享一个对象
-        for i in self.actions_bak.keys():
-            self.actions[i] = self.actions_bak[i].copy()
+        self.actions_bak=self.actions_bak.copy()
         self.life = self.max_life
         self.energy = self.max_energy
+        self.init_custom()
+        for i in self.actions_bak.keys():
+            self.actions[i] = self.actions_bak[i].copy()
 
     def round(self):
         global random_step
@@ -99,7 +100,7 @@ class Player:
         try:
             eval("self.{}_(command)".format(command[0]))
         except AttributeError:
-            print("你遇到bug了！告诉作者！")
+            error_hint = "你遇到bug了！告诉作者！"
     def end_(self,command):
         self.actions[command[0]]["count"] -= 1
     def attack_(self, command):
