@@ -106,7 +106,7 @@ def drawPlayers():
     for i in players:
         print("玩家"+str(display_index)+"  "+i.name, end="\t:")
         if i.alive:
-            print("生命 {};能量 {}".format(i.life, i.energy))
+            print("生命 {}/{};能量 {}/{}".format(i.life, i.max_life, i.energy, i.max_energy))
         else:
             print("已死亡")
         display_index += 1

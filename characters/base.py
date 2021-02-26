@@ -20,6 +20,7 @@ class Player:
     damage_percent = 100
     speed_add = 0
     random_step = 0
+    attack_range_add = 0
     actions_bak = {"attack": {"name": "攻击", "arg": "玩家序号", "count": 1}, "goto": {"name": "移动", "arg": "坐标", "count": 1}, "item": {
         "name": "查看背包", "arg": "", "count": -1}, "use": {"name": "使用", "arg": "物品ID (目标ID(如果有的话))", "count": -1}, "end": {"name": "结束回合", "arg": "", "count": 1}}
     def init_custom(self):
@@ -31,6 +32,8 @@ class Player:
         self.buff = list()
         # WARNING: 每个可变对象（list,dict）等都必须在这里初始化，否则不同的实例会共享一个对象
         self.actions_bak=self.actions_bak.copy()
+        for i in self.actions_bak.keys():
+            self.actions_bak[i] = self.actions_bak[i].copy()
         self.life = self.max_life
         self.energy = self.max_energy
         self.init_custom()
@@ -119,7 +122,7 @@ class Player:
         if route == list():
             error_hint = "无法到达！"
             return
-        if len(route) > weapons[self.weapon]["distance"]:
+        if len(route) > weapons[self.weapon]["distance"]+self.attack_range_add:
             error_hint = "太远了！"
             return
         self.attack(players[int(command[1])-1])
@@ -192,15 +195,19 @@ class Player:
     def attack(self, target):
         if self.weapon == "禅杖":
             self.buff.append("chanzhang_cd")
-        target.damage((weapons[self.weapon]["value"] +
+        hurt = target.damage((weapons[self.weapon]["value"] +
                        self.attack_add)*self.attack_percent//100)
         self.update()
+        return hurt
 
     def damage(self, value):
+        hurt=0
         if ((value-shields[self.shield]["value"]-self.damage_minus)*self.damage_percent//100) > 0:
-            self.life -= (value-shields[self.shield]["value"] -
+            hurt = (value-shields[self.shield]["value"] -
                           self.damage_minus)*self.damage_percent//100
+        self.life-=hurt
         self.update()
+        return hurt
 
     def update(self):
         if self.life <= 0:
