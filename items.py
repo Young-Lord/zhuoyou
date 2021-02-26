@@ -35,30 +35,31 @@ class drug:
         sender.update()
 
 
-class weapon:
+class weapon_base:
     name = "武器_父类"
     value = "测试-伤害10"
 
     def use(self, sender, *arg):
         sender.weapon = self.value
+        self.use_custom()
+    def use_custom(self,sender):
+        pass
 
-
-class weapon_None(weapon):
+class weapon_None(weapon_base):
     name = "不使用武器"
     value = None
 
 
-class tlbd(weapon):
+class tlbd(weapon_base):
     name = "屠龙宝刀"
     value = "屠龙宝刀"
 
 
-class cz(weapon):
+class cz(weapon_base):
     name = "禅杖"
     value = "禅杖"
 
-    def use(self, sender, *arg):
-        sender.weapon = self.value
+    def use_custom(self,sender):
         sender.buff = [i for i in sender.buff if (
             i != "chanzhang_cd" and i != "chanzhang_cd_2")]
 

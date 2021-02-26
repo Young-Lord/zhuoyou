@@ -221,3 +221,5 @@ class Player:
                 i != "chanzhang_cd" and i != "chanzhang_cd_2")]
         if "chanzhang_cd" in self.buff:
             self.buff.append("chanzhang_cd_2")
+    def qipai(self):
+        pass
