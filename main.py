@@ -40,4 +40,8 @@ core_file.close()
 sum_code.write("\r\n\r\n")
 sum_code.close()
 
-from cache_sum_code import *
+try:
+    from cache_sum_code import *
+except Exception as e:
+    print("\n\n#####\n[BUG] 带上以下信息向作者反馈：\n#####\n\n")
+    raise e

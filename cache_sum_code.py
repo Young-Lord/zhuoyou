@@ -209,6 +209,7 @@ class Player:
         if ((value-shields[self.shield]["value"]-self.damage_minus)*self.damage_percent//100) > 0:
             hurt = (value-shields[self.shield]["value"] -
                           self.damage_minus)*self.damage_percent//100
+        self.life-=hurt
         self.update()
         return hurt
 
