@@ -167,11 +167,9 @@ class gz(remote_attack):
         if distance == 1 or (distance == 2 and (abs(sender.pos[0]-target.pos[0]) == 1)):
             pass
         else:
-            poss = posOnLine(game_map, sender.pos, target.pos)
-            for i in poss:
-                if game_map[i[0]][i[1]] != '0':
-                    error_hint = "直线上存在障碍物！"
-                    return True
+            if not lineAvaibal(sender.pos, target.pos):
+                error_hint = "直线上存在障碍物！"
+                return True
             target.pos = poss[0]
         sender.update()
 
