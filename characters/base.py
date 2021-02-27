@@ -45,7 +45,7 @@ class Player:
         self.random_step = random_step
         global error_hint
         error_hint = ""
-        if len(cards) > get_cards:
+        if len(cards) >= get_cards:
             print("="*10)
             for i in range(get_cards):
                 selected = random.choice(cards)
@@ -53,6 +53,8 @@ class Player:
                 cards.remove(selected)
                 self.item.append(selected)
             print("="*10)
+        else:
+            print("没卡了！")
         while self.actions["end"]["count"]:
             if error_hint != "":
                 print("="*10)
@@ -187,7 +189,7 @@ class Player:
         except IndexError:
             try:
                 return_value = self.item[command[0]-1].use(self)
-            except TypeError:
+            except IOError:
                 error_hint = "你没有指定目标！"
         if return_value != True:
             self.item.pop(command[0]-1)

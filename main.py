@@ -18,6 +18,13 @@ for i in characters:
     with codecs.open("characters/"+i+".py", "r", encoding='utf-8') as f:
         sum_code.write(f.read().replace("\xef\xbb\xbf", ''))
 
+# generating functions
+sum_code.write("\r\n\r\n#@# functions:\r\n")
+functions_file = codecs.open("functions.py", "r", encoding='utf-8')
+sum_code.write(functions_file.read().replace("\xef\xbb\xbf", ''))
+functions_file.close()
+sum_code.write("\r\n\r\n")
+
 # generating items
 sum_code.write("\r\n\r\n#@# Items:\r\n")
 item_file = codecs.open("items.py", "r", encoding='utf-8')

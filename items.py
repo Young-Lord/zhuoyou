@@ -41,7 +41,7 @@ class weapon_base:
 
     def use(self, sender, *arg):
         sender.weapon = self.value
-        self.use_custom()
+        self.use_custom(sender)
     def use_custom(self,sender):
         pass
 
@@ -170,8 +170,9 @@ class gz(remote_attack):
             if not lineAvaibal(sender.pos, target.pos):
                 error_hint = "直线上存在障碍物！"
                 return True
-            target.pos = poss[0]
+            target.pos = getFangXiangPos(sender.pos,target.pos)
         sender.update()
+        target.update()
 
 
 class steal:
