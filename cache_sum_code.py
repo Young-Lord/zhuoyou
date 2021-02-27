@@ -77,8 +77,11 @@ class Player:
                 print("{}：{} {}".format(
                     self.actions[i]["name"], i, self.actions[i]["arg"]))
         if self.actions["goto"]["count"] != 0:
-            print("你可以走的距离为："+str(self.random_step +
+            print("*你可以走的距离为："+str(self.random_step +
                                   shoes[self.shoe]["value"]+self.speed_add))
+        max_card = (self.life+cards_limit-1)//cards_limit
+        if len(self.item)>max_card:
+            print("*回合结束时，你需要弃{}张牌".format(len(self.item)-max_card))
         command = input().split(' ', 1)
         if command[0].find("debug")!=-1:#handle debug commands
             if command[0] == 'debug_eval':
@@ -114,24 +117,31 @@ class Player:
         self.actions[command[0]]["count"] -= 1
     def attack_(self, command):
         global error_hint
+        target=players[int(command[1])-1]
         if "chanzhang_cd_2" in self.buff and self.weapon == "禅杖":
             error_hint = "禅杖冷却中..."
             self.actions[command[0]]["count"] -= 1
             return
-        if players[int(command[1])-1] == self:
+        if target == self:
             self.attack(self)
             self.actions[command[0]]["count"] -= 1
             error_hint = "最好不要自刀，当然你要真想也可以..."
             return
-        route = (astar.astar(gameMapWithPlayers(self, players[int(
-            command[1])-1]), self.pos[0], self.pos[1], players[int(command[1])-1].pos[0], players[int(command[1])-1].pos[1]))
+        route = (astar.astar(gameMapWithPlayers(self,target),self.pos[0], self.pos[1], target.pos[0], target.pos[1]))
         if route == list():
             error_hint = "无法到达！"
             return
-        if len(route) > weapons[self.weapon]["distance"]+self.attack_range_add:
+        if "remote" in weapons[self.weapon].keys() and weapons[self.weapon]["remote"]:
+            if getDistance_ou(self.pos,target.pos)>weapons[self.weapon]["distance"]+self.attack_range_add:
+                error_hint = "太远了！"
+                return
+            if not lineAvaibale(self.pos,target.pos):
+                error_hint = "与目标间存在障碍物！"
+                return
+        elif len(route) > weapons[self.weapon]["distance"]+self.attack_range_add:
             error_hint = "太远了！"
             return
-        self.attack(players[int(command[1])-1])
+        self.attack(target)
         self.actions[command[0]]["count"] -= 1
 
     def goto_(self, command):
@@ -162,7 +172,7 @@ class Player:
         self.pos = (a, b)
         self.actions[command[0]]["count"] -= 1
 
-    def item_(self, command):
+    def item_(self, command=None):
         global error_hint
         if self.item == list():
             error_hint = "你的背包什么都没有！"
@@ -234,8 +244,36 @@ class Player:
                 i != "chanzhang_cd" and i != "chanzhang_cd_2")]
         if "chanzhang_cd" in self.buff:
             self.buff.append("chanzhang_cd_2")
+        self.qipai()
     def qipai(self):
-        pass
+        global error_hint
+        max_card = (self.life+cards_limit-1)//cards_limit
+        if len(self.item)<=max_card:
+            return
+        while len(self.item)>max_card:
+            print("你还需要弃{}张牌".format(len(self.item)-max_card))
+            self.item_()
+            print("="*10+"\n"+error_hint+"\n"+"="*10)
+            removelist=-1
+            realremove=list()
+            while removelist==-1:
+                rawstr=input().split()
+                try:
+                    removelist=[int(i) for i in rawstr]
+                    for i in removelist:
+                        if i<=0 or i>len(self.item):
+                            raise ValueError
+                except ValueError:
+                    removelist=-1
+                    print("输入非法，请重输：",end="")
+            for i in removelist:
+                realremove.append(self.item[i-1])
+            for i in realremove:
+                cards.append(i)
+                # TODO：要新开一个弃牌堆吗？
+                self.item.remove(i)
+            realremove=list()
+            cls()
 #@# Code from gaoqiu.py:
 
 class gaoqiu(Player):
@@ -356,15 +394,15 @@ def inputCoordinates(msg: str = ""):
     return str2coordinates(rawstr)
 
 
-def inputJuese(avaibal: list, msg: str = ""):
+def inputJuese(avaibale: list, msg: str = ""):
     rawstr = input(msg)
     try:
         val = int(rawstr)
     except ValueError:
-        return inputJuese(avaibal, msg="角色非法，请重输：")
+        return inputJuese(avaibale, msg="角色非法，请重输：")
     if val <= 0 or val > len(characters):
-        return inputJuese(avaibal, msg="角色非法，请重输：")
-    return avaibal[val-1]
+        return inputJuese(avaibale, msg="角色非法，请重输：")
+    return avaibale[val-1]
 
 
 def drawAll():
@@ -499,9 +537,9 @@ def posOnLine(mapp: list, a: tuple, b: tuple):
         return [(a[0], i) for i in range(a[1]+1, b[1])]
     k = (a[1]-b[1])/(a[0]-b[0])  # y=kx+d
     d = a[1]-a[0]*k
-    #print("函数解析式：y={}x+{}".format(k, d))
+    # print("函数解析式：y={}x+{}".format(k, d))
     if chax > chay:
-        print("x>y")
+        # print("x>y")
         lasty = a[1]
         for i in range(a[0]+1, b[0]):  # i is x in function y=kx+d
             posx = i
@@ -510,36 +548,36 @@ def posOnLine(mapp: list, a: tuple, b: tuple):
             if lasty != posy:
                 angle1 = round(cal_ang(a, (posx, posy-1), b))
                 angle2 = round(cal_ang(a, (posx-1, posy), b))
-                print("angle1={};angle2={}".format(angle1, angle2))
+                # print("angle1={};angle2={}".format(angle1, angle2))
                 if angle1 == angle2:
-                    print("* branch#-1")
+                    # print("* branch#-1")
                     result.append([(posx, posy-1), (posx-1, posy)])
                 if angle1 < angle2:
-                    print("* branch#1")
+                    # print("* branch#1")
                     result.append((posx, posy-1))
                 if angle1 > angle2:
                     result.append((posx-1, posy))
             result.append(tuple(res))
             lasty = posy
-            print("")
+            # print("")
         posx = b[0]
         posy = round(k*b[0]+d)
         res = [posx, posy]
         if lasty != posy:
             angle1 = round(cal_ang(a, (posx, posy-1), b))
             angle2 = round(cal_ang(a, (posx-1, posy), b))
-            print("angle1={};angle2={}".format(angle1, angle2))
+            # print("angle1={};angle2={}".format(angle1, angle2))
             if angle1 == angle2:
-                print("* branch#-1")
+                # print("* branch#-1")
                 result.append([(posx, posy-1), (posx-1, posy)])
             if angle1 < angle2:
-                print("* branch#1")
+                # print("* branch#1")
                 result.append((posx, posy-1))
             if angle1 > angle2:
-                print("* branch#2")
+                # print("* branch#2")
                 result.append((posx-1, posy))
     else:
-        print("y>x")
+        # print("y>x")
         lastx = a[0]
         for i in range(a[1]+1, b[1]):  # i is y in function y=kx+d
             posx = round((i-d)/k)
@@ -548,39 +586,39 @@ def posOnLine(mapp: list, a: tuple, b: tuple):
             if lastx != posx:
                 angle1 = round(cal_ang(a, (posx, posy-1), b))
                 angle2 = round(cal_ang(a, (posx-1, posy), b))
-                print("angle1={};angle2={}".format(angle1, angle2))
+                # print("angle1={};angle2={}".format(angle1, angle2))
                 if angle1 == angle2:
-                    print("* branch#-1")
+                    # print("* branch#-1")
                     result.append([(posx, posy-1), (posx-1, posy)])
                 if angle1 < angle2:
-                    print("* branch#1")
+                    # print("* branch#1")
                     result.append((posx, posy-1))
                 if angle1 > angle2:
-                    print("* branch#2")
+                    # print("* branch#2")
                     result.append((posx-1, posy))
             result.append(tuple(res))
             lastx = posx
-            print("")
+            # print("")
         posx = round((b[1]-d)/k)
         posy = b[1]
         res = [posx, posy]
         if lastx != posx:
             angle1 = round(cal_ang(a, (posx, posy-1), b))
             angle2 = round(cal_ang(a, (posx-1, posy), b))
-            print("angle1={};angle2={}".format(angle1, angle2))
+            # print("angle1={};angle2={}".format(angle1, angle2))
             if angle1 == angle2:
-                print("* branch#-1")
+                # print("* branch#-1")
                 result.append([(posx, posy-1), (posx-1, posy)])
             if angle1 < angle2:
-                print("* branch#1")
+                # print("* branch#1")
                 result.append((posx, posy-1))
             if angle1 > angle2:
-                print("* branch#2")
+                # print("* branch#2")
                 result.append((posx-1, posy))
     return result
 
 
-def lineAvaibal(a: tuple, b: tuple):
+def lineAvaibale(a: tuple, b: tuple):
     global game_map
     poss = posOnLine(game_map, a, b)
     for i in poss:
@@ -653,7 +691,8 @@ weapons = {
     "测试-伤害10": {"name": "测试1", "value": 10, "distance": 3},
     "测试-伤害15": {"name": "测试2", "value": 15, "distance": 5},
     "禅杖": {"name": "禅杖", "value": 20, "distance": 100},
-    "屠龙宝刀": {"name": "屠龙宝刀1", "value": 1000, "distance": 100}
+    "屠龙宝刀": {"name": "屠龙宝刀1", "value": 1000, "distance": 100,"remote":True},
+    "弓": {"name":"弓","value":8,"distance":6,"remote":True}
 }
 shields = {
     None: {"name": "无", "value": 0},
@@ -701,6 +740,10 @@ class tlbd(weapon_base):
     name = "屠龙宝刀"
     value = "屠龙宝刀"
 
+
+class bow(weapon_base):
+    name = "弓"
+    value = "弓"
 
 class cz(weapon_base):
     name = "禅杖"
@@ -814,7 +857,7 @@ class gz(remote_attack):
         if distance == 1 or (distance == 2 and (abs(sender.pos[0]-target.pos[0]) == 1)):
             pass
         else:
-            if not lineAvaibal(sender.pos, target.pos):
+            if not lineAvaibale(sender.pos, target.pos):
                 error_hint = "直线上存在障碍物！"
                 return True
             target.pos = getFangXiangPos(sender.pos,target.pos)
@@ -879,21 +922,24 @@ GRID_Y_LEN = 12
 REC_SIZE = 50
 
 # 游戏设置
+DEBUG = True  # 是否开启调试模式，True是“是”，False是“否”
 random_steps = [1, 2, 3, 4, 5, 6]  # 可能随机得到的步数列表
 random_characters=3#随机给出的角色数量
 player_count = 2  # 固定的玩家数，如果要固定就将None改为玩家数，否则写None
 get_cards = 2  # 每局摸牌数
-DEBUG = True  # 是否开启调试模式，True是“是”，False是“否”
+cards_limit = 20 # 手牌上限每多少血增加1张，如：
+# 当此值为20时，1~20血可持1张，21~40血可持2张，依此类推
 cards_dict = {"drug": 1,
               "tlbd": 2,
-              "cz": 3,
+              "cz": 2,
               "shoe": 2,
               "shield": 2,
               "energy_book": 2,
               "wltg": 2,
               "steal": 2,
               "gz": 2,
-              "kp": 2
+              "kp": 2,
+              "bow": 4
               }
 # 这是牌堆
 
@@ -1030,11 +1076,11 @@ for i in range(player_count):
         a, b = inputCoordinates("此位置已被占用，请换一个位置：")
     if random_characters_new>len(characters):
         random_characters_new=len(characters)
-    avaibal=random.sample(characters,random_characters_new)
+    avaibale=random.sample(characters,random_characters_new)
     print("请选择你的角色：")
-    for i in range(len(avaibal)):
-        print("({}) {}".format(i+1,avaibal[i].name))
-    juese=inputJuese(avaibal)
+    for i in range(len(avaibale)):
+        print("({}) {}".format(i+1,avaibale[i].name))
+    juese=inputJuese(avaibale)
     characters.remove(juese)
     current_player_id = juese
     current_player_id.pos = (a, b)

@@ -64,15 +64,15 @@ def inputCoordinates(msg: str = ""):
     return str2coordinates(rawstr)
 
 
-def inputJuese(avaibal: list, msg: str = ""):
+def inputJuese(avaibale: list, msg: str = ""):
     rawstr = input(msg)
     try:
         val = int(rawstr)
     except ValueError:
-        return inputJuese(avaibal, msg="角色非法，请重输：")
+        return inputJuese(avaibale, msg="角色非法，请重输：")
     if val <= 0 or val > len(characters):
-        return inputJuese(avaibal, msg="角色非法，请重输：")
-    return avaibal[val-1]
+        return inputJuese(avaibale, msg="角色非法，请重输：")
+    return avaibale[val-1]
 
 
 def drawAll():
@@ -207,9 +207,9 @@ def posOnLine(mapp: list, a: tuple, b: tuple):
         return [(a[0], i) for i in range(a[1]+1, b[1])]
     k = (a[1]-b[1])/(a[0]-b[0])  # y=kx+d
     d = a[1]-a[0]*k
-    #print("函数解析式：y={}x+{}".format(k, d))
+    # print("函数解析式：y={}x+{}".format(k, d))
     if chax > chay:
-        print("x>y")
+        # print("x>y")
         lasty = a[1]
         for i in range(a[0]+1, b[0]):  # i is x in function y=kx+d
             posx = i
@@ -218,36 +218,36 @@ def posOnLine(mapp: list, a: tuple, b: tuple):
             if lasty != posy:
                 angle1 = round(cal_ang(a, (posx, posy-1), b))
                 angle2 = round(cal_ang(a, (posx-1, posy), b))
-                print("angle1={};angle2={}".format(angle1, angle2))
+                # print("angle1={};angle2={}".format(angle1, angle2))
                 if angle1 == angle2:
-                    print("* branch#-1")
+                    # print("* branch#-1")
                     result.append([(posx, posy-1), (posx-1, posy)])
                 if angle1 < angle2:
-                    print("* branch#1")
+                    # print("* branch#1")
                     result.append((posx, posy-1))
                 if angle1 > angle2:
                     result.append((posx-1, posy))
             result.append(tuple(res))
             lasty = posy
-            print("")
+            # print("")
         posx = b[0]
         posy = round(k*b[0]+d)
         res = [posx, posy]
         if lasty != posy:
             angle1 = round(cal_ang(a, (posx, posy-1), b))
             angle2 = round(cal_ang(a, (posx-1, posy), b))
-            print("angle1={};angle2={}".format(angle1, angle2))
+            # print("angle1={};angle2={}".format(angle1, angle2))
             if angle1 == angle2:
-                print("* branch#-1")
+                # print("* branch#-1")
                 result.append([(posx, posy-1), (posx-1, posy)])
             if angle1 < angle2:
-                print("* branch#1")
+                # print("* branch#1")
                 result.append((posx, posy-1))
             if angle1 > angle2:
-                print("* branch#2")
+                # print("* branch#2")
                 result.append((posx-1, posy))
     else:
-        print("y>x")
+        # print("y>x")
         lastx = a[0]
         for i in range(a[1]+1, b[1]):  # i is y in function y=kx+d
             posx = round((i-d)/k)
@@ -256,39 +256,39 @@ def posOnLine(mapp: list, a: tuple, b: tuple):
             if lastx != posx:
                 angle1 = round(cal_ang(a, (posx, posy-1), b))
                 angle2 = round(cal_ang(a, (posx-1, posy), b))
-                print("angle1={};angle2={}".format(angle1, angle2))
+                # print("angle1={};angle2={}".format(angle1, angle2))
                 if angle1 == angle2:
-                    print("* branch#-1")
+                    # print("* branch#-1")
                     result.append([(posx, posy-1), (posx-1, posy)])
                 if angle1 < angle2:
-                    print("* branch#1")
+                    # print("* branch#1")
                     result.append((posx, posy-1))
                 if angle1 > angle2:
-                    print("* branch#2")
+                    # print("* branch#2")
                     result.append((posx-1, posy))
             result.append(tuple(res))
             lastx = posx
-            print("")
+            # print("")
         posx = round((b[1]-d)/k)
         posy = b[1]
         res = [posx, posy]
         if lastx != posx:
             angle1 = round(cal_ang(a, (posx, posy-1), b))
             angle2 = round(cal_ang(a, (posx-1, posy), b))
-            print("angle1={};angle2={}".format(angle1, angle2))
+            # print("angle1={};angle2={}".format(angle1, angle2))
             if angle1 == angle2:
-                print("* branch#-1")
+                # print("* branch#-1")
                 result.append([(posx, posy-1), (posx-1, posy)])
             if angle1 < angle2:
-                print("* branch#1")
+                # print("* branch#1")
                 result.append((posx, posy-1))
             if angle1 > angle2:
-                print("* branch#2")
+                # print("* branch#2")
                 result.append((posx-1, posy))
     return result
 
 
-def lineAvaibal(a: tuple, b: tuple):
+def lineAvaibale(a: tuple, b: tuple):
     global game_map
     poss = posOnLine(game_map, a, b)
     for i in poss:

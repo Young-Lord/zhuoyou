@@ -10,21 +10,24 @@ GRID_Y_LEN = 12
 REC_SIZE = 50
 
 # 游戏设置
+DEBUG = True  # 是否开启调试模式，True是“是”，False是“否”
 random_steps = [1, 2, 3, 4, 5, 6]  # 可能随机得到的步数列表
 random_characters=3#随机给出的角色数量
 player_count = 2  # 固定的玩家数，如果要固定就将None改为玩家数，否则写None
 get_cards = 2  # 每局摸牌数
-DEBUG = True  # 是否开启调试模式，True是“是”，False是“否”
+cards_limit = 20 # 手牌上限每多少血增加1张，如：
+# 当此值为20时，1~20血可持1张，21~40血可持2张，依此类推
 cards_dict = {"drug": 1,
               "tlbd": 2,
-              "cz": 3,
+              "cz": 2,
               "shoe": 2,
               "shield": 2,
               "energy_book": 2,
               "wltg": 2,
               "steal": 2,
               "gz": 2,
-              "kp": 2
+              "kp": 2,
+              "bow": 4
               }
 # 这是牌堆
 

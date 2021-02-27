@@ -6,7 +6,8 @@ weapons = {
     "测试-伤害10": {"name": "测试1", "value": 10, "distance": 3},
     "测试-伤害15": {"name": "测试2", "value": 15, "distance": 5},
     "禅杖": {"name": "禅杖", "value": 20, "distance": 100},
-    "屠龙宝刀": {"name": "屠龙宝刀1", "value": 1000, "distance": 100}
+    "屠龙宝刀": {"name": "屠龙宝刀1", "value": 1000, "distance": 100,"remote":True},
+    "弓": {"name":"弓","value":8,"distance":6,"remote":True}
 }
 shields = {
     None: {"name": "无", "value": 0},
@@ -54,6 +55,10 @@ class tlbd(weapon_base):
     name = "屠龙宝刀"
     value = "屠龙宝刀"
 
+
+class bow(weapon_base):
+    name = "弓"
+    value = "弓"
 
 class cz(weapon_base):
     name = "禅杖"
@@ -167,7 +172,7 @@ class gz(remote_attack):
         if distance == 1 or (distance == 2 and (abs(sender.pos[0]-target.pos[0]) == 1)):
             pass
         else:
-            if not lineAvaibal(sender.pos, target.pos):
+            if not lineAvaibale(sender.pos, target.pos):
                 error_hint = "直线上存在障碍物！"
                 return True
             target.pos = getFangXiangPos(sender.pos,target.pos)

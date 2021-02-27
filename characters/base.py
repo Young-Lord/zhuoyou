@@ -73,8 +73,11 @@ class Player:
                 print("{}：{} {}".format(
                     self.actions[i]["name"], i, self.actions[i]["arg"]))
         if self.actions["goto"]["count"] != 0:
-            print("你可以走的距离为："+str(self.random_step +
+            print("*你可以走的距离为："+str(self.random_step +
                                   shoes[self.shoe]["value"]+self.speed_add))
+        max_card = (self.life+cards_limit-1)//cards_limit
+        if len(self.item)>max_card:
+            print("*回合结束时，你需要弃{}张牌".format(len(self.item)-max_card))
         command = input().split(' ', 1)
         if command[0].find("debug")!=-1:#handle debug commands
             if command[0] == 'debug_eval':
@@ -110,24 +113,31 @@ class Player:
         self.actions[command[0]]["count"] -= 1
     def attack_(self, command):
         global error_hint
+        target=players[int(command[1])-1]
         if "chanzhang_cd_2" in self.buff and self.weapon == "禅杖":
             error_hint = "禅杖冷却中..."
             self.actions[command[0]]["count"] -= 1
             return
-        if players[int(command[1])-1] == self:
+        if target == self:
             self.attack(self)
             self.actions[command[0]]["count"] -= 1
             error_hint = "最好不要自刀，当然你要真想也可以..."
             return
-        route = (astar.astar(gameMapWithPlayers(self, players[int(
-            command[1])-1]), self.pos[0], self.pos[1], players[int(command[1])-1].pos[0], players[int(command[1])-1].pos[1]))
+        route = (astar.astar(gameMapWithPlayers(self,target),self.pos[0], self.pos[1], target.pos[0], target.pos[1]))
         if route == list():
             error_hint = "无法到达！"
             return
-        if len(route) > weapons[self.weapon]["distance"]+self.attack_range_add:
+        if "remote" in weapons[self.weapon].keys() and weapons[self.weapon]["remote"]:
+            if getDistance_ou(self.pos,target.pos)>weapons[self.weapon]["distance"]+self.attack_range_add:
+                error_hint = "太远了！"
+                return
+            if not lineAvaibale(self.pos,target.pos):
+                error_hint = "与目标间存在障碍物！"
+                return
+        elif len(route) > weapons[self.weapon]["distance"]+self.attack_range_add:
             error_hint = "太远了！"
             return
-        self.attack(players[int(command[1])-1])
+        self.attack(target)
         self.actions[command[0]]["count"] -= 1
 
     def goto_(self, command):
@@ -158,7 +168,7 @@ class Player:
         self.pos = (a, b)
         self.actions[command[0]]["count"] -= 1
 
-    def item_(self, command):
+    def item_(self, command=None):
         global error_hint
         if self.item == list():
             error_hint = "你的背包什么都没有！"
@@ -230,5 +240,33 @@ class Player:
                 i != "chanzhang_cd" and i != "chanzhang_cd_2")]
         if "chanzhang_cd" in self.buff:
             self.buff.append("chanzhang_cd_2")
+        self.qipai()
     def qipai(self):
-        pass
+        global error_hint
+        max_card = (self.life+cards_limit-1)//cards_limit
+        if len(self.item)<=max_card:
+            return
+        while len(self.item)>max_card:
+            print("你还需要弃{}张牌".format(len(self.item)-max_card))
+            self.item_()
+            print("="*10+"\n"+error_hint+"\n"+"="*10)
+            removelist=-1
+            realremove=list()
+            while removelist==-1:
+                rawstr=input().split()
+                try:
+                    removelist=[int(i) for i in rawstr]
+                    for i in removelist:
+                        if i<=0 or i>len(self.item):
+                            raise ValueError
+                except ValueError:
+                    removelist=-1
+                    print("输入非法，请重输：",end="")
+            for i in removelist:
+                realremove.append(self.item[i-1])
+            for i in realremove:
+                cards.append(i)
+                # TODO：要新开一个弃牌堆吗？
+                self.item.remove(i)
+            realremove=list()
+            cls()

@@ -86,11 +86,11 @@ for i in range(player_count):
         a, b = inputCoordinates("此位置已被占用，请换一个位置：")
     if random_characters_new>len(characters):
         random_characters_new=len(characters)
-    avaibal=random.sample(characters,random_characters_new)
+    avaibale=random.sample(characters,random_characters_new)
     print("请选择你的角色：")
-    for i in range(len(avaibal)):
-        print("({}) {}".format(i+1,avaibal[i].name))
-    juese=inputJuese(avaibal)
+    for i in range(len(avaibale)):
+        print("({}) {}".format(i+1,avaibale[i].name))
+    juese=inputJuese(avaibale)
     characters.remove(juese)
     current_player_id = juese
     current_player_id.pos = (a, b)
