@@ -6,7 +6,7 @@ weapons = {
     "测试-伤害10": {"name": "测试1", "value": 10, "distance": 3},
     "测试-伤害15": {"name": "测试2", "value": 15, "distance": 5},
     "禅杖": {"name": "禅杖", "value": 20, "distance": 100},
-    "屠龙宝刀": {"name": "屠龙宝刀1", "value": 1000, "distance": 100,"remote":True},
+    "屠龙宝刀": {"name": "屠龙宝刀1", "value": 1000, "distance": 100},
     "弓": {"name":"弓","value":8,"distance":6,"remote":True}
 }
 shields = {
