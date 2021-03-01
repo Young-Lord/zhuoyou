@@ -45,16 +45,11 @@ class Player:
         self.random_step = random_step
         global error_hint
         error_hint = ""
-        if len(cards) >= get_cards:
-            print("="*10)
-            for i in range(get_cards):
-                selected = random.choice(cards)
-                print("你摸到了1张"+selected.name+"！")
-                cards.remove(selected)
-                self.item.append(selected)
-            print("="*10)
-        else:
-            print("没卡了！")
+        print("="*10)
+        for i in mopai(get_cards):
+            self.item.append(i)
+            print("你摸到了1张"+i.name+"！")
+        print("="*10)
         while self.actions["end"]["count"]:
             if error_hint != "":
                 print("="*10)
@@ -265,8 +260,7 @@ class Player:
             for i in removelist:
                 realremove.append(self.item[i-1])
             for i in realremove:
-                cards.append(i)
-                # TODO：要新开一个弃牌堆吗？
+                qipai.append(i)
                 self.item.remove(i)
             realremove=list()
             cls()

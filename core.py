@@ -7,6 +7,7 @@ os.chdir(current_dir)
 players = list()
 special_blocks = list()
 error_hint = str()
+qipai=list()
 
 
 print("你正在使用的系统是：{}".format(platform.platform()))

@@ -49,16 +49,11 @@ class Player:
         self.random_step = random_step
         global error_hint
         error_hint = ""
-        if len(cards) >= get_cards:
-            print("="*10)
-            for i in range(get_cards):
-                selected = random.choice(cards)
-                print("你摸到了1张"+selected.name+"！")
-                cards.remove(selected)
-                self.item.append(selected)
-            print("="*10)
-        else:
-            print("没卡了！")
+        print("="*10)
+        for i in mopai(get_cards):
+            self.item.append(i)
+            print("你摸到了1张"+i.name+"！")
+        print("="*10)
         while self.actions["end"]["count"]:
             if error_hint != "":
                 print("="*10)
@@ -269,8 +264,7 @@ class Player:
             for i in removelist:
                 realremove.append(self.item[i-1])
             for i in realremove:
-                cards.append(i)
-                # TODO：要新开一个弃牌堆吗？
+                qipai.append(i)
                 self.item.remove(i)
             realremove=list()
             cls()
@@ -679,6 +673,18 @@ def getFangXiangPos(source: tuple, target: tuple):
     fx = getFangXiang(source, target)
     return (source[0]+fx[0], source[1]+fx[1])
 
+def mopai(count):
+    result_mopai=list()
+    if len(cards) < count:
+        for i in qipai:
+            cards.append(qipai)
+        qipai=list()
+    for i in range(count):
+        selected = random.choice(cards)
+        cards.remove(selected)
+        result_mopai.append(selected)
+    return result_mopai
+
 
 
 
@@ -691,7 +697,7 @@ weapons = {
     "测试-伤害10": {"name": "测试1", "value": 10, "distance": 3},
     "测试-伤害15": {"name": "测试2", "value": 15, "distance": 5},
     "禅杖": {"name": "禅杖", "value": 20, "distance": 100},
-    "屠龙宝刀": {"name": "屠龙宝刀1", "value": 1000, "distance": 100,"remote":True},
+    "屠龙宝刀": {"name": "屠龙宝刀1", "value": 1000, "distance": 100},
     "弓": {"name":"弓","value":8,"distance":6,"remote":True}
 }
 shields = {
@@ -997,6 +1003,7 @@ os.chdir(current_dir)
 players = list()
 special_blocks = list()
 error_hint = str()
+qipai=list()
 
 
 print("你正在使用的系统是：{}".format(platform.platform()))

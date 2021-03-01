@@ -348,3 +348,15 @@ def getFangXiang(source: tuple, target: tuple):
 def getFangXiangPos(source: tuple, target: tuple):
     fx = getFangXiang(source, target)
     return (source[0]+fx[0], source[1]+fx[1])
+
+def mopai(count):
+    result_mopai=list()
+    if len(cards) < count:
+        for i in qipai:
+            cards.append(qipai)
+        qipai=list()
+    for i in range(count):
+        selected = random.choice(cards)
+        cards.remove(selected)
+        result_mopai.append(selected)
+    return result_mopai
