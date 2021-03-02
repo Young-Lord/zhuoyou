@@ -1,7 +1,7 @@
 # 警告：本文件是在每次运行时自动生成的，修改此文件没有任何意义
-
-#@# Code from :
-
+###############
+#     Code from characters/base:
+###############
 class Player:
     name = "默认角色"
     life = 80
@@ -272,8 +272,11 @@ class Player:
                 self.item.remove(i)
             realremove=list()
             cls()
-#@# Code from :
 
+
+###############
+#     Code from characters/gaoqiu:
+###############
 class gaoqiu(Player):
     name="高俅"
     max_life=50
@@ -286,8 +289,11 @@ class gaoqiu(Player):
                        self.attack_add)*self.attack_percent//100)
         self.life+=hurt
         self.update()
-        return hurt#@# Code from :
+        return hurt
 
+###############
+#     Code from characters/likui:
+###############
 class likui(Player):
     name = "李逵"
     life = 8000
@@ -306,7 +312,37 @@ class likui(Player):
         self.max_energy = 0
 
 
-#@# functions:
+###############
+#     Code from characters/try1:
+###############
+class try1(Player):
+    name="测试工具人1"
+    life = 10000
+    def init_custom(self):
+        self.actions_bak["zhudong1"]={"name": "回复", "arg": "", "count": 1}
+    def zhudong1_(self,command):
+        self.actions["zhudong1"]["count"]-=1
+        self.life+=1000
+        self.update()
+
+
+###############
+#     Code from characters/try2:
+###############
+class try2(Player):
+    name="测试工具人2"
+
+
+###############
+#     Code from characters/try3:
+###############
+class try3(Player):
+    name="测试工具人3"
+
+
+###############
+#     Code from init_and_functions:
+###############
 import platform
 import sys
 import os
@@ -677,9 +713,9 @@ def mopai(count):
     return result_mopai
 
 
-
-
-#@# Items:
+###############
+#     Code from items:
+###############
 import astar
 import random
 
@@ -906,7 +942,9 @@ class kp:
         return True
 
 
-#@# Configs:
+###############
+#     Code from game_config:
+###############
 # “#”号后面的内容没有实际作用，只用于说明
 # GUI设置
 screen_width = 640
@@ -984,7 +1022,9 @@ GOLD = (255, 215,   0)
 GREEN = (0, 255,   0)
 
 
-#@# Core code:
+###############
+#     Code from core:
+###############
 # -*- coding: UTF-8 -*-
 
 chesslist = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
@@ -1002,8 +1042,21 @@ is_windows = (platform.platform().find("Windows")) != -1
 print("Python版本：{}".format(platform.python_version()))
 print("程序目录：{}".format(current_dir))
 
-characters = os.listdir(os.path.join(os.getcwd(), "characters"))
-characters = [i.replace(".py", "") for i in characters if i[-3:] == '.py' and i!='base.py' and i!='tempCodeR1unnerFile.py']
+
+characters_file = [i for i in os.listdir(os.path.join(os.getcwd(), "characters")) if i[-3:] == '.py' and i!="tempCodeRunnerFile.py"]
+characters=list()
+for i in characters_file:
+    with codecs.open("characters/"+i, "r", encoding='utf-8') as f:
+        cont=f.read().replace("\xef\xbb\xbf", '')
+        if cont.find("class") == -1:
+            continue
+        cont=cont.replace("(Player)","")
+        name_1=cont.find("class ")+6
+        name_2=cont.find(":")
+        characters.append(cont[name_1:name_2])
+
+characters = [i for i in characters if i!='Player']
+
 error_list_ch=list()
 for i in range(len(characters)):
     try:

@@ -15,8 +15,21 @@ is_windows = (platform.platform().find("Windows")) != -1
 print("Python版本：{}".format(platform.python_version()))
 print("程序目录：{}".format(current_dir))
 
-characters = os.listdir(os.path.join(os.getcwd(), "characters"))
-characters = [i.replace(".py", "") for i in characters if i[-3:] == '.py' and i!='base.py' and i!='tempCodeR1unnerFile.py']
+
+characters_file = [i for i in os.listdir(os.path.join(os.getcwd(), "characters")) if i[-3:] == '.py' and i!="tempCodeRunnerFile.py"]
+characters=list()
+for i in characters_file:
+    with codecs.open("characters/"+i, "r", encoding='utf-8') as f:
+        cont=f.read().replace("\xef\xbb\xbf", '')
+        if cont.find("class") == -1:
+            continue
+        cont=cont.replace("(Player)","")
+        name_1=cont.find("class ")+6
+        name_2=cont.find(":")
+        characters.append(cont[name_1:name_2])
+
+characters = [i for i in characters if i!='Player']
+
 error_list_ch=list()
 for i in range(len(characters)):
     try:
