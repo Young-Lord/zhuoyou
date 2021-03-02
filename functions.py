@@ -350,13 +350,19 @@ def getFangXiangPos(source: tuple, target: tuple):
     return (source[0]+fx[0], source[1]+fx[1])
 
 def mopai(count):
+    global qipai,cards
     result_mopai=list()
     if len(cards) < count:
         for i in qipai:
-            cards.append(qipai)
+            cards.append(i)
         qipai=list()
+        print("\n\n\n\n\ntesttttttt")
     for i in range(count):
-        selected = random.choice(cards)
+        try:
+            selected = random.choice(cards)
+        except IndexError:
+            print("[警告] 你牌堆里的牌设置的太少了")
+            return result_mopai
         cards.remove(selected)
         result_mopai.append(selected)
     return result_mopai

@@ -257,6 +257,10 @@ class Player:
                 except ValueError:
                     removelist=-1
                     print("输入非法，请重输：",end="")
+                    continue
+                if len(removelist)>len(self.item)-max_card:
+                    removelist=-1
+                    print("你只能弃{}张牌，请重输：".format(len(self.item)-max_card),end="")
             for i in removelist:
                 realremove.append(self.item[i-1])
             for i in realremove:

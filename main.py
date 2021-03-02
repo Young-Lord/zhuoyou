@@ -9,13 +9,22 @@ sum_code = codecs.open("cache_sum_code.py", "w", encoding='utf-8')
 sum_code.write("# 警告：本文件是在每次运行时自动生成的，修改此文件没有任何意义\r\n\r\n")
 
 # generating characters
-characters = os.listdir(os.path.join(os.getcwd(), "characters"))
-characters = [i.replace(".py", "") for i in characters if i[-3:] == '.py' and i!="tempCodeRunnerFile.py"]
-characters = ["base", ]+[i for i in characters if i !=
-                         'base']
-for i in characters:
-    sum_code.write("#@# Code from "+i+".py:\r\n\r\n")
-    with codecs.open("characters/"+i+".py", "r", encoding='utf-8') as f:
+characters_file = [i for i in os.listdir(os.path.join(os.getcwd(), "characters")) if i[-3:] == '.py' and i!="tempCodeRunnerFile.py"]
+characters=list()
+for i in characters_file:
+    with codecs.open("characters/"+i, "r", encoding='utf-8') as f:
+        cont=f.read().replace("\xef\xbb\xbf", '')
+        if cont.find("class") == -1:
+            continue
+        name_1=cont.find("class ")+6
+        name_2=cont.find(":")
+        characters.append(cont[name_1:name_2].replace("(Player)",""))
+
+#print(characters)
+
+for i in characters_file:
+    sum_code.write("#@# Code from "+":\r\n\r\n")
+    with codecs.open("characters/"+i, "r", encoding='utf-8') as f:
         sum_code.write(f.read().replace("\xef\xbb\xbf", ''))
 
 # generating functions

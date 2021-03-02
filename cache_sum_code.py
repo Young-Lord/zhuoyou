@@ -1,6 +1,6 @@
 # 警告：本文件是在每次运行时自动生成的，修改此文件没有任何意义
 
-#@# Code from base.py:
+#@# Code from :
 
 class Player:
     name = "默认角色"
@@ -261,6 +261,10 @@ class Player:
                 except ValueError:
                     removelist=-1
                     print("输入非法，请重输：",end="")
+                    continue
+                if len(removelist)>len(self.item)-max_card:
+                    removelist=-1
+                    print("你只能弃{}张牌，请重输：".format(len(self.item)-max_card),end="")
             for i in removelist:
                 realremove.append(self.item[i-1])
             for i in realremove:
@@ -268,7 +272,7 @@ class Player:
                 self.item.remove(i)
             realremove=list()
             cls()
-#@# Code from gaoqiu.py:
+#@# Code from :
 
 class gaoqiu(Player):
     name="高俅"
@@ -282,7 +286,7 @@ class gaoqiu(Player):
                        self.attack_add)*self.attack_percent//100)
         self.life+=hurt
         self.update()
-        return hurt#@# Code from likui.py:
+        return hurt#@# Code from :
 
 class likui(Player):
     name = "李逵"
@@ -300,25 +304,6 @@ class likui(Player):
             self.alive = False
         self.energy = 0
         self.max_energy = 0
-#@# Code from try1.py:
-
-class try1(Player):
-    name="测试工具人1"
-    life = 10000
-    def init_custom(self):
-        self.actions_bak["zhudong1"]={"name": "回复", "arg": "", "count": 1}
-    def zhudong1_(self,command):
-        self.actions["zhudong1"]["count"]-=1
-        self.life+=1000
-        self.update()
-#@# Code from try2.py:
-
-class try2(Player):
-    name="测试工具人2"
-#@# Code from try3.py:
-
-class try3(Player):
-    name="测试工具人3"
 
 
 #@# functions:
@@ -674,13 +659,19 @@ def getFangXiangPos(source: tuple, target: tuple):
     return (source[0]+fx[0], source[1]+fx[1])
 
 def mopai(count):
+    global qipai,cards
     result_mopai=list()
     if len(cards) < count:
         for i in qipai:
-            cards.append(qipai)
+            cards.append(i)
         qipai=list()
+        print("\n\n\n\n\ntesttttttt")
     for i in range(count):
-        selected = random.choice(cards)
+        try:
+            selected = random.choice(cards)
+        except IndexError:
+            print("[警告] 你牌堆里的牌设置的太少了")
+            return result_mopai
         cards.remove(selected)
         result_mopai.append(selected)
     return result_mopai
