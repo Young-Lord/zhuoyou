@@ -15,7 +15,7 @@ current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 os.chdir(current_dir)
 players = list()
 special_blocks = list()
-error_hint = str()
+action_result = str()
 qipai=list()
 
 running = False

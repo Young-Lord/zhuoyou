@@ -6,7 +6,7 @@ weapons = {
     "测试-伤害10": {"name": "测试1", "value": 10, "distance": 3},
     "测试-伤害15": {"name": "测试2", "value": 15, "distance": 5},
     "禅杖": {"name": "禅杖", "value": 20, "distance": 100},
-    "屠龙宝刀": {"name": "屠龙宝刀1", "value": 1000, "distance": 100},
+    "屠龙宝刀": {"name": "屠龙宝刀", "value": 100, "distance": 100},
     "弓": {"name":"弓","value":8,"distance":6,"remote":True}
 }
 shields = {
@@ -22,14 +22,14 @@ shoes = {
 }
 energy_books = {
     None: {"name": "无", "value": 0},
-    "魔法书": {"name": "魔法书", "value": 30}
+    "典籍": {"name": "典籍", "value": 30}
 }
 # -药- -武器- -鞋子- -盾牌- -能量书- ~钩爪~ ~偷窃~ -五雷天罡法- ~无懈可击(被动)~
 
 
 class drug:
     name = "药"
-    value = 5
+    value = 50
 
     def use(self, sender, *arg):
         sender.life += self.value
@@ -96,15 +96,15 @@ class shield_None(shield):
 
 
 class energy_book:
-    name = "魔法书"
-    value = "魔法书"
+    name = "典籍"
+    value = "典籍"
 
     def use(self, sender, *arg):
         sender.energy_book = self.value
 
 
 class energy_book_None(energy_book):
-    name = "不使用能量书"
+    name = "不使用典籍"
     value = None
 
 # 直线上没有障碍物：偷窃必须，五雷天罡法可以没有
@@ -116,14 +116,14 @@ class remote_attack:
     distance = 1
 
     def use(self, sender, target, *arg):
-        global error_hint
+        global action_result
         route = (astar.astar(gameMapWithPlayers(sender, target),
                              sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
         if route == list():
-            error_hint = "无法到达！"
+            action_result = "无法到达！"
             return True
         if len(route) > self.distance:
-            error_hint = "太远了！"
+            action_result = "太远了！"
             return True
         target.damage(self.value)
         sender.update()
@@ -135,12 +135,12 @@ class wltg(remote_attack):
     distance = 5
 
     def use(self, sender, target, *arg):
-        global error_hint
+        global action_result
         if sender == target:
-            error_hint = "别对自己下手！"
+            action_result = "别对自己下手！"
             return True
         if getDistance_ou(sender.pos, target.pos) > self.distance:
-            error_hint = "太远了！"
+            action_result = "太远了！"
             return True
         target.damage(self.value)
         sender.update()
@@ -153,19 +153,19 @@ class gz(remote_attack):
 
     def use(self, sender, target, *arg):
         global game_map
-        global error_hint
+        global action_result
         if sender == target:
-            error_hint = "别对自己下手！"
+            action_result = "别对自己下手！"
             return True
-        #error_hint="***几何什么的最烦了 钩爪拐弯就随他吧！"
+        #action_result="***几何什么的最烦了 钩爪拐弯就随他吧！"
         route = (astar.astar(gameMapWithPlayers(sender, target),
                              sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
         if route == list():
-            error_hint = "无法到达！"
+            action_result = "无法到达！"
             return True
         distance = getDistance_ou(sender.pos, target.pos)
         if distance > self.distance:
-            error_hint = "太远了！"
+            action_result = "太远了！"
             return True
         target.damage(self.value)
         # 即target在sender附近8格
@@ -173,7 +173,7 @@ class gz(remote_attack):
             pass
         else:
             if not lineAvaibale(sender.pos, target.pos):
-                error_hint = "直线上存在障碍物！"
+                action_result = "直线上存在障碍物！"
                 return True
             target.pos = getFangXiangPos(sender.pos,target.pos)
         sender.update()
@@ -186,27 +186,27 @@ class steal:
     distance = 5
 
     def use(self, sender, target, *arg):
-        global error_hint
+        global action_result
         if sender == target:
-            error_hint = "别对自己下手！"
+            action_result = "别对自己下手！"
             return True
         route = (astar.astar(gameMapWithPlayers(sender, target),
                              sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
         if route == list():
-            error_hint = "无法到达！"
+            action_result = "无法到达！"
             return True
         if len(route) > self.distance:
-            error_hint = "太远了！"
+            action_result = "太远了！"
             return True
         i = 0
         if len(target.item) == 0:
-            error_hint = "他的背包什么都没有！"
+            action_result = "他的背包什么都没有！"
             return True
         while len(target.item) != 0 and i < self.value:
             selected = random.choice(target.item)
             while selected.value == None:
                 selected = random.choice(target.item)
-            error_hint = "* 你偷到了他的"+selected.name+"!"
+            action_result = "* 你偷到了他的"+selected.name+"!"
             i += 1
             sender.item.append(selected)
             target.item.remove(selected)
@@ -219,6 +219,6 @@ class kp:
     value = 1
 
     def use(self, *arg):
-        global error_hint
-        error_hint = "这张牌属于被动牌！"
+        global action_result
+        action_result = "这张牌属于被动牌！"
         return True

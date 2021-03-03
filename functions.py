@@ -345,7 +345,6 @@ def mopai(count):
         for i in qipai:
             cards.append(i)
         qipai=list()
-        print("\n\n\n\n\ntesttttttt")
     for i in range(count):
         try:
             selected = random.choice(cards)

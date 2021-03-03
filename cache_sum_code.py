@@ -25,8 +25,13 @@ class Player:
     speed_add = 0
     random_step = 0
     attack_range_add = 0
-    actions_bak = {"attack": {"name": "攻击", "arg": "玩家序号", "count": 1}, "goto": {"name": "移动", "arg": "坐标", "count": 1}, "item": {
-        "name": "查看背包", "arg": "", "count": -1}, "use": {"name": "使用", "arg": "物品ID (目标ID(如果有的话))", "count": -1}, "end": {"name": "结束回合", "arg": "", "count": 1}}
+    actions_bak = {"attack": {"name": "攻击", "arg": "玩家序号", "count": 1},
+                   "goto": {"name": "移动", "arg": "坐标", "count": 1},
+                   "item": {"name": "查看背包", "arg": "", "count": -1},
+                   "use": {"name": "使用", "arg": "物品ID (目标ID(如果有的话))", "count": -1},
+                   "end": {"name": "结束回合", "arg": "", "count": 1}
+                   }
+
     def init_custom(self):
         pass
 
@@ -35,7 +40,7 @@ class Player:
         self.item = list()
         self.buff = list()
         # WARNING: 每个可变对象（list,dict）等都必须在这里初始化，否则不同的实例会共享一个对象
-        self.actions_bak=self.actions_bak.copy()
+        self.actions_bak = self.actions_bak.copy()
         for i in self.actions_bak.keys():
             self.actions_bak[i] = self.actions_bak[i].copy()
         self.life = self.max_life
@@ -47,100 +52,109 @@ class Player:
     def round(self):
         global random_step
         self.random_step = random_step
-        global error_hint
-        error_hint = ""
+        global action_result
+        action_result = ""
         print("="*10)
         for i in mopai(get_cards):
             self.item.append(i)
             print("你摸到了1张"+i.name+"！")
         print("="*10)
         while self.actions["end"]["count"]:
-            if error_hint != "":
+            if action_result != "":
                 print("="*10)
-                print(error_hint)
+                print(action_result)
                 print("="*10)
             drawAll()
-            error_hint = ""
+            action_result = ""
             self.action()
             cls()
         self.end_of_round()
 
     def action(self):
-        global players, DEBUG, error_hint
+        global players, DEBUG, action_result
         for i in list(self.actions.keys()):
             if self.actions[i]["count"] != 0:
                 print("{}：{} {}".format(
                     self.actions[i]["name"], i, self.actions[i]["arg"]))
         if self.actions["goto"]["count"] != 0:
             print("*你可以走的距离为："+str(self.random_step +
-                                  shoes[self.shoe]["value"]+self.speed_add))
+                                   shoes[self.shoe]["value"]+self.speed_add))
         max_card = (self.life+cards_limit-1)//cards_limit
-        if len(self.item)>max_card:
+        if len(self.item) > max_card:
             print("*回合结束时，你需要弃{}张牌".format(len(self.item)-max_card))
         command = input().split(' ', 1)
-        if command[0].find("debug")!=-1:#handle debug commands
-            if command[0] == 'debug_eval':
-                command = command[1]
-                eval(command)
-            elif command[0] == 'debug_showbuff':
-                print(self.buff)
-            elif command[0] == 'debug_showitem':
-                command = command[1].split()
-                command[0] = int(command[0])
-                target = players[command[0]-1]
-                if target.item == list():
-                    error_hint = "他的背包什么都没有！"
-                else:
-                    error_hint = "他的背包的物品为：\n"
-                    unnamed_id = 1
-                    for i in target.item:
-                        error_hint += str(unnamed_id)+' '
-                        unnamed_id += 1
-                        error_hint += i.name+'\n'
-            return
+        if command[0].find("debug") != -1:  # handle debug commands
+            self.debug_handle(command)
         if command[0] not in list(self.actions.keys()):
-            error_hint = "未知命令"
+            action_result = "未知命令"
             return
         if self.actions[command[0]]["count"] == 0:
-            error_hint = "你已经进行过此操作了！"
+            action_result = "你已经进行过此操作了！"
             return
         try:
             eval("self.{}_(command)".format(command[0]))
         except AttributeError:
-            error_hint = "你遇到bug了！告诉作者！"
-    def end_(self,command):
+            action_result = "你遇到bug了！告诉作者！（详情：命令对应的函数不存在）"
+        except IndexError as e:
+            if str(e) == "list index out of range":
+                action_result = "命令参数过少！"
+
+    def debug_handle(command):
+        if command[0] == 'debug_eval':
+            command = command[1]
+            eval(command)
+        elif command[0] == 'debug_showbuff':
+            print(self.buff)
+        elif command[0] == 'debug_showitem':
+            command = command[1].split()
+            command[0] = int(command[0])
+            target = players[command[0]-1]
+            if target.item == list():
+                action_result = "他的背包什么都没有！"
+            else:
+                action_result = "他的背包的物品为：\n"
+                unnamed_id = 1
+                for i in target.item:
+                    action_result += str(unnamed_id)+' '
+                    unnamed_id += 1
+                    action_result += i.name+'\n'
+        return
+
+    def end_(self, command):
         self.actions[command[0]]["count"] -= 1
+
     def attack_(self, command):
-        global error_hint
-        target=players[int(command[1])-1]
+        global action_result
+        target = players[int(command[1])-1]
         if "chanzhang_cd_2" in self.buff and self.weapon == "禅杖":
-            error_hint = "禅杖冷却中..."
+            action_result = "禅杖冷却中..."
             self.actions[command[0]]["count"] -= 1
             return
         if target == self:
             self.attack(self)
             self.actions[command[0]]["count"] -= 1
-            error_hint = "最好不要自刀，当然你要真想也可以..."
+            action_result = "最好不要自刀，当然你要真想也可以..."
             return
-        route = (astar.astar(gameMapWithPlayers(self,target),self.pos[0], self.pos[1], target.pos[0], target.pos[1]))
+        route = (astar.astar(gameMapWithPlayers(self, target),
+                             self.pos[0], self.pos[1], target.pos[0], target.pos[1]))
         if route == list():
-            error_hint = "无法到达！"
+            action_result = "无法到达！"
             return
         if "remote" in weapons[self.weapon].keys() and weapons[self.weapon]["remote"]:
-            if getDistance_ou(self.pos,target.pos)>weapons[self.weapon]["distance"]+self.attack_range_add:
-                error_hint = "太远了！"
+            if getDistance_ou(self.pos, target.pos) > weapons[self.weapon]["distance"]+self.attack_range_add:
+                action_result = "太远了！"
                 return
-            if not lineAvaibale(self.pos,target.pos):
-                error_hint = "与目标间存在障碍物！"
+            if not lineAvaibale(self.pos, target.pos):
+                action_result = "与目标间存在障碍物！"
                 return
         elif len(route) > weapons[self.weapon]["distance"]+self.attack_range_add:
-            error_hint = "太远了！"
+            action_result = "太远了！"
             return
         self.attack(target)
         self.actions[command[0]]["count"] -= 1
 
     def goto_(self, command):
-        global error_hint
+        global action_result
         try:
             command[1] = command[1].replace("(", "").replace(")", "")
             command[1] = command[1].replace(",", " ")
@@ -148,7 +162,7 @@ class Player:
         except:
             return
         if (not isBlockEmpty(a, b)) and self.pos != (a, b):
-            error_hint = "此位置已被占用，请换一个位置。"
+            action_result = "此位置已被占用，请换一个位置。"
             return
         if self.pos == (a, b):
             self.actions[command[0]]["count"] -= 1
@@ -156,40 +170,40 @@ class Player:
         route = (astar.astar(gameMapWithPlayers(
             self), self.pos[0], self.pos[1], a, b))
         if route == list():
-            error_hint = "无法到达！"
+            action_result = "无法到达！"
             return
         if len(route) > (self.random_step+shoes[self.shoe]["value"]+self.speed_add):
-            error_hint = "太远了！"
+            action_result = "太远了！"
             return
-        error_hint = "走法：\n"
+        action_result = "走法：\n"
         for i in route:
-            error_hint += i
+            action_result += i
         self.pos = (a, b)
         self.actions[command[0]]["count"] -= 1
 
     def item_(self, command=None):
-        global error_hint
+        global action_result
         if self.item == list():
-            error_hint = "你的背包什么都没有！"
+            action_result = "你的背包什么都没有！"
         else:
-            error_hint = "你的背包的物品为：\n"
+            action_result = "你的背包的物品为：\n"
             unnamed_id = 1
             for i in self.item:
-                error_hint += str(unnamed_id)+' '
+                action_result += str(unnamed_id)+' '
                 unnamed_id += 1
-                error_hint += i.name+'\n'
-            error_hint=error_hint[:-1]
+                action_result += i.name+'\n'
+            action_result = action_result[:-1]
 
     def use_(self, command):
-        global error_hint
+        global action_result
         command = command[1].split()
         command[0] = int(command[0])
         if command[0] > len(self.item):
-            error_hint = "此ID的物品不存在！"
+            action_result = "此ID的物品不存在！"
             return
         if len(command) >= 2:
             if int(command[1])-1 < 0:
-                error_hint = "玩家ID错误！"
+                action_result = "玩家ID错误！"
                 return
         return_value = True
         try:
@@ -198,8 +212,8 @@ class Player:
         except IndexError:
             try:
                 return_value = self.item[command[0]-1].use(self)
-            except IOError:
-                error_hint = "你没有指定目标！"
+            except TypeError:
+                action_result = "你没有指定目标！"
         if return_value != True:
             self.item.pop(command[0]-1)
 
@@ -207,27 +221,55 @@ class Player:
         if self.weapon == "禅杖":
             self.buff.append("chanzhang_cd")
         hurt = target.damage((weapons[self.weapon]["value"] +
-                       self.attack_add)*self.attack_percent//100)
+                              self.attack_add)*self.attack_percent//100)
         self.update()
         return hurt
 
     def damage(self, value):
-        hurt=0
+        hurt = 0
         if ((value-shields[self.shield]["value"]-self.damage_minus)*self.damage_percent//100) > 0:
-            hurt = (value-shields[self.shield]["value"] -
-                          self.damage_minus)*self.damage_percent//100
-        self.life-=hurt
+            hurt = round(
+                (value-shields[self.shield]["value"] - self.damage_minus)*self.damage_percent//100)
+        self.life -= hurt
         self.update()
         return hurt
 
     def update(self):
         if self.life <= 0:
-            self.alive = False
+            self.zhiliao()
+        if self.life > 0:
+            self.alive = True
         if self.life > self.max_life:
             self.life = self.max_life
-        self.max_energy = self.max_energy_bak + energy_books[self.energy_book]["value"]
+        self.max_energy = self.max_energy_bak + \
+            energy_books[self.energy_book]["value"]
         if self.energy > self.max_energy:
             self.energy = self.max_energy
+
+    def zhiliao(self):
+        # TODO
+        global players
+        myid = players.index(self)
+        print("玩家{}({})失败了！".format(myid+1, self.name))
+        print("你当前的血量为{}".format(self.life))
+        while self.life < 0:
+            has_drug = False
+            drug_index = 0
+            for i in self.item:
+                if type(i) == drug:
+                    has_drug = True
+                    drug_index = self.item.index(i)
+                    break
+            if has_drug:
+                input_str = ""
+                while input_str != "yes" and input_str != "no":
+                    input_str = input("你要使用背包里的药吗？(yes/no)")
+                if input_str == "yes":
+                    print(str(drug_index+1))
+                    print("使用物品名字为："+str(self.item[drug_index].name))
+                    self.use_(["use", str(drug_index+1)])
+                    pass
+        self.alive = False
 
     def end_of_round(self):
         self.energy += 10
@@ -240,37 +282,39 @@ class Player:
         if "chanzhang_cd" in self.buff:
             self.buff.append("chanzhang_cd_2")
         self.qipai()
+
     def qipai(self):
-        global error_hint
+        global action_result
         max_card = (self.life+cards_limit-1)//cards_limit
-        if len(self.item)<=max_card:
+        if len(self.item) <= max_card:
             return
-        while len(self.item)>max_card:
+        while len(self.item) > max_card:
             print("你还需要弃{}张牌".format(len(self.item)-max_card))
             self.item_()
-            print("="*10+"\n"+error_hint+"\n"+"="*10)
-            removelist=-1
-            realremove=list()
-            while removelist==-1:
-                rawstr=input().split()
+            print("="*10+"\n"+action_result+"\n"+"="*10)
+            removelist = -1
+            realremove = list()
+            while removelist == -1:
+                rawstr = input().split()
                 try:
-                    removelist=[int(i) for i in rawstr]
+                    removelist = [int(i) for i in rawstr]
                     for i in removelist:
-                        if i<=0 or i>len(self.item):
+                        if i <= 0 or i > len(self.item):
                             raise ValueError
                 except ValueError:
-                    removelist=-1
-                    print("输入非法，请重输：",end="")
+                    removelist = -1
+                    print("输入非法，请重输：", end="")
                     continue
-                if len(removelist)>len(self.item)-max_card:
-                    removelist=-1
-                    print("你只能弃{}张牌，请重输：".format(len(self.item)-max_card),end="")
+                if len(removelist) > len(self.item)-max_card:
+                    removelist = -1
+                    print("你只能弃{}张牌，请重输：".format(
+                        len(self.item)-max_card), end="")
             for i in removelist:
                 realremove.append(self.item[i-1])
             for i in realremove:
                 qipai.append(i)
                 self.item.remove(i)
-            realremove=list()
+            realremove = list()
             cls()
 
 
@@ -360,7 +404,7 @@ current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 os.chdir(current_dir)
 players = list()
 special_blocks = list()
-error_hint = str()
+action_result = str()
 qipai=list()
 
 running = False
@@ -751,7 +795,6 @@ def mopai(count):
         for i in qipai:
             cards.append(i)
         qipai=list()
-        print("\n\n\n\n\ntesttttttt")
     for i in range(count):
         try:
             selected = random.choice(cards)
@@ -774,7 +817,7 @@ weapons = {
     "测试-伤害10": {"name": "测试1", "value": 10, "distance": 3},
     "测试-伤害15": {"name": "测试2", "value": 15, "distance": 5},
     "禅杖": {"name": "禅杖", "value": 20, "distance": 100},
-    "屠龙宝刀": {"name": "屠龙宝刀1", "value": 1000, "distance": 100},
+    "屠龙宝刀": {"name": "屠龙宝刀", "value": 100, "distance": 100},
     "弓": {"name":"弓","value":8,"distance":6,"remote":True}
 }
 shields = {
@@ -790,14 +833,14 @@ shoes = {
 }
 energy_books = {
     None: {"name": "无", "value": 0},
-    "魔法书": {"name": "魔法书", "value": 30}
+    "典籍": {"name": "典籍", "value": 30}
 }
 # -药- -武器- -鞋子- -盾牌- -能量书- ~钩爪~ ~偷窃~ -五雷天罡法- ~无懈可击(被动)~
 
 
 class drug:
     name = "药"
-    value = 5
+    value = 50
 
     def use(self, sender, *arg):
         sender.life += self.value
@@ -864,15 +907,15 @@ class shield_None(shield):
 
 
 class energy_book:
-    name = "魔法书"
-    value = "魔法书"
+    name = "典籍"
+    value = "典籍"
 
     def use(self, sender, *arg):
         sender.energy_book = self.value
 
 
 class energy_book_None(energy_book):
-    name = "不使用能量书"
+    name = "不使用典籍"
     value = None
 
 # 直线上没有障碍物：偷窃必须，五雷天罡法可以没有
@@ -884,14 +927,14 @@ class remote_attack:
     distance = 1
 
     def use(self, sender, target, *arg):
-        global error_hint
+        global action_result
         route = (astar.astar(gameMapWithPlayers(sender, target),
                              sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
         if route == list():
-            error_hint = "无法到达！"
+            action_result = "无法到达！"
             return True
         if len(route) > self.distance:
-            error_hint = "太远了！"
+            action_result = "太远了！"
             return True
         target.damage(self.value)
         sender.update()
@@ -903,12 +946,12 @@ class wltg(remote_attack):
     distance = 5
 
     def use(self, sender, target, *arg):
-        global error_hint
+        global action_result
         if sender == target:
-            error_hint = "别对自己下手！"
+            action_result = "别对自己下手！"
             return True
         if getDistance_ou(sender.pos, target.pos) > self.distance:
-            error_hint = "太远了！"
+            action_result = "太远了！"
             return True
         target.damage(self.value)
         sender.update()
@@ -921,19 +964,19 @@ class gz(remote_attack):
 
     def use(self, sender, target, *arg):
         global game_map
-        global error_hint
+        global action_result
         if sender == target:
-            error_hint = "别对自己下手！"
+            action_result = "别对自己下手！"
             return True
-        #error_hint="***几何什么的最烦了 钩爪拐弯就随他吧！"
+        #action_result="***几何什么的最烦了 钩爪拐弯就随他吧！"
         route = (astar.astar(gameMapWithPlayers(sender, target),
                              sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
         if route == list():
-            error_hint = "无法到达！"
+            action_result = "无法到达！"
             return True
         distance = getDistance_ou(sender.pos, target.pos)
         if distance > self.distance:
-            error_hint = "太远了！"
+            action_result = "太远了！"
             return True
         target.damage(self.value)
         # 即target在sender附近8格
@@ -941,7 +984,7 @@ class gz(remote_attack):
             pass
         else:
             if not lineAvaibale(sender.pos, target.pos):
-                error_hint = "直线上存在障碍物！"
+                action_result = "直线上存在障碍物！"
                 return True
             target.pos = getFangXiangPos(sender.pos,target.pos)
         sender.update()
@@ -954,27 +997,27 @@ class steal:
     distance = 5
 
     def use(self, sender, target, *arg):
-        global error_hint
+        global action_result
         if sender == target:
-            error_hint = "别对自己下手！"
+            action_result = "别对自己下手！"
             return True
         route = (astar.astar(gameMapWithPlayers(sender, target),
                              sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
         if route == list():
-            error_hint = "无法到达！"
+            action_result = "无法到达！"
             return True
         if len(route) > self.distance:
-            error_hint = "太远了！"
+            action_result = "太远了！"
             return True
         i = 0
         if len(target.item) == 0:
-            error_hint = "他的背包什么都没有！"
+            action_result = "他的背包什么都没有！"
             return True
         while len(target.item) != 0 and i < self.value:
             selected = random.choice(target.item)
             while selected.value == None:
                 selected = random.choice(target.item)
-            error_hint = "* 你偷到了他的"+selected.name+"!"
+            action_result = "* 你偷到了他的"+selected.name+"!"
             i += 1
             sender.item.append(selected)
             target.item.remove(selected)
@@ -987,8 +1030,8 @@ class kp:
     value = 1
 
     def use(self, *arg):
-        global error_hint
-        error_hint = "这张牌属于被动牌！"
+        global action_result
+        action_result = "这张牌属于被动牌！"
         return True
 
 
@@ -1014,17 +1057,11 @@ player_count = 2  # 固定的玩家数，如果要固定就将None改为玩家�
 get_cards = 2  # 每局摸牌数
 cards_limit = 20 # 手牌上限每多少血增加1张，如：
 # 当此值为20时，1~20血可持1张，21~40血可持2张，依此类推
-cards_dict = {"drug": 1,
+cards_dict = {"drug": 5,
               "tlbd": 2,
-              "cz": 2,
-              "shoe": 2,
-              "shield": 2,
-              "energy_book": 2,
-              "wltg": 2,
-              "steal": 2,
               "gz": 2,
               "kp": 2,
-              "bow": 4
+              "bow": 2
               }
 # 这是牌堆
 
