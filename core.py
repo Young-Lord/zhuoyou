@@ -1,45 +1,3 @@
-# -*- coding: UTF-8 -*-
-
-chesslist = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
-current_file = os.path.abspath(__file__)
-current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
-os.chdir(current_dir)
-players = list()
-special_blocks = list()
-error_hint = str()
-qipai=list()
-
-
-print("你正在使用的系统是：{}".format(platform.platform()))
-is_windows = (platform.platform().find("Windows")) != -1
-print("Python版本：{}".format(platform.python_version()))
-print("程序目录：{}".format(current_dir))
-
-
-characters_file = [i for i in os.listdir(os.path.join(os.getcwd(), "characters")) if i[-3:] == '.py' and i!="tempCodeRunnerFile.py"]
-characters=list()
-for i in characters_file:
-    with codecs.open("characters/"+i, "r", encoding='utf-8') as f:
-        cont=f.read().replace("\xef\xbb\xbf", '')
-        if cont.find("class") == -1:
-            continue
-        cont=cont.replace("(Player)","")
-        name_1=cont.find("class ")+6
-        name_2=cont.find(":")
-        characters.append(cont[name_1:name_2])
-
-characters = [i for i in characters if i!='Player']
-
-error_list_ch=list()
-for i in range(len(characters)):
-    try:
-        characters[i] = eval(characters[i]+"()")
-    except NameError as ne:
-        print("[警告]",ne,"请将警告信息发给作者")
-        error_list_ch.append(characters[i])
-for i in error_list_ch:
-    characters.remove(i)
-
 try:
     map_file = open("map.txt", "r")
     game_map = [i.strip() for i in map_file.readlines()]
@@ -106,18 +64,16 @@ for i in range(player_count):
         print("({}) {}".format(i+1,avaibale[i].name))
     juese=inputJuese(avaibale)
     characters.remove(juese)
-    current_player_id = juese
-    current_player_id.pos = (a, b)
-    players.append(current_player_id)
+    current_player = juese
+    current_player.pos = (a, b)
+    players.append(current_player)
     cls()
     drawMap()
 cls()
 print("#############")
 print("#  游戏开始 #")
 print("#############")
-running = True
-turn = 1
-current_player_id = 0
+running=True
 while running:
     random_step = random.choice(random_steps)
     current_player = players[current_player_id]

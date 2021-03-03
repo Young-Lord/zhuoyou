@@ -1,14 +1,3 @@
-import platform
-import sys
-import os
-import codecs
-from time import sleep
-import random
-from math import sqrt, degrees, acos
-
-import astar
-
-
 class GameError(RuntimeError):
     pass
 
