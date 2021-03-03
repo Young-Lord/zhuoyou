@@ -81,6 +81,7 @@ class Player:
         command = input().split(' ', 1)
         if command[0].find("debug") != -1:  # handle debug commands
             self.debug_handle(command)
+            return
         if command[0] not in list(self.actions.keys()):
             action_result = "未知命令"
             return
@@ -89,13 +90,13 @@ class Player:
             return
         try:
             eval("self.{}_(command)".format(command[0]))
-        except AttributeError:
-            action_result = "你遇到bug了！告诉作者！（详情：命令对应的函数不存在）"
+        #except AttributeError:
+        #    action_result = "你遇到bug了！告诉作者！（详情：命令对应的函数不存在）"
         except IndexError as e:
             if str(e) == "list index out of range":
                 action_result = "命令参数过少！"
 
-    def debug_handle(command):
+    def debug_handle(self,command):
         if command[0] == 'debug_eval':
             command = command[1]
             eval(command)
@@ -233,8 +234,6 @@ class Player:
     def update(self):
         if self.life <= 0:
             self.zhiliao()
-        if self.life > 0:
-            self.alive = True
         if self.life > self.max_life:
             self.life = self.max_life
         self.max_energy = self.max_energy_bak + \
@@ -243,39 +242,43 @@ class Player:
             self.energy = self.max_energy
 
     def zhiliao(self):
-        # TODO
-        global players
+        # TODO:check
+        global players,action_result
         myid = players.index(self)
         print("玩家{}({})失败了！".format(myid+1, self.name))
         print("你当前的血量为{}".format(self.life))
-        while self.life < 0:
-            has_drug = False
-            drug_index = 0
-            for i in self.item:
-                if type(i) == drug:
-                    has_drug = True
-                    drug_index = self.item.index(i)
-                    break
-            if has_drug:
-                input_str = ""
-                while input_str != "yes" and input_str != "no":
-                    input_str = input("你要使用背包里的药吗？(yes/no)")
-                if input_str == "yes":
-                    self.use_(["use", str(drug_index+1)])
-                    continue
-            other_has_drug=False
-            other_has_drug_player_id=-1
-            other_has_drug_index=-1
+        if self.life <= 0:
+            has_drug=True
+            drug_index = -999
+            while has_drug and self.life<=0:
+                has_drug=False
+                for i in self.item:
+                    if type(i) == drug:
+                        has_drug = True
+                        drug_index = self.item.index(i)
+                        break
+                if has_drug:
+                    input_str = ""
+                    while input_str != "yes" and input_str != "no":
+                        input_str = input("你要使用背包里的药吗？(yes/no)")
+                    if input_str == "yes":
+                        print(drug_index)#TODO:fix the bug
+                        self.use_(["use", str(drug_index+1)])
+                    else:
+                        break
             for i in players:
                 if self.life>=1:
                     break
-                if (not a.alive) or i==self:
+                if (not i.alive) or i==self:
                     continue
                 input_str=""
+                end_round=False
+                has_drug=False
                 print("*玩家{}({})操作".format(players.index(i)+1,i.name))
                 print("item:列出物品\nuse:对他用药\nend:结束操作")
-                while input_str not in ["item","use","end"]:
-                    input_str=input("输入你的操作：")
+                while not end_round and self.life<=0:
+                    while input_str not in ["item","use","end"]:
+                        input_str=input("输入你的操作：")
                     if input_str=="end":
                         end_round=True
                         break
@@ -285,11 +288,25 @@ class Player:
                     if input_str=="use":
                         for k in i.item:
                             if k.name=="药":
-                                #TODO!!!
+                                has_drug=True
+                                self.life+=k.value
+                                i.item.remove(k)
+                                if self.life>=1:
+                                    break
+                        if not has_drug:
+                            print("你的背包里没有药！")
+                        has_drug=False
+                    input_str=""
+                if self.life>=1:
+                    break
                 if end_round:
+                    cls()
                     continue
-        self.alive = False
-        #这行要删
+        if self.life<0:
+            print("玩家{}({})彻底无了！".format(myid+1, self.name))
+            self.alive = False
+        else:
+            self.update()
 
     def end_of_round(self):
         self.energy += 10
