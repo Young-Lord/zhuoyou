@@ -21,6 +21,7 @@ class Player:
     speed_add = 0
     random_step = 0
     attack_range_add = 0
+    disable_round = 0
     actions_bak = {"attack": {"name": "攻击", "arg": "玩家序号", "count": 1},
                    "goto": {"name": "移动", "arg": "坐标", "count": 1},
                    "item": {"name": "查看背包", "arg": "", "count": -1},
@@ -46,7 +47,7 @@ class Player:
             self.actions[i] = self.actions_bak[i].copy()
 
     def round(self):
-        global random_step
+        global random_step,players
         self.random_step = random_step
         global action_result
         action_result = ""
@@ -55,7 +56,7 @@ class Player:
             self.item.append(i)
             print("你摸到了1张"+i.name+"！")
         print("="*10)
-        while self.actions["end"]["count"]:
+        while self.actions["end"]["count"] and len([i for i in players if i.alive]) >=2:
             if action_result != "":
                 print("="*10)
                 print(action_result)
@@ -327,6 +328,9 @@ class Player:
         self.qipai()
 
     def qipai(self):
+        global players
+        if len([i for i in players if i.alive]) <=1:
+            return
         global action_result
         max_card = (self.life+cards_limit-1)//cards_limit
         if len(self.item) <= max_card:

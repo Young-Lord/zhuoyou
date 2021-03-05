@@ -92,7 +92,7 @@ while running:
             [i for i in players if i.alive][0])+1, [i for i in players if i.alive][0].name))
         running = False
         break
-    while not players[current_player_id].alive:
+    while (not players[current_player_id].alive) or (players[current_player_id].disable_round):
         current_player_id += 1
         if current_player_id == len(players):
             current_player_id = 0

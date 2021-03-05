@@ -240,6 +240,8 @@ class Player:
         return hurt
 
     def update(self):
+        if not self.alive:
+            return
         if self.life <= 0:
             self.zhiliao()
         if self.life > self.max_life:
@@ -315,6 +317,8 @@ class Player:
             self.update()
 
     def end_of_round(self):
+        if not self.alive:
+            return
         self.energy += 10
         for i in self.actions_bak.keys():
             self.actions[i] = self.actions_bak[i].copy()
