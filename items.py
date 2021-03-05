@@ -35,6 +35,22 @@ class drug:
         sender.life += self.value
         sender.update()
 
+class mhy:
+    name = "蒙汗药"
+    value=-1
+    def use(self, sender, target, *arg):
+        global action_result
+        if sender == target:
+            action_result = "别对自己下手！"
+            return True
+        if target.disabled:
+            action_result = "他已经有这个标记了！（TODO：修改提示语）"
+            return True
+        if random.randint(1,100)<=mhy_chance:#蒙汗药可以生效
+            action_result = "蒙汗药使用成功！"
+            target.disable_round+=1
+        else:
+            action_result = "蒙汗药使用失败！"
 
 class weapon_base:
     name = "武器_父类"

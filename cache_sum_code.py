@@ -25,6 +25,7 @@ class Player:
     speed_add = 0
     random_step = 0
     attack_range_add = 0
+    disable_round = 0
     actions_bak = {"attack": {"name": "攻击", "arg": "玩家序号", "count": 1},
                    "goto": {"name": "移动", "arg": "坐标", "count": 1},
                    "item": {"name": "查看背包", "arg": "", "count": -1},
@@ -50,7 +51,7 @@ class Player:
             self.actions[i] = self.actions_bak[i].copy()
 
     def round(self):
-        global random_step
+        global random_step,players
         self.random_step = random_step
         global action_result
         action_result = ""
@@ -59,7 +60,7 @@ class Player:
             self.item.append(i)
             print("你摸到了1张"+i.name+"！")
         print("="*10)
-        while self.actions["end"]["count"]:
+        while self.actions["end"]["count"] and len([i for i in players if i.alive]) >=2:
             if action_result != "":
                 print("="*10)
                 print(action_result)
@@ -331,6 +332,9 @@ class Player:
         self.qipai()
 
     def qipai(self):
+        global players
+        if len([i for i in players if i.alive]) <=1:
+            return
         global action_result
         max_card = (self.life+cards_limit-1)//cards_limit
         if len(self.item) <= max_card:
@@ -893,6 +897,16 @@ class drug:
         sender.life += self.value
         sender.update()
 
+class mhy:
+    name = "蒙汗药"
+    value=-1
+    def use(self, sender, target, *arg):
+        global action_result
+        if sender == target:
+            action_result = "别对自己下手！"
+            return True
+        if random.randint(1,100)<=mhy_chance:#蒙汗药可以生效
+            target.disable_round+=1
 
 class weapon_base:
     name = "武器_父类"
@@ -1104,11 +1118,11 @@ player_count = 2  # 固定的玩家数，如果要固定就将None改为玩家�
 get_cards = 2  # 每局摸牌数
 cards_limit = 20 # 手牌上限每多少血增加1张，如：
 # 当此值为20时，1~20血可持1张，21~40血可持2张，依此类推
-cards_dict = {"drug": 5,
+mhy_chance = 30#蒙汗药成功的概率（百分比）
+cards_dict = {"drug": 3,
               "tlbd": 2,
               "gz": 2,
-              "kp": 2,
-              "bow": 2
+              "mhy":5
               }
 # 这是牌堆
 
@@ -1253,7 +1267,7 @@ while running:
             [i for i in players if i.alive][0])+1, [i for i in players if i.alive][0].name))
         running = False
         break
-    while not players[current_player_id].alive:
+    while (not players[current_player_id].alive) or (players[current_player_id].disable_round):
         current_player_id += 1
         if current_player_id == len(players):
             current_player_id = 0

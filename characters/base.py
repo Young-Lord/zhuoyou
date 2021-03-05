@@ -21,7 +21,7 @@ class Player:
     speed_add = 0
     random_step = 0
     attack_range_add = 0
-    disable_round = 0
+    disabled=False
     actions_bak = {"attack": {"name": "攻击", "arg": "玩家序号", "count": 1},
                    "goto": {"name": "移动", "arg": "坐标", "count": 1},
                    "item": {"name": "查看背包", "arg": "", "count": -1},
@@ -249,7 +249,6 @@ class Player:
             self.energy = self.max_energy
 
     def zhiliao(self):
-        # TODO:check
         global players,action_result
         myid = players.index(self)
         print("玩家{}({})失败了！".format(myid+1, self.name))
