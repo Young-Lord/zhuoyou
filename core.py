@@ -51,18 +51,18 @@ except MapError:
 print("[信息]成功加载大小为{}x{}的地图".format(chang, kuan))
 cls()
 drawMap()
-random_characters_new=random_characters
+random_characters_new = random_characters
 for i in range(player_count):
     a, b = inputCoordinates("请输入玩家"+str(i+1)+"的坐标：")
     while not isBlockEmpty(a, b):
         a, b = inputCoordinates("此位置已被占用，请换一个位置：")
-    if random_characters_new>len(characters):
-        random_characters_new=len(characters)
-    avaibale=random.sample(characters,random_characters_new)
+    if random_characters_new > len(characters):
+        random_characters_new = len(characters)
+    avaibale = random.sample(characters, random_characters_new)
     print("请选择你的角色：")
     for i in range(len(avaibale)):
-        print("({}) {}".format(i+1,avaibale[i].name))
-    juese=inputJuese(avaibale)
+        print("({}) {}".format(i+1, avaibale[i].name))
+    juese = inputJuese(avaibale)
     characters.remove(juese)
     current_player = juese
     current_player.pos = (a, b)
@@ -73,14 +73,14 @@ cls()
 print("#############")
 print("#  游戏开始 #")
 print("#############")
-running=True
+running = True
 while running:
     random_step = random.choice(random_steps)
     current_player = players[current_player_id]
     current_player.random_step = random_step
     current_player.round()
     current_player_id += 1
-    if current_player_id == len(players):
+    if current_player_id == player_count:
         current_player_id = 0
         turn += 1
     if len([i for i in players if i.alive]) == 0:
@@ -92,12 +92,11 @@ while running:
             [i for i in players if i.alive][0])+1, [i for i in players if i.alive][0].name))
         running = False
         break
-    while (not players[current_player_id].alive):
-        if players[current_player_id].disable：
-            players[current_player_id].disable=False
-            continue
+    while (not players[current_player_id].alive) or (players[current_player_id].disabled):
+        if players[current_player_id].disabled:
+            players[current_player_id].disabled = False
         current_player_id += 1
-        if current_player_id == len(players):
+        if current_player_id == player_count:
             current_player_id = 0
             turn += 1
 os.system("pause")

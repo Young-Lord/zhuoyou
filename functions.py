@@ -76,7 +76,7 @@ def drawInfo():
     global turn, players, current_player_id
     print("* 第{}轮".format(turn), "玩家{}操作".format(current_player_id+1))
     print(
-        "* 玩家数:{}/{}".format(len([i for i in players if i.alive]), len(players)))
+        "* 玩家数:{}/{}".format(len([i for i in players if i.alive]), player_count))
 
 
 def drawPlayers():

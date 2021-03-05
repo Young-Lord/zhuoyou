@@ -25,7 +25,7 @@ class Player:
     speed_add = 0
     random_step = 0
     attack_range_add = 0
-    disable_round = 0
+    disabled=False
     actions_bak = {"attack": {"name": "攻击", "arg": "玩家序号", "count": 1},
                    "goto": {"name": "移动", "arg": "坐标", "count": 1},
                    "item": {"name": "查看背包", "arg": "", "count": -1},
@@ -253,7 +253,6 @@ class Player:
             self.energy = self.max_energy
 
     def zhiliao(self):
-        # TODO:check
         global players,action_result
         myid = players.index(self)
         print("玩家{}({})失败了！".format(myid+1, self.name))
@@ -411,7 +410,7 @@ class likui(Player):
 #     Code from characters/try1:
 ###############
 class try1(Player):
-    name="测试工具人1"
+    name="测试工具人1-回复"
     life = 10000
     def init_custom(self):
         self.actions_bak["zhudong1"]={"name": "回复", "arg": "", "count": 1}
@@ -425,8 +424,27 @@ class try1(Player):
 #     Code from characters/try2:
 ###############
 class try2(Player):
-    name="测试工具人2"
-
+    name="测试工具人2-给牌"
+    def init_custom(self):
+        self.actions_bak["zhudong1"]={"name": "给牌", "arg": "目标角色", "count": 1}
+    def zhudong1_(self,command):
+        global action_result
+        try:
+            target_index=int(command[1])
+        except IndexError:
+            action_result="参数过少！"
+            return
+        except ValueError:
+            action_result="参数错误！"
+            return
+        if not 1<=target_index<=player_count:
+            action_result="玩家不存在！"
+            return
+        target=players[target_index-1]
+        self.actions["zhudong1"]["count"]-=1
+        get_card=mopai(1)
+        target.item.append(get_card)
+        self.update()
 
 ###############
 #     Code from characters/try3:
@@ -577,7 +595,7 @@ def drawInfo():
     global turn, players, current_player_id
     print("* 第{}轮".format(turn), "玩家{}操作".format(current_player_id+1))
     print(
-        "* 玩家数:{}/{}".format(len([i for i in players if i.alive]), len(players)))
+        "* 玩家数:{}/{}".format(len([i for i in players if i.alive]), player_count))
 
 
 def drawPlayers():
@@ -865,21 +883,20 @@ import random
 
 weapons = {
     None: {"name": "无", "value": 5, "distance": 1},
-    "测试-伤害10": {"name": "测试1", "value": 10, "distance": 3},
     "测试-伤害15": {"name": "测试2", "value": 15, "distance": 5},
     "禅杖": {"name": "禅杖", "value": 20, "distance": 100},
     "屠龙宝刀": {"name": "屠龙宝刀", "value": 100, "distance": 100},
+    "板斧": {"name": "板斧", "value": 12, "distance": 1},
+    "朴刀": {"name": "朴刀", "value": 10, "distance": 2},
     "弓": {"name":"弓","value":8,"distance":6,"remote":True}
 }
 shields = {
     None: {"name": "无", "value": 0},
-    "盾牌": {"name": "盾牌", "value": 1},
-    "测试-防御3": {"name": "测试2", "value": 3}
+    "盾牌": {"name": "盾牌", "value": 5}
 }
 shoes = {
     None: {"name": "无", "value": 0},
-    "鞋子": {"name": "鞋子", "value": 3},
-    "测试-加速1": {"name": "测试1", "value": 1},
+    "鞋子": {"name": "鞋子", "value": 1},
     "测试-加速3": {"name": "测试2", "value": 3}
 }
 energy_books = {
@@ -891,7 +908,7 @@ energy_books = {
 
 class drug:
     name = "药"
-    value = 50
+    value = 10
 
     def use(self, sender, *arg):
         sender.life += self.value
@@ -901,12 +918,18 @@ class mhy:
     name = "蒙汗药"
     value=-1
     def use(self, sender, target, *arg):
-        global action_result
+        global action_result,mhy_chance
         if sender == target:
             action_result = "别对自己下手！"
             return True
+        if target.disabled:
+            action_result = "他已经有这个标记了！（TODO：修改提示语）"
+            return True
         if random.randint(1,100)<=mhy_chance:#蒙汗药可以生效
-            target.disable_round+=1
+            action_result = "蒙汗药使用成功！"
+            target.disabled=True
+        else:
+            action_result = "蒙汗药使用失败！"
 
 class weapon_base:
     name = "武器_父类"
@@ -926,6 +949,16 @@ class weapon_None(weapon_base):
 class tlbd(weapon_base):
     name = "屠龙宝刀"
     value = "屠龙宝刀"
+
+
+class bf(weapon_base):
+    name = "板斧"
+    value = "板斧"
+
+
+class pd(weapon_base):
+    name = "朴刀"
+    value = "朴刀"
 
 
 class bow(weapon_base):
@@ -1020,7 +1053,7 @@ class wltg(remote_attack):
 
 class gz(remote_attack):
     name = "钩爪"
-    value = 10
+    value = 5
     distance = 4
 
     def use(self, sender, target, *arg):
@@ -1054,8 +1087,8 @@ class gz(remote_attack):
 
 class steal:
     name = "偷窃"
-    value = 2
-    distance = 5
+    value = 1
+    distance = 2
 
     def use(self, sender, target, *arg):
         global action_result
@@ -1070,6 +1103,7 @@ class steal:
         if len(route) > self.distance:
             action_result = "太远了！"
             return True
+        
         i = 0
         if len(target.item) == 0:
             action_result = "他的背包什么都没有！"
@@ -1226,18 +1260,18 @@ except MapError:
 print("[信息]成功加载大小为{}x{}的地图".format(chang, kuan))
 cls()
 drawMap()
-random_characters_new=random_characters
+random_characters_new = random_characters
 for i in range(player_count):
     a, b = inputCoordinates("请输入玩家"+str(i+1)+"的坐标：")
     while not isBlockEmpty(a, b):
         a, b = inputCoordinates("此位置已被占用，请换一个位置：")
-    if random_characters_new>len(characters):
-        random_characters_new=len(characters)
-    avaibale=random.sample(characters,random_characters_new)
+    if random_characters_new > len(characters):
+        random_characters_new = len(characters)
+    avaibale = random.sample(characters, random_characters_new)
     print("请选择你的角色：")
     for i in range(len(avaibale)):
-        print("({}) {}".format(i+1,avaibale[i].name))
-    juese=inputJuese(avaibale)
+        print("({}) {}".format(i+1, avaibale[i].name))
+    juese = inputJuese(avaibale)
     characters.remove(juese)
     current_player = juese
     current_player.pos = (a, b)
@@ -1248,14 +1282,14 @@ cls()
 print("#############")
 print("#  游戏开始 #")
 print("#############")
-running=True
+running = True
 while running:
     random_step = random.choice(random_steps)
     current_player = players[current_player_id]
     current_player.random_step = random_step
     current_player.round()
     current_player_id += 1
-    if current_player_id == len(players):
+    if current_player_id == player_count:
         current_player_id = 0
         turn += 1
     if len([i for i in players if i.alive]) == 0:
@@ -1267,9 +1301,11 @@ while running:
             [i for i in players if i.alive][0])+1, [i for i in players if i.alive][0].name))
         running = False
         break
-    while (not players[current_player_id].alive) or (players[current_player_id].disable_round):
+    while (not players[current_player_id].alive) or (players[current_player_id].disabled):
+        if players[current_player_id].disabled:
+            players[current_player_id].disabled = False
         current_player_id += 1
-        if current_player_id == len(players):
+        if current_player_id == player_count:
             current_player_id = 0
             turn += 1
 os.system("pause")

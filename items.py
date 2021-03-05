@@ -3,21 +3,20 @@ import random
 
 weapons = {
     None: {"name": "无", "value": 5, "distance": 1},
-    "测试-伤害10": {"name": "测试1", "value": 10, "distance": 3},
     "测试-伤害15": {"name": "测试2", "value": 15, "distance": 5},
     "禅杖": {"name": "禅杖", "value": 20, "distance": 100},
     "屠龙宝刀": {"name": "屠龙宝刀", "value": 100, "distance": 100},
+    "板斧": {"name": "板斧", "value": 12, "distance": 1},
+    "朴刀": {"name": "朴刀", "value": 10, "distance": 2},
     "弓": {"name":"弓","value":8,"distance":6,"remote":True}
 }
 shields = {
     None: {"name": "无", "value": 0},
-    "盾牌": {"name": "盾牌", "value": 1},
-    "测试-防御3": {"name": "测试2", "value": 3}
+    "盾牌": {"name": "盾牌", "value": 5}
 }
 shoes = {
     None: {"name": "无", "value": 0},
-    "鞋子": {"name": "鞋子", "value": 3},
-    "测试-加速1": {"name": "测试1", "value": 1},
+    "鞋子": {"name": "鞋子", "value": 1},
     "测试-加速3": {"name": "测试2", "value": 3}
 }
 energy_books = {
@@ -29,7 +28,7 @@ energy_books = {
 
 class drug:
     name = "药"
-    value = 50
+    value = 10
 
     def use(self, sender, *arg):
         sender.life += self.value
@@ -39,7 +38,7 @@ class mhy:
     name = "蒙汗药"
     value=-1
     def use(self, sender, target, *arg):
-        global action_result
+        global action_result,mhy_chance
         if sender == target:
             action_result = "别对自己下手！"
             return True
@@ -48,7 +47,7 @@ class mhy:
             return True
         if random.randint(1,100)<=mhy_chance:#蒙汗药可以生效
             action_result = "蒙汗药使用成功！"
-            target.disable_round+=1
+            target.disabled=True
         else:
             action_result = "蒙汗药使用失败！"
 
@@ -70,6 +69,16 @@ class weapon_None(weapon_base):
 class tlbd(weapon_base):
     name = "屠龙宝刀"
     value = "屠龙宝刀"
+
+
+class bf(weapon_base):
+    name = "板斧"
+    value = "板斧"
+
+
+class pd(weapon_base):
+    name = "朴刀"
+    value = "朴刀"
 
 
 class bow(weapon_base):
@@ -164,7 +173,7 @@ class wltg(remote_attack):
 
 class gz(remote_attack):
     name = "钩爪"
-    value = 10
+    value = 5
     distance = 4
 
     def use(self, sender, target, *arg):
@@ -198,8 +207,8 @@ class gz(remote_attack):
 
 class steal:
     name = "偷窃"
-    value = 2
-    distance = 5
+    value = 1
+    distance = 2
 
     def use(self, sender, target, *arg):
         global action_result
@@ -214,6 +223,7 @@ class steal:
         if len(route) > self.distance:
             action_result = "太远了！"
             return True
+        
         i = 0
         if len(target.item) == 0:
             action_result = "他的背包什么都没有！"
