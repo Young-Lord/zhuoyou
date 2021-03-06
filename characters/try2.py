@@ -18,5 +18,7 @@ class try2(Player):
         target=players[target_index-1]
         self.actions["zhudong1"]["count"]-=1
         get_card=mopai(1)
-        target.item.append(get_card)
+        for i in get_card:
+            action_result="你给了他一张 {}！".format(i.name)
+            target.item.append(i)
         self.update()

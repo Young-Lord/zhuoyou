@@ -95,8 +95,8 @@ class Player:
             return
         try:
             eval("self.{}_(command)".format(command[0]))
-        except AttributeError:
-            action_result = "你遇到bug了！告诉作者！（详情：命令对应的函数不存在）"
+#        except AttributeError:
+#TODO            action_result = "你遇到bug了！告诉作者！（详情：命令对应的函数不存在）"
         except IndexError as e:
             if str(e) == "list index out of range":
                 action_result = "命令参数过少！"
@@ -443,7 +443,9 @@ class try2(Player):
         target=players[target_index-1]
         self.actions["zhudong1"]["count"]-=1
         get_card=mopai(1)
-        target.item.append(get_card)
+        for i in get_card:
+            action_result="你给了他一张 {}！".format(i.name)
+            target.item.append(i)
         self.update()
 
 ###############
