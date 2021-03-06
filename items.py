@@ -246,7 +246,7 @@ class steal:
     distance = 2
 
     def use(self, sender, target, *arg):
-        global action_result
+        global action_result,zhuangbei_list
         if sender == target:
             action_result = "别对自己下手！"
             return True
@@ -258,17 +258,26 @@ class steal:
         if len(route) > self.distance:
             action_result = "太远了！"
             return True
-
-        i = 0
-        if len(target.item) == 0:
-            action_result = "他的背包什么都没有！"
+        selectable=[]
+        for i in zhuangbei_list:
+            my_item = eval("target."+zhuangbei_list[i]["code"])
+            if my_item != None:
+                selectable.append((i,my_item))
+        if len(selectable)+len(target.item) == 0:
+            action_result = "他什么都没有！"
             return True
-        while len(target.item) != 0 and i < self.value:
+        for i in target.item:
+            selectable.append(("beibao",i))
+        card_count = 0
+        while len(selectable) != 0 and card_count < self.value:
+            print("请选择你要偷窃的牌：")
+            for i in range(len(selectable)):
+                
             selected = random.choice(target.item)
             while selected.value == None:
                 selected = random.choice(target.item)
             action_result = "* 你偷到了他的"+selected.name+"!"
-            i += 1
+            card_count += 1
             sender.item.append(selected)
             target.item.remove(selected)
             sender.update()
