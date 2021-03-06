@@ -21,11 +21,12 @@ class Player:
     speed_add = 0
     random_step = 0
     attack_range_add = 0
-    disabled=False
+    disabled = False
     actions_bak = {"attack": {"name": "攻击", "arg": "玩家序号", "count": 1},
                    "goto": {"name": "移动", "arg": "坐标", "count": 1},
                    "item": {"name": "查看背包", "arg": "", "count": -1},
                    "use": {"name": "使用", "arg": "物品ID (目标ID(如果有的话))", "count": -1},
+                   "zhuangbei": {"name": "装备界面", "arg": "", "count": -1},
                    "end": {"name": "结束回合", "arg": "", "count": 1}
                    }
 
@@ -47,7 +48,7 @@ class Player:
             self.actions[i] = self.actions_bak[i].copy()
 
     def round(self):
-        global random_step,players
+        global random_step, players
         self.random_step = random_step
         global action_result
         action_result = ""
@@ -56,7 +57,7 @@ class Player:
             self.item.append(i)
             print("你摸到了1张"+i.name+"！")
         print("="*10)
-        while self.actions["end"]["count"] and len([i for i in players if i.alive]) >=2:
+        while self.actions["end"]["count"] and len([i for i in players if i.alive]) >= 2:
             if action_result != "":
                 print("="*10)
                 print(action_result)
@@ -97,13 +98,20 @@ class Player:
             if str(e) == "list index out of range":
                 action_result = "命令参数过少！"
 
-    def debug_handle(self,command):
+    def debug_handle(self, command):
         if command[0] == 'debug_eval':
             command = command[1]
             try:
                 eval(command)
             except Exception as e:
                 print("[debug_eval] 命令执行时出错。详情：")
+                print(e)
+        elif command[0] == 'debug_exec':#exec比eval强大，可以进行赋值等操作，但没有返回值
+            command = command[1]
+            try:
+                exec(command)
+            except Exception as e:
+                print("[debug_exec] 命令执行时出错。详情：")
                 print(e)
         elif command[0] == 'debug_showbuff':
             print(self.buff)
@@ -127,7 +135,11 @@ class Player:
 
     def attack_(self, command):
         global action_result
-        target = players[int(command[1])-1]
+        try:
+            target = players[int(command[1])-1]
+        except ValueError:
+            action_result="命令非法！"
+            return
         if "chanzhang_cd_2" in self.buff and self.weapon == "禅杖":
             action_result = "禅杖冷却中..."
             self.actions[command[0]]["count"] -= 1
@@ -162,6 +174,7 @@ class Player:
             command[1] = command[1].replace(",", " ")
             a, b = [int(i) for i in command[1].split()]
         except:
+            action_result="命令非法！"
             return
         if (not isBlockEmpty(a, b)) and self.pos != (a, b):
             action_result = "此位置已被占用，请换一个位置。"
@@ -199,12 +212,18 @@ class Player:
     def use_(self, command):
         global action_result
         command = command[1].split()
-        command[0] = int(command[0])
+        try:
+            command[0] = int(command[0])
+            if len(command) >= 2:
+                command[1]=int(command[1])
+        except ValueError:
+            action_result="命令非法！"
+            return
         if command[0] > len(self.item):
             action_result = "此ID的物品不存在！"
             return
         if len(command) >= 2:
-            if int(command[1])-1 < 0:
+            if command[1]-1 < 0:
                 action_result = "玩家ID错误！"
                 return
         return_value = True
@@ -218,6 +237,9 @@ class Player:
                 action_result = "你没有指定目标！"
         if return_value != True:
             self.item.pop(command[0]-1)
+    
+    def use_by_content(self,content):
+        return self.use_(["use",str(self.item.index(content)+1)])
 
     def attack(self, target):
         if self.weapon == "禅杖":
@@ -249,64 +271,64 @@ class Player:
             self.energy = self.max_energy
 
     def zhiliao(self):
-        global players,action_result
+        global players, action_result
         myid = players.index(self)
         print("玩家{}({})失败了！".format(myid+1, self.name))
         print("你当前的血量为{}".format(self.life))
         if self.life <= 0:
-            has_drug=True
+            has_drug = True
             drug_index = -999
-            while self.life<=0:
-                drugs=[i for i in self.item if type(i)==drug]
-                if len(drugs)==0:
+            while self.life <= 0:
+                drugs = [i for i in self.item if type(i) == drug]
+                if len(drugs) == 0:
                     break
                 input_str = ""
                 while input_str != "yes" and input_str != "no":
                     input_str = input("你要使用背包里的药吗？(yes/no)")
                 if input_str == "yes":
-                    self.life+=drugs[0].value
+                    self.life += drugs[0].value
                     self.item.remove(drugs[0])
                     drugs.pop(0)
                 else:
                     break
             for i in players:
-                if self.life>=1:
+                if self.life >= 1:
                     break
-                if (not i.alive) or i==self:
+                if (not i.alive) or i == self:
                     continue
-                input_str=""
-                end_round=False
-                has_drug=False
-                print("*玩家{}({})操作".format(players.index(i)+1,i.name))
+                input_str = ""
+                end_round = False
+                has_drug = False
+                print("*玩家{}({})操作".format(players.index(i)+1, i.name))
                 print("item:列出物品\nuse:对他用药\nend:结束操作")
-                while not end_round and self.life<=0:
-                    while input_str not in ["item","use","end"]:
-                        input_str=input("输入你的操作：")
-                    if input_str=="end":
-                        end_round=True
+                while not end_round and self.life <= 0:
+                    while input_str not in ["item", "use", "end"]:
+                        input_str = input("输入你的操作：")
+                    if input_str == "end":
+                        end_round = True
                         cls()
                         break
-                    if input_str=="item":
+                    if input_str == "item":
                         i.item_()
                         print(action_result)
-                    if input_str=="use":
+                    if input_str == "use":
                         for k in i.item:
-                            if k.name=="药":
-                                has_drug=True
-                                self.life+=k.value
+                            if k.name == "药":
+                                has_drug = True
+                                self.life += k.value
                                 i.item.remove(k)
-                                if self.life>=1:
+                                if self.life >= 1:
                                     break
                         if not has_drug:
                             print("你的背包里没有药！")
-                        has_drug=False
-                    input_str=""
-                if self.life>=1:
+                        has_drug = False
+                    input_str = ""
+                if self.life >= 1:
                     break
                 if end_round:
                     cls()
                     continue
-        if self.life<=0:
+        if self.life <= 0:
             print("玩家{}({})彻底无了！".format(myid+1, self.name))
             self.alive = False
         else:
@@ -328,7 +350,7 @@ class Player:
 
     def qipai(self):
         global players
-        if len([i for i in players if i.alive]) <=1:
+        if len([i for i in players if i.alive]) <= 1:
             return
         global action_result
         max_card = (self.life+cards_limit-1)//cards_limit
@@ -338,27 +360,90 @@ class Player:
             print("你还需要弃{}张牌".format(len(self.item)-max_card))
             self.item_()
             print("="*10+"\n"+action_result+"\n"+"="*10)
-            removelist = -1
+            remove_list = -1
             realremove = list()
-            while removelist == -1:
+            while remove_list == -1:
                 rawstr = input().split()
                 try:
-                    removelist = [int(i) for i in rawstr]
-                    for i in removelist:
+                    remove_list = [int(i) for i in rawstr]
+                    for i in remove_list:
                         if i <= 0 or i > len(self.item):
                             raise ValueError
                 except ValueError:
-                    removelist = -1
+                    remove_list = -1
                     print("输入非法，请重输：", end="")
                     continue
-                if len(removelist) > len(self.item)-max_card:
-                    removelist = -1
+                if len(remove_list) > len(self.item)-max_card:
+                    remove_list = -1
                     print("你只能弃{}张牌，请重输：".format(
                         len(self.item)-max_card), end="")
-            for i in removelist:
+            for i in remove_list:
                 realremove.append(self.item[i-1])
             for i in realremove:
                 qipai.append(i)
                 self.item.remove(i)
             realremove = list()
             cls()
+
+    def zhuangbei_(self, command):
+        # WARNING:要是变量更名了，此函数很可能会出错
+        global zhuangbei_list
+        operations = [zhuangbei_list[i]["key"] for i in zhuangbei_list]+["c"]
+        while True:
+            input_str = str()
+            print("你的装备栏为：")
+            for i in zhuangbei_list:
+                my_item = eval("self."+zhuangbei_list[i]["code"])
+                if my_item != None:
+                    my_item = '"'+my_item+'"'
+                my_name = eval("{}s[{}][\"name\"]".format(
+                    zhuangbei_list[i]["code"], my_item))
+                my_value = eval("{}s[{}][\"value\"]".format(
+                    zhuangbei_list[i]["code"], my_item))
+                print("({}) {}\t:{}(+{})".format(
+                    zhuangbei_list[i]["key"],
+                    i,
+                    my_name,
+                    my_value
+                ))
+            print("(c) 返回")
+            while input_str not in operations:
+                input_str = input("输入你的操作：")
+            if input_str == "c":
+                break
+            current_type = [
+                i for i in zhuangbei_list][operations.index(input_str)]
+            input_str = ""
+            current_item = eval("self."+zhuangbei_list[current_type]["code"])
+            if current_item != None:
+                current_item = '"'+current_item+'"'
+            current_name = eval("{}s[{}][\"name\"]".format(
+                zhuangbei_list[current_type]["code"], current_item))
+            current_value = eval("{}s[{}][\"value\"]".format(
+                zhuangbei_list[current_type]["code"], current_item))
+            print("当前{}:{}(+{})".format(current_type, current_name, current_value))
+            avaibale_changes = [i for i in self.item if type(
+                i).__base__.__name__ == zhuangbei_list[current_type]["code"]+"_base"]
+            avaibale_values = [eval("{}s[\"{}\"][\"value\"]"
+                                   .format(zhuangbei_list[current_type]["code"], i.value)) for i in avaibale_changes]
+            print("可用的选择：")
+            print("(0) 返回")
+            for i in range(len(avaibale_changes)):
+                print("({}) {}:{}({:+})".format(i+1,
+                                              avaibale_changes[i].name,
+                                              avaibale_values[i],
+                                              avaibale_values[i]-current_value))
+            while True:
+                input_str=input("输入你的操作：")
+                try:
+                    input_str=int(input_str)
+                except:
+                    continue
+                if 0<=input_str<=len(avaibale_changes):
+                    break
+            if input_str==0:
+                continue
+            else:
+                if current_item!=None:
+                    qipai.append(current_item)
+                self.use_by_content(avaibale_changes[input_str-1])

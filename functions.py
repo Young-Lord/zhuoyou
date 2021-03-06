@@ -83,7 +83,7 @@ def drawPlayers():
     global players
     display_index = 1
     for i in players:
-        print("玩家"+str(display_index)+"  "+i.name, end="\t:")
+        print("玩家{}  {}\t".format(display_index,i.name),end=":")
         if i.alive:
             print("生命 {}/{};能量 {}/{}".format(i.life,
                                              i.max_life, i.energy, i.max_energy))
@@ -98,7 +98,7 @@ def drawMap():
     for i in range(len(players)):
         if players[i].alive:
             setblock(display_map, players[i].pos[0],
-                     players[i].pos[1], chesslist[i])
+                     players[i].pos[1], chess_list[i])
     for i in special_blocks:
         if display_map[i[0]][i[1]] == '0':
             setblock(display_map, i[0], i[1], 'O')
