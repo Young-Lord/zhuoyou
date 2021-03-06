@@ -26,11 +26,12 @@ class Player:
     random_step = 0
     attack_range_add = 0
     disabled = False
-    actions_bak = {"attack": {"name": "攻击", "arg": "玩家序号", "count": 1},
+    actions_bak = {"attack": {"name": "攻击", "arg": "目标ID", "count": 1},
                    "goto": {"name": "移动", "arg": "坐标", "count": 1},
                    "item": {"name": "查看背包", "arg": "", "count": -1},
                    "use": {"name": "使用", "arg": "物品ID (目标ID(如果有的话))", "count": -1},
                    "zhuangbei": {"name": "装备界面", "arg": "", "count": -1},
+                   "showzhuangbei": {"name": "查看他人装备", "arg": "目标ID", "count": -1},
                    "end": {"name": "结束回合", "arg": "", "count": 1}
                    }
 
@@ -388,28 +389,51 @@ class Player:
                 self.item.remove(i)
             realremove = list()
             cls()
-
-    def zhuangbei_(self, command):
-        # WARNING:要是变量更名了，此函数很可能会出错
-        global zhuangbei_list
-        operations = [zhuangbei_list[i]["key"] for i in zhuangbei_list]+["c"]
-        while True:
-            input_str = str()
-            print("你的装备栏为：")
-            for i in zhuangbei_list:
-                my_item = eval("self."+zhuangbei_list[i]["code"])
+    def showzhuangbei_(self,command,in_code_call=False):
+        global players,action_result,zhuangbei_list
+        if in_code_call:
+            target=command
+        else:
+            action_result+="他的装备栏为：\n"
+        if type(command)==int:
+            target=players[command]
+        if type(command)==list:
+            try:
+                target=players[int(command[1])-1]
+            except:
+                action_result="参数非法！"
+                return
+            if not 0<=int(command[1])-1<player_count:
+                action_result="参数非法！"
+                return
+        for i in zhuangbei_list:
+                my_item = eval("target."+zhuangbei_list[i]["code"])
                 if my_item != None:
                     my_item = '"'+my_item+'"'
                 my_name = eval("{}s[{}][\"name\"]".format(
                     zhuangbei_list[i]["code"], my_item))
                 my_value = eval("{}s[{}][\"value\"]".format(
                     zhuangbei_list[i]["code"], my_item))
-                print("({}) {}\t:{}(+{})".format(
+                action_result+="({}) {}\t:{}(+{})\n".format(
                     zhuangbei_list[i]["key"],
                     i,
                     my_name,
                     my_value
-                ))
+                )
+        action_result=action_result[:-1]
+        if in_code_call:
+            tmp=action_result[:]
+            action_result=""
+            return tmp
+
+    def zhuangbei_(self, command):
+        # WARNING:要是变量更名了，此函数很可能会出错
+        global zhuangbei_list,action_result
+        operations = [zhuangbei_list[i]["key"] for i in zhuangbei_list]+["c"]
+        while True:
+            input_str = str()
+            print("你的装备栏为：")
+            print(self.showzhuangbei_(self,True))
             print("(c) 返回")
             while input_str not in operations:
                 input_str = input("输入你的操作：")
