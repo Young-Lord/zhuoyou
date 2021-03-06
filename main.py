@@ -36,5 +36,7 @@ sum_code.close()
 try:
     from cache_sum_code import *
 except Exception as e:
-    print("\n\n#####\n[BUG] 带上以下信息向作者反馈：\n#####\n\n")
-    raise e
+    import traceback
+    print("\n\n"+"#"*20+"\n[BUG] 带上以下信息向作者反馈：\n"+"#"*20+"\n\n")
+    traceback.print_exc()
+    os.system("pause")

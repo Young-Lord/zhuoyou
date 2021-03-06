@@ -95,8 +95,8 @@ class Player:
             return
         try:
             eval("self.{}_(command)".format(command[0]))
-#        except AttributeError:
-#TODO            action_result = "你遇到bug了！告诉作者！（详情：命令对应的函数不存在）"
+        except AttributeError:
+            action_result = "你遇到bug了！告诉作者！（详情：命令对应的函数不存在）"
         except IndexError as e:
             if str(e) == "list index out of range":
                 action_result = "命令参数过少！"
