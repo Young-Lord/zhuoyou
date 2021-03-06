@@ -269,19 +269,35 @@ class steal:
         for i in target.item:
             selectable.append(("beibao",i))
         card_count = 0
+        beibao=1
         while len(selectable) != 0 and card_count < self.value:
-            print("请选择你要偷窃的牌：")
+            print("他的物品为：")
             for i in range(len(selectable)):
-                
-            selected = random.choice(target.item)
-            while selected.value == None:
-                selected = random.choice(target.item)
-            action_result = "* 你偷到了他的"+selected.name+"!"
+                if selectable[i][0]!="beibao":
+                    print("({}) {}\t:{}".format(i+1,selectable[i][0],selectable[i][1]))
+                else:
+                    print("({}) 背包物品{}\t:{}".format(i+1,beibao,selectable[i][1].name))
+                    beibao+=1
+            select=""
+            while True:
+                select=input("请选择你要偷窃的牌：")
+                try:
+                    if 1<=int(select)<=len(selectable):
+                        break
+                except:
+                    pass
             card_count += 1
-            sender.item.append(selected)
-            target.item.remove(selected)
-            sender.update()
-            target.update()
+            selected=selectable[select-1]
+            selectable.remove(selected)
+            if selected[0]=="beibao":
+                selected=selected[1]
+                action_result = "* 你偷到了他的"+selected.name+"!"
+                sender.item.append(selected)
+                target.item.remove(selected)
+            else:
+                selected=mopai_by_value(selected[1])
+                exec("target."+zhuangbei_list[selected[0]]["code"]+"="+None)
+                sender.item.append(selected)
 
 
 class kp:
