@@ -111,7 +111,7 @@ class Player:
             except Exception as e:
                 print("[debug_eval] 命令执行时出错。详情：")
                 print(e)
-        elif command[0] == 'debug_exec':#exec比eval强大，可以进行赋值等操作，但没有返回值
+        elif command[0] == 'debug_exec':  # exec比eval强大，可以进行赋值等操作，但没有返回值
             command = command[1]
             try:
                 exec(command)
@@ -143,7 +143,7 @@ class Player:
         try:
             target = players[int(command[1])-1]
         except ValueError:
-            action_result="命令非法！"
+            action_result = "命令非法！"
             return
         if "chanzhang_cd_2" in self.buff and self.weapon == "禅杖":
             action_result = "禅杖冷却中..."
@@ -179,7 +179,7 @@ class Player:
             command[1] = command[1].replace(",", " ")
             a, b = [int(i) for i in command[1].split()]
         except:
-            action_result="命令非法！"
+            action_result = "命令非法！"
             return
         if (not isBlockEmpty(a, b)) and self.pos != (a, b):
             action_result = "此位置已被占用，请换一个位置。"
@@ -220,9 +220,9 @@ class Player:
         try:
             command[0] = int(command[0])
             if len(command) >= 2:
-                command[1]=int(command[1])
+                command[1] = int(command[1])
         except ValueError:
-            action_result="命令非法！"
+            action_result = "命令非法！"
             return
         if command[0] > len(self.item):
             action_result = "此ID的物品不存在！"
@@ -242,9 +242,9 @@ class Player:
                 action_result = "你没有指定目标！"
         if return_value != True:
             self.item.pop(command[0]-1)
-    
-    def use_by_content(self,content):
-        return self.use_(["use",str(self.item.index(content)+1)])
+
+    def use_by_content(self, content):
+        return self.use_(["use", str(self.item.index(content)+1)])
 
     def attack(self, target):
         if self.weapon == "禅杖":
@@ -389,51 +389,52 @@ class Player:
                 self.item.remove(i)
             realremove = list()
             cls()
-    def showzhuangbei_(self,command,in_code_call=False):
-        global players,action_result,zhuangbei_list
+
+    def showzhuangbei_(self, command, in_code_call=False):
+        global players, action_result, zhuangbei_list
         if in_code_call:
-            target=command
+            target = command
         else:
-            action_result+="他的装备栏为：\n"
-        if type(command)==int:
-            target=players[command]
-        if type(command)==list:
+            action_result += "他的装备栏为：\n"
+        if type(command) == int:
+            target = players[command]
+        if type(command) == list:
             try:
-                target=players[int(command[1])-1]
+                target = players[int(command[1])-1]
             except:
-                action_result="参数非法！"
+                action_result = "参数非法！"
                 return
-            if not 0<=int(command[1])-1<player_count:
-                action_result="参数非法！"
+            if not 0 <= int(command[1])-1 < player_count:
+                action_result = "参数非法！"
                 return
         for i in zhuangbei_list:
-                my_item = eval("target."+zhuangbei_list[i]["code"])
-                if my_item != None:
-                    my_item = '"'+my_item+'"'
-                my_name = eval("{}s[{}][\"name\"]".format(
-                    zhuangbei_list[i]["code"], my_item))
-                my_value = eval("{}s[{}][\"value\"]".format(
-                    zhuangbei_list[i]["code"], my_item))
-                action_result+="({}) {}\t:{}(+{})\n".format(
-                    zhuangbei_list[i]["key"],
-                    i,
-                    my_name,
-                    my_value
-                )
-        action_result=action_result[:-1]
+            my_item = eval("target."+zhuangbei_list[i]["code"])
+            if my_item != None:
+                my_item = '"'+my_item+'"'
+            my_name = eval("{}s[{}][\"name\"]".format(
+                zhuangbei_list[i]["code"], my_item))
+            my_value = eval("{}s[{}][\"value\"]".format(
+                zhuangbei_list[i]["code"], my_item))
+            action_result += "({}) {}\t:{}(+{})\n".format(
+                zhuangbei_list[i]["key"],
+                i,
+                my_name,
+                my_value
+            )
+        action_result = action_result[:-1]
         if in_code_call:
-            tmp=action_result[:]
-            action_result=""
+            tmp = action_result[:]
+            action_result = ""
             return tmp
 
     def zhuangbei_(self, command):
         # WARNING:要是变量更名了，此函数很可能会出错
-        global zhuangbei_list,action_result
+        global zhuangbei_list, action_result
         operations = [zhuangbei_list[i]["key"] for i in zhuangbei_list]+["c"]
         while True:
             input_str = str()
             print("你的装备栏为：")
-            print(self.showzhuangbei_(self,True))
+            print(self.showzhuangbei_(self, True))
             print("(c) 返回")
             while input_str not in operations:
                 input_str = input("输入你的操作：")
@@ -453,26 +454,26 @@ class Player:
             avaibale_changes = [i for i in self.item if type(
                 i).__base__.__name__ == zhuangbei_list[current_type]["code"]+"_base"]
             avaibale_values = [eval("{}s[\"{}\"][\"value\"]"
-                                   .format(zhuangbei_list[current_type]["code"], i.value)) for i in avaibale_changes]
+                                    .format(zhuangbei_list[current_type]["code"], i.value)) for i in avaibale_changes]
             print("可用的选择：")
             print("(0) 返回")
             for i in range(len(avaibale_changes)):
                 print("({}) {}:{}({:+})".format(i+1,
-                                              avaibale_changes[i].name,
-                                              avaibale_values[i],
-                                              avaibale_values[i]-current_value))
+                                                avaibale_changes[i].name,
+                                                avaibale_values[i],
+                                                avaibale_values[i]-current_value))
             while True:
-                input_str=input("输入你的操作：")
+                input_str = input("输入你的操作：")
                 try:
-                    input_str=int(input_str)
+                    input_str = int(input_str)
                 except:
                     continue
-                if 0<=input_str<=len(avaibale_changes):
+                if 0 <= input_str <= len(avaibale_changes):
                     break
-            if input_str==0:
+            if input_str == 0:
                 continue
             else:
-                if current_item!=None:
+                if current_item != None:
                     qipai.append(current_item)
                 self.use_by_content(avaibale_changes[input_str-1])
 
@@ -481,18 +482,20 @@ class Player:
 #     Code from characters/gaoqiu:
 ###############
 class gaoqiu(Player):
-    name="高俅"
-    max_life=50
-    max_energy=100
-    attack_range_add=1
+    name = "高俅"
+    max_life = 50
+    max_energy = 100
+    attack_range_add = 1
+
     def attack(self, target):
         if self.weapon == "禅杖":
             self.buff.append("chanzhang_cd")
         hurt = target.damage((weapons[self.weapon]["value"] +
-                       self.attack_add)*self.attack_percent//100)
-        self.life+=hurt
+                              self.attack_add)*self.attack_percent//100)
+        self.life += hurt
         self.update()
         return hurt
+
 
 ###############
 #     Code from characters/likui:
@@ -519,13 +522,15 @@ class likui(Player):
 #     Code from characters/try1:
 ###############
 class try1(Player):
-    name="测试工具人1-回复"
+    name = "测试工具人1-回复"
     life = 10000
+
     def init_custom(self):
-        self.actions_bak["zhudong1"]={"name": "回复", "arg": "", "count": 1}
-    def zhudong1_(self,command):
-        self.actions["zhudong1"]["count"]-=1
-        self.life+=1000
+        self.actions_bak["zhudong1"] = {"name": "回复", "arg": "", "count": 1}
+
+    def zhudong1_(self, command):
+        self.actions["zhudong1"]["count"] -= 1
+        self.life += 1000
         self.update()
 
 
@@ -533,35 +538,39 @@ class try1(Player):
 #     Code from characters/try2:
 ###############
 class try2(Player):
-    name="测试工具人2-给牌"
+    name = "测试工具人2-给牌"
+
     def init_custom(self):
-        self.actions_bak["zhudong1"]={"name": "给牌", "arg": "目标角色", "count": 1}
-    def zhudong1_(self,command):
+        self.actions_bak["zhudong1"] = {
+            "name": "给牌", "arg": "目标角色", "count": 1}
+
+    def zhudong1_(self, command):
         global action_result
         try:
-            target_index=int(command[1])
+            target_index = int(command[1])
         except IndexError:
-            action_result="参数过少！"
+            action_result = "参数过少！"
             return
         except ValueError:
-            action_result="参数错误！"
+            action_result = "参数错误！"
             return
-        if not 1<=target_index<=player_count:
-            action_result="玩家不存在！"
+        if not 1 <= target_index <= player_count:
+            action_result = "玩家不存在！"
             return
-        target=players[target_index-1]
-        self.actions["zhudong1"]["count"]-=1
-        get_card=mopai(1)
+        target = players[target_index-1]
+        self.actions["zhudong1"]["count"] -= 1
+        get_card = mopai(1)
         for i in get_card:
-            action_result="你给了他一张 {}！".format(i.name)
+            action_result = "你给了他一张 {}！".format(i.name)
             target.item.append(i)
         self.update()
+
 
 ###############
 #     Code from characters/try3:
 ###############
 class try3(Player):
-    name="测试工具人3"
+    name = "测试工具人3"
 
 
 ###############
@@ -713,7 +722,7 @@ def drawPlayers():
     global players
     display_index = 1
     for i in players:
-        print("玩家{}  {}\t".format(display_index,i.name),end=":")
+        print("玩家{}  {}\t".format(display_index, i.name), end=":")
         if i.alive:
             print("生命 {}/{};能量 {}/{}".format(i.life,
                                              i.max_life, i.energy, i.max_energy))
@@ -968,13 +977,14 @@ def getFangXiangPos(source: tuple, target: tuple):
     fx = getFangXiang(source, target)
     return (source[0]+fx[0], source[1]+fx[1])
 
+
 def mopai(count):
-    global qipai,cards
-    result_mopai=list()
+    global qipai, cards
+    result_mopai = list()
     if len(cards) < count:
         for i in qipai:
             cards.append(i)
-        qipai=list()
+        qipai = list()
     for i in range(count):
         try:
             selected = random.choice(cards)
@@ -985,28 +995,30 @@ def mopai(count):
         result_mopai.append(selected)
     return result_mopai
 
+
 def mopai_by_value(value):
-    global qipai,cards
+    global qipai, cards
     for i in qipai:
         try:
-            val=i.value
+            val = i.value
         except:
             continue
-        if val==value:
-            val=i
+        if val == value:
+            val = i
             qipai.remove(i)
             return val
     for i in cards:
         try:
-            val=i.value
+            val = i.value
         except:
             continue
-        if val==value:
-            val=i
+        if val == value:
+            val = i
             cards.remove(i)
             return val
     print("你遇到bug了！详情：要摸的牌不存在")
     return -1
+
 
 ###############
 #     Code from items:
@@ -1259,7 +1271,7 @@ class steal:
     distance = 2
 
     def use(self, sender, target, *arg):
-        global action_result,zhuangbei_list
+        global action_result, zhuangbei_list
         if sender == target:
             action_result = "别对自己下手！"
             return True
@@ -1271,44 +1283,45 @@ class steal:
         if len(route) > self.distance:
             action_result = "太远了！"
             return True
-        selectable=[]
+        selectable = []
         for i in zhuangbei_list:
             my_item = eval("target."+zhuangbei_list[i]["code"])
             if my_item != None:
-                selectable.append((i,my_item))
+                selectable.append((i, my_item))
         if len(selectable)+len(target.item) == 0:
             action_result = "他什么都没有！"
             return True
         for i in target.item:
-            selectable.append(("beibao",i))
+            selectable.append(("beibao", i))
         card_count = 0
-        beibao=1
+        beibao = 1
         while len(selectable) != 0 and card_count < self.value:
             print("他的物品为：")
             for i in range(len(selectable)):
-                if selectable[i][0]!="beibao":
-                    print("({}) {}\t:{}".format(i+1,selectable[i][0],selectable[i][1]))
+                if selectable[i][0] != "beibao":
+                    print("({}) {}\t:{}".format(
+                        i+1, selectable[i][0], selectable[i][1]))
                 else:
-                    print("({}) 背包物品{}\t:???".format(i+1,beibao))
-                    beibao+=1
-            select=""
+                    print("({}) 背包物品{}\t:???".format(i+1, beibao))
+                    beibao += 1
+            select = ""
             while True:
-                select=input("请选择你要偷窃的牌：")
+                select = input("请选择你要偷窃的牌：")
                 try:
-                    if 1<=int(select)<=len(selectable):
+                    if 1 <= int(select) <= len(selectable):
                         break
                 except:
                     pass
             card_count += 1
-            selected=selectable[int(select)-1]
+            selected = selectable[int(select)-1]
             selectable.remove(selected)
-            if selected[0]=="beibao":
-                selected=selected[1]
+            if selected[0] == "beibao":
+                selected = selected[1]
                 action_result = "* 你偷到了他的"+selected.name+"!"
                 sender.item.append(selected)
                 target.item.remove(selected)
             else:
-                the_card=mopai_by_value(selected[1])
+                the_card = mopai_by_value(selected[1])
                 exec("target."+zhuangbei_list[selected[0]]["code"]+"="+"None")
                 sender.item.append(the_card)
 
@@ -1339,18 +1352,19 @@ REC_SIZE = 50
 
 # 游戏设置
 DEBUG = True  # 是否开启调试模式，True是“是”，False是“否”
+DEBUG_AUTO_SELECT = True  # 是否自动选择坐标和玩家，True是“是”，False是“否”
 random_steps = [1, 2, 3, 4, 5, 6]  # 可能随机得到的步数列表
-random_characters=3#随机给出的角色数量
+random_characters = 3  # 随机给出的角色数量
 player_count = 2  # 固定的玩家数，如果要固定就将None改为玩家数，否则写None
 get_cards = 2  # 每局摸牌数
-cards_limit = 20 # 手牌上限每多少血增加1张，如：
+cards_limit = 20  # 手牌上限每多少血增加1张，如：
 # 当此值为20时，1~20血可持1张，21~40血可持2张，依此类推
-mhy_chance = 30#蒙汗药成功的概率（百分比）
+mhy_chance = 30  # 蒙汗药成功的概率（百分比）
 cards_dict = {"drug": 3,
               "tlbd": 3,
               "steal": 5,
-              "shield":2,
-              "bow":2
+              "shield": 2,
+              "bow": 2
               }
 # 这是牌堆
 

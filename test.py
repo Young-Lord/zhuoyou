@@ -1,6 +1,14 @@
 from os import system
 from math import *
-map_bak=["0000000000", "0000000000", "0000000000", "0000000000", "0000000000", "0000000000", "0000000000", "0000000000", "0000000000"]
+map_bak = ["0000000000",
+           "0000000000",
+           "0000000000",
+           "0000000000",
+           "0000000000",
+           "0000000000",
+           "0000000000",
+           "0000000000",
+           "0000000000"]
 map = [i[:] for i in map_bak]
 chang = len(map_bak[0])
 kuan = len(map_bak)
@@ -18,14 +26,15 @@ def draw():
         print(i)
         map = [i[:] for i in map_bak]
 
+
 def setblock(x, y, to):
     global map
-    x=round(x)
-    y=round(y)
-    if x>=kuan:
-        x=kuan-1
-    if y>=chang:
-        y=chang-1
+    x = round(x)
+    y = round(y)
+    if x >= kuan:
+        x = kuan-1
+    if y >= chang:
+        y = chang-1
     #print("*setblock "+str(x)+", "+str(y))
     map[x] = map[x][:y]+str(to)+map[x][y+1:]
 
@@ -38,12 +47,15 @@ def cal_ang(point_1, point_2, point_3):
     :param point_3: 点3坐标
     :return: 返回任意角的夹角值，这里只是返回点2的夹角
     """
-    a=sqrt((point_2[0]-point_3[0])*(point_2[0]-point_3[0])+(point_2[1]-point_3[1])*(point_2[1] - point_3[1]))
-    b=sqrt((point_1[0]-point_3[0])*(point_1[0]-point_3[0])+(point_1[1]-point_3[1])*(point_1[1] - point_3[1]))
-    c=sqrt((point_1[0]-point_2[0])*(point_1[0]-point_2[0])+(point_1[1]-point_2[1])*(point_1[1] - point_2[1]))
-    A=degrees(acos((a*a-b*b-c*c)/(-2*b*c)))
-    B=degrees(acos((b*b-a*a-c*c)/(-2*a*c)))
-    C=degrees(acos((c*c-a*a-b*b)/(-2*a*b)))
+    a = sqrt((point_2[0]-point_3[0])*(point_2[0]-point_3[0]) +
+             (point_2[1]-point_3[1])*(point_2[1] - point_3[1]))
+    b = sqrt((point_1[0]-point_3[0])*(point_1[0]-point_3[0]) +
+             (point_1[1]-point_3[1])*(point_1[1] - point_3[1]))
+    c = sqrt((point_1[0]-point_2[0])*(point_1[0]-point_2[0]) +
+             (point_1[1]-point_2[1])*(point_1[1] - point_2[1]))
+    A = degrees(acos((a*a-b*b-c*c)/(-2*b*c)))
+    B = degrees(acos((b*b-a*a-c*c)/(-2*a*c)))
+    C = degrees(acos((c*c-a*a-b*b)/(-2*a*b)))
     return B
 
 
@@ -59,8 +71,8 @@ def posOnLine(mapp: list, a: tuple, b: tuple):
     else:
         if a[1] > b[1]:
             a, b = b, a
-    if a[0]==b[0]:
-        return [(a[0],i) for i in range(a[1]+1,b[1])]
+    if a[0] == b[0]:
+        return [(a[0], i) for i in range(a[1]+1, b[1])]
     k = (a[1]-b[1])/(a[0]-b[0])  # y=kx+d
     d = a[1]-a[0]*k
     #print("函数解析式：y={}x+{}".format(k, d))
@@ -72,8 +84,8 @@ def posOnLine(mapp: list, a: tuple, b: tuple):
             posy = round(k*i+d)
             res = [posx, posy]
             if lasty != posy:
-                angle1 = round(cal_ang(a,(posx,posy-1),b))
-                angle2 = round(cal_ang(a,(posx-1,posy),b))
+                angle1 = round(cal_ang(a, (posx, posy-1), b))
+                angle2 = round(cal_ang(a, (posx-1, posy), b))
                 print("angle1={};angle2={}".format(angle1, angle2))
                 if angle1 == angle2:
                     print("* branch#-1")
@@ -91,8 +103,8 @@ def posOnLine(mapp: list, a: tuple, b: tuple):
         posy = round(k*b[0]+d)
         res = [posx, posy]
         if lasty != posy:
-            angle1 = round(cal_ang(a,(posx,posy-1),b))
-            angle2 = round(cal_ang(a,(posx-1,posy),b))
+            angle1 = round(cal_ang(a, (posx, posy-1), b))
+            angle2 = round(cal_ang(a, (posx-1, posy), b))
             print("angle1={};angle2={}".format(angle1, angle2))
             if angle1 == angle2:
                 print("* branch#-1")
@@ -111,8 +123,8 @@ def posOnLine(mapp: list, a: tuple, b: tuple):
             posy = i
             res = [posx, posy]
             if lastx != posx:
-                angle1 = round(cal_ang(a,(posx,posy-1),b))
-                angle2 = round(cal_ang(a,(posx-1,posy),b))
+                angle1 = round(cal_ang(a, (posx, posy-1), b))
+                angle2 = round(cal_ang(a, (posx-1, posy), b))
                 print("angle1={};angle2={}".format(angle1, angle2))
                 if angle1 == angle2:
                     print("* branch#-1")
@@ -130,8 +142,8 @@ def posOnLine(mapp: list, a: tuple, b: tuple):
         posy = b[1]
         res = [posx, posy]
         if lastx != posx:
-            angle1 = round(cal_ang(a,(posx,posy-1),b))
-            angle2 = round(cal_ang(a,(posx-1,posy),b))
+            angle1 = round(cal_ang(a, (posx, posy-1), b))
+            angle2 = round(cal_ang(a, (posx-1, posy), b))
             print("angle1={};angle2={}".format(angle1, angle2))
             if angle1 == angle2:
                 print("* branch#-1")
@@ -145,22 +157,22 @@ def posOnLine(mapp: list, a: tuple, b: tuple):
     return result
 
 
-def work(a,b):
-    poss = posOnLine(map, a,b)
+def work(a, b):
+    poss = posOnLine(map, a, b)
     for i in poss:
-        if type(i)!=list:
-            setblock(i[0],i[1],1)
+        if type(i) != list:
+            setblock(i[0], i[1], 1)
         else:
             for k in i:
-                setblock(k[0],k[1],"~")
+                setblock(k[0], k[1], "~")
 
 
 while True:
-    ss,dd=input().split()
-    setblock(int(ss),int(dd),"A")
-    ff,gg=input().split()
-    setblock(int(ff),int(gg),"B")
+    ss, dd = input().split()
+    setblock(int(ss), int(dd), "A")
+    ff, gg = input().split()
+    setblock(int(ff), int(gg), "B")
     a = (int(ss), int(dd))
-    b = (int(ff),int(gg))
+    b = (int(ff), int(gg))
     work(a, b)
     draw()
