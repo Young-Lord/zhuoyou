@@ -181,6 +181,7 @@ def cal_ang(point_1, point_2, point_3):
 
 
 def posOnLine(mapp: list, a: tuple, b: tuple):
+    #TODO:fix
     result = list()
     chax = abs(a[0]-b[0])
     chay = abs(a[1]-b[1])
