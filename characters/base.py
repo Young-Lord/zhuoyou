@@ -107,7 +107,7 @@ class Player:
             except Exception as e:
                 print("[debug_eval] 命令执行时出错。详情：")
                 print(e)
-        elif command[0] == 'debug_exec':#exec比eval强大，可以进行赋值等操作，但没有返回值
+        elif command[0] == 'debug_exec':  # exec比eval强大，可以进行赋值等操作，但没有返回值
             command = command[1]
             try:
                 exec(command)
@@ -139,7 +139,7 @@ class Player:
         try:
             target = players[int(command[1])-1]
         except ValueError:
-            action_result="命令非法！"
+            action_result = "命令非法！"
             return
         if "chanzhang_cd_2" in self.buff and self.weapon == "禅杖":
             action_result = "禅杖冷却中..."
@@ -175,7 +175,7 @@ class Player:
             command[1] = command[1].replace(",", " ")
             a, b = [int(i) for i in command[1].split()]
         except:
-            action_result="命令非法！"
+            action_result = "命令非法！"
             return
         if (not isBlockEmpty(a, b)) and self.pos != (a, b):
             action_result = "此位置已被占用，请换一个位置。"
@@ -216,9 +216,9 @@ class Player:
         try:
             command[0] = int(command[0])
             if len(command) >= 2:
-                command[1]=int(command[1])
+                command[1] = int(command[1])
         except ValueError:
-            action_result="命令非法！"
+            action_result = "命令非法！"
             return
         if command[0] > len(self.item):
             action_result = "此ID的物品不存在！"
@@ -238,9 +238,9 @@ class Player:
                 action_result = "你没有指定目标！"
         if return_value != True:
             self.item.pop(command[0]-1)
-    
-    def use_by_content(self,content):
-        return self.use_(["use",str(self.item.index(content)+1)])
+
+    def use_by_content(self, content):
+        return self.use_(["use", str(self.item.index(content)+1)])
 
     def attack(self, target):
         if self.weapon == "禅杖":
@@ -385,51 +385,52 @@ class Player:
                 self.item.remove(i)
             realremove = list()
             cls()
-    def showzhuangbei_(self,command,in_code_call=False):
-        global players,action_result,zhuangbei_list
+
+    def showzhuangbei_(self, command, in_code_call=False):
+        global players, action_result, zhuangbei_list
         if in_code_call:
-            target=command
+            target = command
         else:
-            action_result+="他的装备栏为：\n"
-        if type(command)==int:
-            target=players[command]
-        if type(command)==list:
+            action_result += "他的装备栏为：\n"
+        if type(command) == int:
+            target = players[command]
+        if type(command) == list:
             try:
-                target=players[int(command[1])-1]
+                target = players[int(command[1])-1]
             except:
-                action_result="参数非法！"
+                action_result = "参数非法！"
                 return
-            if not 0<=int(command[1])-1<player_count:
-                action_result="参数非法！"
+            if not 0 <= int(command[1])-1 < player_count:
+                action_result = "参数非法！"
                 return
         for i in zhuangbei_list:
-                my_item = eval("target."+zhuangbei_list[i]["code"])
-                if my_item != None:
-                    my_item = '"'+my_item+'"'
-                my_name = eval("{}s[{}][\"name\"]".format(
-                    zhuangbei_list[i]["code"], my_item))
-                my_value = eval("{}s[{}][\"value\"]".format(
-                    zhuangbei_list[i]["code"], my_item))
-                action_result+="({}) {}\t:{}(+{})\n".format(
-                    zhuangbei_list[i]["key"],
-                    i,
-                    my_name,
-                    my_value
-                )
-        action_result=action_result[:-1]
+            my_item = eval("target."+zhuangbei_list[i]["code"])
+            if my_item != None:
+                my_item = '"'+my_item+'"'
+            my_name = eval("{}s[{}][\"name\"]".format(
+                zhuangbei_list[i]["code"], my_item))
+            my_value = eval("{}s[{}][\"value\"]".format(
+                zhuangbei_list[i]["code"], my_item))
+            action_result += "({}) {}\t:{}(+{})\n".format(
+                zhuangbei_list[i]["key"],
+                i,
+                my_name,
+                my_value
+            )
+        action_result = action_result[:-1]
         if in_code_call:
-            tmp=action_result[:]
-            action_result=""
+            tmp = action_result[:]
+            action_result = ""
             return tmp
 
     def zhuangbei_(self, command):
         # WARNING:要是变量更名了，此函数很可能会出错
-        global zhuangbei_list,action_result
+        global zhuangbei_list, action_result
         operations = [zhuangbei_list[i]["key"] for i in zhuangbei_list]+["c"]
         while True:
             input_str = str()
             print("你的装备栏为：")
-            print(self.showzhuangbei_(self,True))
+            print(self.showzhuangbei_(self, True))
             print("(c) 返回")
             while input_str not in operations:
                 input_str = input("输入你的操作：")
@@ -449,25 +450,25 @@ class Player:
             avaibale_changes = [i for i in self.item if type(
                 i).__base__.__name__ == zhuangbei_list[current_type]["code"]+"_base"]
             avaibale_values = [eval("{}s[\"{}\"][\"value\"]"
-                                   .format(zhuangbei_list[current_type]["code"], i.value)) for i in avaibale_changes]
+                                    .format(zhuangbei_list[current_type]["code"], i.value)) for i in avaibale_changes]
             print("可用的选择：")
             print("(0) 返回")
             for i in range(len(avaibale_changes)):
                 print("({}) {}:{}({:+})".format(i+1,
-                                              avaibale_changes[i].name,
-                                              avaibale_values[i],
-                                              avaibale_values[i]-current_value))
+                                                avaibale_changes[i].name,
+                                                avaibale_values[i],
+                                                avaibale_values[i]-current_value))
             while True:
-                input_str=input("输入你的操作：")
+                input_str = input("输入你的操作：")
                 try:
-                    input_str=int(input_str)
+                    input_str = int(input_str)
                 except:
                     continue
-                if 0<=input_str<=len(avaibale_changes):
+                if 0 <= input_str <= len(avaibale_changes):
                     break
-            if input_str==0:
+            if input_str == 0:
                 continue
             else:
-                if current_item!=None:
+                if current_item != None:
                     qipai.append(current_item)
                 self.use_by_content(avaibale_changes[input_str-1])

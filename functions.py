@@ -83,7 +83,7 @@ def drawPlayers():
     global players
     display_index = 1
     for i in players:
-        print("玩家{}  {}\t".format(display_index,i.name),end=":")
+        print("玩家{}  {}\t".format(display_index, i.name), end=":")
         if i.alive:
             print("生命 {}/{};能量 {}/{}".format(i.life,
                                              i.max_life, i.energy, i.max_energy))
@@ -338,13 +338,14 @@ def getFangXiangPos(source: tuple, target: tuple):
     fx = getFangXiang(source, target)
     return (source[0]+fx[0], source[1]+fx[1])
 
+
 def mopai(count):
-    global qipai,cards
-    result_mopai=list()
+    global qipai, cards
+    result_mopai = list()
     if len(cards) < count:
         for i in qipai:
             cards.append(i)
-        qipai=list()
+        qipai = list()
     for i in range(count):
         try:
             selected = random.choice(cards)
@@ -355,24 +356,25 @@ def mopai(count):
         result_mopai.append(selected)
     return result_mopai
 
+
 def mopai_by_value(value):
-    global qipai,cards
+    global qipai, cards
     for i in qipai:
         try:
-            val=i.value
+            val = i.value
         except:
             continue
-        if val==value:
-            val=i
+        if val == value:
+            val = i
             qipai.remove(i)
             return val
     for i in cards:
         try:
-            val=i.value
+            val = i.value
         except:
             continue
-        if val==value:
-            val=i
+        if val == value:
+            val = i
             cards.remove(i)
             return val
     print("你遇到bug了！详情：要摸的牌不存在")

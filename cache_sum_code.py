@@ -1289,7 +1289,7 @@ class steal:
                 if selectable[i][0]!="beibao":
                     print("({}) {}\t:{}".format(i+1,selectable[i][0],selectable[i][1]))
                 else:
-                    print("({}) 背包物品{}\t:{}".format(i+1,beibao,selectable[i][1].name))
+                    print("({}) 背包物品{}\t:???".format(i+1,beibao))
                     beibao+=1
             select=""
             while True:
@@ -1300,7 +1300,7 @@ class steal:
                 except:
                     pass
             card_count += 1
-            selected=selectable[select-1]
+            selected=selectable[int(select)-1]
             selectable.remove(selected)
             if selected[0]=="beibao":
                 selected=selected[1]
@@ -1308,9 +1308,9 @@ class steal:
                 sender.item.append(selected)
                 target.item.remove(selected)
             else:
-                selected=mopai_by_value(selected[1])
-                exec("target."+zhuangbei_list[selected[0]]["code"]+"="+None)
-                sender.item.append(selected)
+                the_card=mopai_by_value(selected[1])
+                exec("target."+zhuangbei_list[selected[0]]["code"]+"="+"None")
+                sender.item.append(the_card)
 
 
 class kp:
@@ -1347,9 +1347,10 @@ cards_limit = 20 # 手牌上限每多少血增加1张，如：
 # 当此值为20时，1~20血可持1张，21~40血可持2张，依此类推
 mhy_chance = 30#蒙汗药成功的概率（百分比）
 cards_dict = {"drug": 3,
-              "tlbd": 5,
-              "gz": 2,
-              "mhy":2
+              "tlbd": 3,
+              "steal": 5,
+              "shield":2,
+              "bow":2
               }
 # 这是牌堆
 

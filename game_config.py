@@ -11,17 +11,19 @@ REC_SIZE = 50
 
 # 游戏设置
 DEBUG = True  # 是否开启调试模式，True是“是”，False是“否”
+DEBUG_AUTO_SELECT = True  # 是否自动选择坐标和玩家，True是“是”，False是“否”
 random_steps = [1, 2, 3, 4, 5, 6]  # 可能随机得到的步数列表
-random_characters=3#随机给出的角色数量
+random_characters = 3  # 随机给出的角色数量
 player_count = 2  # 固定的玩家数，如果要固定就将None改为玩家数，否则写None
 get_cards = 2  # 每局摸牌数
-cards_limit = 20 # 手牌上限每多少血增加1张，如：
+cards_limit = 20  # 手牌上限每多少血增加1张，如：
 # 当此值为20时，1~20血可持1张，21~40血可持2张，依此类推
-mhy_chance = 30#蒙汗药成功的概率（百分比）
+mhy_chance = 30  # 蒙汗药成功的概率（百分比）
 cards_dict = {"drug": 3,
-              "tlbd": 5,
-              "gz": 2,
-              "mhy":2
+              "tlbd": 3,
+              "steal": 5,
+              "shield": 2,
+              "bow": 2
               }
 # 这是牌堆
 

@@ -246,7 +246,7 @@ class steal:
     distance = 2
 
     def use(self, sender, target, *arg):
-        global action_result,zhuangbei_list
+        global action_result, zhuangbei_list
         if sender == target:
             action_result = "别对自己下手！"
             return True
@@ -258,46 +258,47 @@ class steal:
         if len(route) > self.distance:
             action_result = "太远了！"
             return True
-        selectable=[]
+        selectable = []
         for i in zhuangbei_list:
             my_item = eval("target."+zhuangbei_list[i]["code"])
             if my_item != None:
-                selectable.append((i,my_item))
+                selectable.append((i, my_item))
         if len(selectable)+len(target.item) == 0:
             action_result = "他什么都没有！"
             return True
         for i in target.item:
-            selectable.append(("beibao",i))
+            selectable.append(("beibao", i))
         card_count = 0
-        beibao=1
+        beibao = 1
         while len(selectable) != 0 and card_count < self.value:
             print("他的物品为：")
             for i in range(len(selectable)):
-                if selectable[i][0]!="beibao":
-                    print("({}) {}\t:{}".format(i+1,selectable[i][0],selectable[i][1]))
+                if selectable[i][0] != "beibao":
+                    print("({}) {}\t:{}".format(
+                        i+1, selectable[i][0], selectable[i][1]))
                 else:
-                    print("({}) 背包物品{}\t:{}".format(i+1,beibao,selectable[i][1].name))
-                    beibao+=1
-            select=""
+                    print("({}) 背包物品{}\t:???".format(i+1, beibao))
+                    beibao += 1
+            select = ""
             while True:
-                select=input("请选择你要偷窃的牌：")
+                select = input("请选择你要偷窃的牌：")
                 try:
-                    if 1<=int(select)<=len(selectable):
+                    if 1 <= int(select) <= len(selectable):
                         break
                 except:
                     pass
             card_count += 1
-            selected=selectable[select-1]
+            selected = selectable[int(select)-1]
             selectable.remove(selected)
-            if selected[0]=="beibao":
-                selected=selected[1]
+            if selected[0] == "beibao":
+                selected = selected[1]
                 action_result = "* 你偷到了他的"+selected.name+"!"
                 sender.item.append(selected)
                 target.item.remove(selected)
             else:
-                selected=mopai_by_value(selected[1])
-                exec("target."+zhuangbei_list[selected[0]]["code"]+"="+None)
-                sender.item.append(selected)
+                the_card = mopai_by_value(selected[1])
+                exec("target."+zhuangbei_list[selected[0]]["code"]+"="+"None")
+                sender.item.append(the_card)
 
 
 class kp:
