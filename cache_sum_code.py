@@ -474,7 +474,7 @@ class Player:
                 continue
             else:
                 if current_item != None:
-                    qipai.append(current_item)
+                    qipai.append(mopai_by_value(current_item))
                 self.use_by_content(avaibale_changes[input_str-1])
 
 
@@ -820,6 +820,7 @@ def cal_ang(point_1, point_2, point_3):
 
 
 def posOnLine(mapp: list, a: tuple, b: tuple):
+    #TODO:fix
     result = list()
     chax = abs(a[0]-b[0])
     chay = abs(a[1]-b[1])
@@ -1091,7 +1092,7 @@ class weapon_base:
 
     def use(self, sender, *arg):
         if sender.weapon != None:
-            qipai.append(sender.weapon)
+            qipai.append(mopai_by_value(sender.weapon))
         sender.weapon = self.value
         self.use_custom(sender)
 
@@ -1139,7 +1140,7 @@ class shoe_base:
 
     def use(self, sender, *arg):
         if sender.shoe != None:
-            qipai.append(sender.shoe)
+            qipai.append(mopai_by_value(sender.shoe))
         sender.shoe = self.value
 
 
@@ -1159,7 +1160,7 @@ class shield_base:
 
     def use(self, sender, *arg):
         if sender.shield != None:
-            qipai.append(sender.shield)
+            qipai.append(mopai_by_value(sender.shield))
         sender.shield = self.value
 
 
@@ -1179,7 +1180,7 @@ class energy_book_base:
 
     def use(self, sender, *arg):
         if sender.energy_book != None:
-            qipai.append(sender.energy_book)
+            qipai.append(mopai_by_value(sender.energy_book))
         sender.energy_book = self.value
 
 

@@ -66,7 +66,7 @@ class weapon_base:
 
     def use(self, sender, *arg):
         if sender.weapon != None:
-            qipai.append(sender.weapon)
+            qipai.append(mopai_by_value(sender.weapon))
         sender.weapon = self.value
         self.use_custom(sender)
 
@@ -114,7 +114,7 @@ class shoe_base:
 
     def use(self, sender, *arg):
         if sender.shoe != None:
-            qipai.append(sender.shoe)
+            qipai.append(mopai_by_value(sender.shoe))
         sender.shoe = self.value
 
 
@@ -134,7 +134,7 @@ class shield_base:
 
     def use(self, sender, *arg):
         if sender.shield != None:
-            qipai.append(sender.shield)
+            qipai.append(mopai_by_value(sender.shield))
         sender.shield = self.value
 
 
@@ -154,7 +154,7 @@ class energy_book_base:
 
     def use(self, sender, *arg):
         if sender.energy_book != None:
-            qipai.append(sender.energy_book)
+            qipai.append(mopai_by_value(sender.energy_book))
         sender.energy_book = self.value
 
 

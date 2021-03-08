@@ -470,5 +470,5 @@ class Player:
                 continue
             else:
                 if current_item != None:
-                    qipai.append(current_item)
+                    qipai.append(mopai_by_value(current_item))
                 self.use_by_content(avaibale_changes[input_str-1])
