@@ -35,7 +35,7 @@ def setblock(x, y, to):
         x = kuan-1
     if y >= chang:
         y = chang-1
-    #print("*setblock "+str(x)+", "+str(y))
+    # print("*setblock "+str(x)+", "+str(y))
     map[x] = map[x][:y]+str(to)+map[x][y+1:]
 
 
@@ -60,101 +60,122 @@ def cal_ang(point_1, point_2, point_3):
 
 
 def posOnLine(mapp: list, a: tuple, b: tuple):
+    chang = len(mapp[0])
+    kuan = len(mapp)
     result = list()
     chax = abs(a[0]-b[0])
     chay = abs(a[1]-b[1])
     if (chax == 0 or chay == 0) and chax+chay == 1:
         return list()
-    if chax > chay:
-        if a[0] > b[0]:
-            a, b = b, a
-    else:
-        if a[1] > b[1]:
-            a, b = b, a
+    if a[1] > b[1]:
+        a, b = b, a#保证a在左b在右
     if a[0] == b[0]:
         return [(a[0], i) for i in range(a[1]+1, b[1])]
     k = (a[1]-b[1])/(a[0]-b[0])  # y=kx+d
-    d = a[1]-a[0]*k
-    #print("函数解析式：y={}x+{}".format(k, d))
-    if chax > chay:
-        print("x>y")
-        lasty = a[1]
-        for i in range(a[0]+1, b[0]):  # i is x in function y=kx+d
-            posx = i
-            posy = round(k*i+d)
-            res = [posx, posy]
-            if lasty != posy:
-                angle1 = round(cal_ang(a, (posx, posy-1), b))
-                angle2 = round(cal_ang(a, (posx-1, posy), b))
-                print("angle1={};angle2={}".format(angle1, angle2))
-                if angle1 == angle2:
-                    print("* branch#-1")
-                    result.append([(posx, posy-1), (posx-1, posy)])
-                if angle1 < angle2:
-                    print("* branch#1")
-                    result.append((posx, posy-1))
-                if angle1 > angle2:
-                    print("* branch#2")
-                    result.append((posx-1, posy))
-            result.append(tuple(res))
-            lasty = posy
-            print("")
-        posx = b[0]
-        posy = round(k*b[0]+d)
-        res = [posx, posy]
-        if lasty != posy:
-            angle1 = round(cal_ang(a, (posx, posy-1), b))
-            angle2 = round(cal_ang(a, (posx-1, posy), b))
-            print("angle1={};angle2={}".format(angle1, angle2))
-            if angle1 == angle2:
-                print("* branch#-1")
-                result.append([(posx, posy-1), (posx-1, posy)])
-            if angle1 < angle2:
-                print("* branch#1")
-                result.append((posx, posy-1))
-            if angle1 > angle2:
-                print("* branch#2")
-                result.append((posx-1, posy))
+    d = a[1] - a[0] * k
+    # print("函数解析式：y={}x+{}".format(k, d))
+    if a[0]>b[0]:
+        print("qingkuang 1")
+        for i in range(-1, chang-1):
+            if i < a[1] - 1 or i >= b[1]:
+                continue  # 看不懂请画图理解
+            cury = i+0.5
+            curx = (cury-d)/k
+            curx = round(curx * 1000) / 1000  # 防止精度问题
+            if abs(curx - (floor(curx) + 0.5)) <= 0.0001:
+                result.append([(round(curx - 0.5), round(cury - 0.5)),
+                               (round(curx + 0.5), round(cury + 0.5))])
+                result.append((round(curx + 0.5), round(cury - 0.5)))
+                result.append((round(curx - 0.5), round(cury + 0.5)))
+            else:
+                result.append((round(curx), round(cury+0.5)))
+        for i in range(-1, kuan - 1):
+            if i < a[0] - 1 or i >= b[0]:
+                continue  # 看不懂请画图理解
+            curx = i + 0.5
+            cury = curx*k+d
+            cury = round(cury * 1000) / 1000  # 防止精度问题
+            if abs(curx - (floor(curx) + 0.5)) <= 0.0001:
+                result.append([(round(curx - 0.5), round(cury - 0.5)),
+                               (round(curx + 0.5), round(cury + 0.5))])
+                result.append((round(curx + 0.5), round(cury - 0.5)))
+                result.append((round(curx - 0.5), round(cury + 0.5)))
+            else:
+                result.append((round(curx), round(cury+0.5)))
+        final_result = list ()
+        for i in result:
+            if type(i) == tuple:
+                if not (a[0] >= i[0] >= b[0] and a[1] <= i[1] <= b[1]):
+                    continue
+                if a == i or b == i:
+                    continue
+                final_result.append(i)
+            else:
+                cur_list=list()
+                for j in i:
+                    if not (a[0] >= j[0] >= b[0] and a[1] <= j[1] <= b[1]):
+                        continue
+                    if a == j or b == j:
+                        continue
+                    cur_list.append(j)
+                if len(cur_list) == 1:
+                    final_result.append(cur_list[0])
+                elif len(cur_list) == 0:
+                    continue
+                else:
+                    final_result.append(cur_list)
     else:
-        print("y>x")
-        lastx = a[0]
-        for i in range(a[1]+1, b[1]):  # i is y in function y=kx+d
-            posx = round((i-d)/k)
-            posy = i
-            res = [posx, posy]
-            if lastx != posx:
-                angle1 = round(cal_ang(a, (posx, posy-1), b))
-                angle2 = round(cal_ang(a, (posx-1, posy), b))
-                print("angle1={};angle2={}".format(angle1, angle2))
-                if angle1 == angle2:
-                    print("* branch#-1")
-                    result.append([(posx, posy-1), (posx-1, posy)])
-                if angle1 < angle2:
-                    print("* branch#1")
-                    result.append((posx, posy-1))
-                if angle1 > angle2:
-                    print("* branch#2")
-                    result.append((posx-1, posy))
-            result.append(tuple(res))
-            lastx = posx
-            print("")
-        posx = round((b[1]-d)/k)
-        posy = b[1]
-        res = [posx, posy]
-        if lastx != posx:
-            angle1 = round(cal_ang(a, (posx, posy-1), b))
-            angle2 = round(cal_ang(a, (posx-1, posy), b))
-            print("angle1={};angle2={}".format(angle1, angle2))
-            if angle1 == angle2:
-                print("* branch#-1")
-                result.append([(posx, posy-1), (posx-1, posy)])
-            if angle1 < angle2:
-                print("* branch#1")
-                result.append((posx, posy-1))
-            if angle1 > angle2:
-                print("* branch#2")
-                result.append((posx-1, posy))
-    return result
+        print("qingkuang 2")
+        for i in range(-1, chang-1):
+            if i < a[1] - 1 or i >= b[1]:
+                continue  # 看不懂请画图理解
+            cury = i+0.5
+            curx = (cury-d)/k
+            curx = round(curx * 1000) / 1000  # 防止精度问题
+            if abs(curx - (floor(curx) + 0.5)) <= 0.0001:
+                result.append([(round(curx + 0.5), round(cury - 0.5)),
+                               (round(curx - 0.5), round(cury + 0.5))])
+                result.append((round(curx + 0.5), round(cury + 0.5)))
+                result.append((round(curx - 0.5), round(cury - 0.5)))
+            else:
+                result.append((round(curx), round(cury+0.5)))
+        for i in range(-1, kuan - 1):
+            if i < a[0] - 1 or i >= b[0]:
+                continue  # 看不懂请画图理解
+            curx = i + 0.5
+            cury = curx*k+d
+            cury = round(cury * 1000) / 1000  # 防止精度问题
+            if abs(curx - (floor(curx) + 0.5)) <= 0.0001:
+                result.append([(round(curx + 0.5), round(cury - 0.5)),
+                               (round(curx - 0.5), round(cury + 0.5))])
+                result.append((round(curx - 0.5), round(cury - 0.5)))
+                result.append((round(curx + 0.5), round(cury + 0.5)))
+            else:
+                result.append((round(curx), round(cury+0.5)))
+        final_result = list ()
+        for i in result:
+            if type(i) == tuple:
+                if not (a[0] <= i[0] <= b[0] and a[1] <= i[1] <= b[1]):
+                    continue
+                if a == i or b == i:
+                    continue
+                final_result.append(i)
+            else:
+                cur_list=list()
+                for j in i:
+                    if not (a[0] <= j[0] <= b[0] and a[1] <= j[1] <= b[1]):
+                        continue
+                    if a == j or b == j:
+                        continue
+                    cur_list.append(j)
+                if len(cur_list) == 1:
+                    final_result.append(cur_list[0])
+                elif len(cur_list) == 0:
+                    continue
+                else:
+                    final_result.append(cur_list)
+        print(final_result)
+    return final_result
 
 
 def work(a, b):
@@ -168,11 +189,16 @@ def work(a, b):
 
 
 while True:
-    ss, dd = input().split()
-    setblock(int(ss), int(dd), "A")
-    ff, gg = input().split()
-    setblock(int(ff), int(gg), "B")
-    a = (int(ss), int(dd))
-    b = (int(ff), int(gg))
+    try:
+        ss, dd = input("A:").split()
+        setblock(int(ss), int(dd), "A")
+        ff, gg = input("B:").split()
+        setblock(int(ff), int(gg), "B")
+        a = (int(ss), int(dd))
+        b = (int(ff), int(gg))
+    except KeyboardInterrupt:
+        raise KeyboardInterrupt
+    except:
+        print("错误，重输")
     work(a, b)
     draw()
