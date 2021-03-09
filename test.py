@@ -70,12 +70,17 @@ def posOnLine(mapp: list, a: tuple, b: tuple):
     if a[1] > b[1]:
         a, b = b, a#保证a在左b在右
     if a[0] == b[0]:
-        return [(a[0], i) for i in range(a[1]+1, b[1])]
+        return [(a[0], i) for i in range(a[1] + 1, b[1])]
+    if a[1] == b[1]:
+        if a[0] < b[0]:
+            return [(i, a[1]) for i in range(a[0] + 1, b[0])]
+        else:
+            return [(i, a[1]) for i in range(b[0] + 1, a[0])]
     k = (a[1]-b[1])/(a[0]-b[0])  # y=kx+d
     d = a[1] - a[0] * k
     # print("函数解析式：y={}x+{}".format(k, d))
     if a[0]>b[0]:
-        print("qingkuang 1")
+        print("qingkuang 1")#
         for i in range(-1, chang-1):
             if i < a[1] - 1 or i >= b[1]:
                 continue  # 看不懂请画图理解
@@ -185,7 +190,8 @@ def work(a, b):
             setblock(i[0], i[1], 1)
         else:
             for k in i:
-                setblock(k[0], k[1], "~")
+                if map[k[0]][k[1]]!='1':
+                    setblock(k[0], k[1], "~")
 
 
 while True:
@@ -200,5 +206,6 @@ while True:
         raise KeyboardInterrupt
     except:
         print("错误，重输")
+        continue
     work(a, b)
     draw()
