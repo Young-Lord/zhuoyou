@@ -189,41 +189,42 @@ def posOnLine(mapp: list, a: tuple, b: tuple):
     if (chax == 0 or chay == 0) and chax+chay == 1:
         return list()
     if a[1] > b[1]:
-        a, b = b, a#保证a在左b在右
+        a, b = b, a  # 保证a在左b在右
     if a[0] == b[0]:
-        return [(a[0], i) for i in range(a[1]+1, b[1])]
+        return [(a[0], i) for i in range(a[1] + 1, b[1])]
+    if a[1] == b[1]:
+        if a[0] < b[0]:
+            return [(i, a[1]) for i in range(a[0] + 1, b[0])]
+        else:
+            return [(i, a[1]) for i in range(b[0] + 1, a[0])]
     k = (a[1]-b[1])/(a[0]-b[0])  # y=kx+d
     d = a[1] - a[0] * k
     # print("函数解析式：y={}x+{}".format(k, d))
-    if a[0]>b[0]:
-        print("qingkuang 1")
-        for i in range(-1, chang-1):
-            if i < a[1] - 1 or i >= b[1]:
-                continue  # 看不懂请画图理解
-            cury = i+0.5
+    if a[0] > b[0]:
+        # print("qingkuang 1")#"/"((6,0),(0,7))
+        for i in range(a[1]+1, b[1]+1):  # 枚举方格左边的竖线
+            cury = i - 0.5
             curx = (cury-d)/k
             curx = round(curx * 1000) / 1000  # 防止精度问题
             if abs(curx - (floor(curx) + 0.5)) <= 0.0001:
-                result.append([(round(curx - 0.5), round(cury - 0.5)),
-                               (round(curx + 0.5), round(cury + 0.5))])
-                result.append((round(curx + 0.5), round(cury - 0.5)))
-                result.append((round(curx - 0.5), round(cury + 0.5)))
+                result.append([(round(curx - 0.5), i-1),
+                               (round(curx + 0.5), i)])
+                result.append((round(curx + 0.5), i-1))
+                result.append((round(curx - 0.5), i))
             else:
-                result.append((round(curx), round(cury+0.5)))
-        for i in range(-1, kuan - 1):
-            if i < a[0] - 1 or i >= b[0]:
-                continue  # 看不懂请画图理解
+                result.append((round(curx), i))
+        for i in range(b[0], a[0]):
             curx = i + 0.5
             cury = curx*k+d
             cury = round(cury * 1000) / 1000  # 防止精度问题
-            if abs(curx - (floor(curx) + 0.5)) <= 0.0001:
-                result.append([(round(curx - 0.5), round(cury - 0.5)),
-                               (round(curx + 0.5), round(cury + 0.5))])
-                result.append((round(curx + 0.5), round(cury - 0.5)))
-                result.append((round(curx - 0.5), round(cury + 0.5)))
+            if abs(cury - (floor(cury) + 0.5)) <= 0.0001:
+                result.append([(i, round(cury - 0.5)),
+                               (i+1, round(cury + 0.5))])
+                result.append((i+1, round(cury - 0.5)))
+                result.append((i, round(cury + 0.5)))
             else:
-                result.append((round(curx), round(cury+0.5)))
-        final_result = list ()
+                result.append((i, round(cury)))
+        final_result = list()
         for i in result:
             if type(i) == tuple:
                 if not (a[0] >= i[0] >= b[0] and a[1] <= i[1] <= b[1]):
@@ -232,7 +233,7 @@ def posOnLine(mapp: list, a: tuple, b: tuple):
                     continue
                 final_result.append(i)
             else:
-                cur_list=list()
+                cur_list = list()
                 for j in i:
                     if not (a[0] >= j[0] >= b[0] and a[1] <= j[1] <= b[1]):
                         continue
@@ -246,34 +247,30 @@ def posOnLine(mapp: list, a: tuple, b: tuple):
                 else:
                     final_result.append(cur_list)
     else:
-        print("qingkuang 2")
-        for i in range(-1, chang-1):
-            if i < a[1] - 1 or i >= b[1]:
-                continue  # 看不懂请画图理解
-            cury = i+0.5
+        # print("qingkuang 2")#"\" (0,0),(7,1)
+        for i in range(a[1]+1, b[1]+1):  # 枚举方格左边的竖线
+            cury = i - 0.5
             curx = (cury-d)/k
             curx = round(curx * 1000) / 1000  # 防止精度问题
             if abs(curx - (floor(curx) + 0.5)) <= 0.0001:
-                result.append([(round(curx + 0.5), round(cury - 0.5)),
-                               (round(curx - 0.5), round(cury + 0.5))])
-                result.append((round(curx + 0.5), round(cury + 0.5)))
-                result.append((round(curx - 0.5), round(cury - 0.5)))
+                result.append([(round(curx + 0.5), i-1),
+                               (round(curx - 0.5), i)])
+                result.append((round(curx + 0.5), i))
+                result.append((round(curx - 0.5), i-1))
             else:
-                result.append((round(curx), round(cury+0.5)))
-        for i in range(-1, kuan - 1):
-            if i < a[0] - 1 or i >= b[0]:
-                continue  # 看不懂请画图理解
-            curx = i + 0.5
+                result.append((round(curx), i))
+        for i in range(a[0]+1, b[0]):
+            curx = i - 0.5
             cury = curx*k+d
             cury = round(cury * 1000) / 1000  # 防止精度问题
-            if abs(curx - (floor(curx) + 0.5)) <= 0.0001:
-                result.append([(round(curx + 0.5), round(cury - 0.5)),
-                               (round(curx - 0.5), round(cury + 0.5))])
-                result.append((round(curx - 0.5), round(cury - 0.5)))
-                result.append((round(curx + 0.5), round(cury + 0.5)))
+            if abs(cury - (floor(cury) + 0.5)) <= 0.0001:
+                result.append([(i+1, round(cury - 0.5)),
+                               (i, round(cury + 0.5))])
+                result.append((i, round(cury - 0.5)))
+                result.append((i+1, round(cury + 0.5)))
             else:
-                result.append((round(curx), round(cury+0.5)))
-        final_result = list ()
+                result.append((i, round(cury)))
+        final_result = list()
         for i in result:
             if type(i) == tuple:
                 if not (a[0] <= i[0] <= b[0] and a[1] <= i[1] <= b[1]):
@@ -282,7 +279,7 @@ def posOnLine(mapp: list, a: tuple, b: tuple):
                     continue
                 final_result.append(i)
             else:
-                cur_list=list()
+                cur_list = list()
                 for j in i:
                     if not (a[0] <= j[0] <= b[0] and a[1] <= j[1] <= b[1]):
                         continue
@@ -295,7 +292,6 @@ def posOnLine(mapp: list, a: tuple, b: tuple):
                     continue
                 else:
                     final_result.append(cur_list)
-        print(final_result)
     return final_result
 
 
