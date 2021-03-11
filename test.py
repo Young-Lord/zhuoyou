@@ -138,15 +138,15 @@ def posOnLine(mapp: list, a: tuple, b: tuple):
                 result.append((round(curx - 0.5), i-1))
             else:
                 result.append((round(curx), i))
-        for i in range(a[0]+1, b[0]):
+        for i in range(a[0]+1, b[0]+1):
             curx = i - 0.5
             cury = curx*k+d
             cury = round(cury * 1000) / 1000  # 防止精度问题
             if abs(cury - (floor(cury) + 0.5)) <= 0.0001:
-                result.append([(i+1, round(cury - 0.5)),
-                               (i, round(cury + 0.5))])
-                result.append((i, round(cury - 0.5)))
-                result.append((i+1, round(cury + 0.5)))
+                result.append([(i, round(cury - 0.5)),
+                               (i-1, round(cury + 0.5))])
+                result.append((i-1, round(cury - 0.5)))
+                result.append((i, round(cury + 0.5)))
             else:
                 result.append((i, round(cury)))
         final_result = list()
