@@ -1,41 +1,43 @@
+import sys
+import os
 import codecs
-import os,sys
+file_list = ["game_config", "inits", "functions", "items", "core"]
+# 注意：此列表中的每项不带扩展名(.py)
+
 current_file = os.path.abspath(__file__)
 current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 os.chdir(current_dir)
 
-sum_code=codecs.open("cache_sum_code.py","w", encoding='utf-8')
-sum_code.write("# 警告：本文件是在每次运行时自动生成的，修改此文件没有任何意义\r\n\r\n")
+
+def addfile(path):
+    global sum_code
+    sum_code.write(
+        '#'*15+"\r\n#     Code from {}:\r\n".format(path)+'#'*15+"\r\n")
+    current_file = codecs.open(path+".py", "r", encoding='utf-8')
+    sum_code.write(current_file.read().replace("\xef\xbb\xbf", ''))
+    current_file.close()
+    sum_code.write("\r\n\r\n")
+
+
+sum_code = codecs.open("cache_sum_code.py", "w", encoding='utf-8')
+sum_code.write("# 警告：本文件是在每次运行时自动生成的，修改此文件没有任何意义\r\n")
 
 # generating characters
-characters=os.listdir(os.path.join(os.getcwd(),"characters"))
-characters=[i.replace(".py","") for i in characters if i[-3:]=='.py']
-characters=["base",]+[i for i in characters if i!='base' and i!='cache_sum_characters']
-for i in characters:
-        sum_code.write("#@# Code from "+i+".py:\r\n\r\n")
-        with codecs.open("characters/"+i+".py","r", encoding='utf-8') as f:
-                sum_code.write(f.read())
+characters_file = [i.replace(".py", "") for i in os.listdir(os.path.join(
+    os.getcwd(), "characters")) if i[-3:] == '.py' and i != "tempCodeRunnerFile.py"]
 
-# generating items
-sum_code.write("#@# Items:\r\n")
-item_file=codecs.open("items.py","r", encoding='utf-8')
-sum_code.write(item_file.read())
-item_file.close()
-sum_code.write("\r\n\r\n")
+for i in characters_file:
+    addfile("characters/"+i)
 
-# generating game_config
-sum_code.write("#@# Configs:\r\n")
-config_file=codecs.open("game_config.py","r", encoding='utf-8')
-sum_code.write(config_file.read())
-config_file.close()
-sum_code.write("\r\n\r\n")
+for i in file_list:
+    addfile(i)
 
-# generating core code
-sum_code.write("#@# Core code:\r\n")
-core_file=codecs.open("core.py","r", encoding='utf-8')
-sum_code.write(core_file.read())
-core_file.close()
-sum_code.write("\r\n\r\n")
 sum_code.close()
 
-from cache_sum_code import *
+try:
+    from cache_sum_code import *
+except Exception as e:
+    import traceback
+    print("\n\n"+"#"*20+"\n[BUG] 带上以下信息向作者反馈：\n"+"#"*20+"\n\n")
+    traceback.print_exc()
+    os.system("pause")

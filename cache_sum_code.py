@@ -1,9 +1,9 @@
 # 警告：本文件是在每次运行时自动生成的，修改此文件没有任何意义
-
-#@# Code from base.py:
-
+###############
+#     Code from characters/base:
+###############
 class Player:
-    name="默认角色"
+    name = "默认角色"
     life = 80
     max_life = 80
     energy = 80
@@ -13,388 +13,1335 @@ class Player:
     alive = True
     team = 0
     item = list()
-    buff = list() # 这是存各种技能的标记（如“义”）用的
+    buff = list()  # 这是存各种技能的标记（如“义”）用的
     weapon = None
-    shield=None
-    shoe=None
-    energy_book=None
-    attack_add = 0 #先add在percent
+    shield = None
+    shoe = None
+    energy_book = None
+    attack_add = 0  # 先add在percent
     attack_percent = 100
     damage_minus = 0
     damage_percent = 100
     speed_add = 0
-    random_step=0
-    actions_bak={"attack":{"name":"攻击","arg":"玩家序号","count":1},"goto":{"name":"移动","arg":"坐标","count":1},"item":{"name":"查看背包","arg":"","count":-1},"use":{"name":"使用","arg":"物品ID (目标ID(如果有的话))","count":-1},"end":{"name":"结束回合","arg":"","count":1}}
+    random_step = 0
+    attack_range_add = 0
+    disabled = False
+    actions_bak = {"attack": {"name": "攻击", "arg": "目标ID", "count": 1},
+                   "goto": {"name": "移动", "arg": "坐标", "count": 1},
+                   "item": {"name": "查看背包", "arg": "", "count": -1},
+                   "use": {"name": "使用", "arg": "物品ID (目标ID(如果有的话))", "count": -1},
+                   "zhuangbei": {"name": "装备界面", "arg": "", "count": -1},
+                   "showzhuangbei": {"name": "查看他人装备", "arg": "目标ID", "count": -1},
+                   "end": {"name": "结束回合", "arg": "", "count": 1}
+                   }
+
+    def init_custom(self):
+        pass
+
     def __init__(self):
-        self.actions=dict()
+        self.actions = dict()
         self.item = list()
-        buff = list()
-        #WARNING: 每个可变对象（list,dict）等都必须在这里初始化，否则不同的实例会共享一个对象
+        self.buff = list()
+        # WARNING: 每个可变对象（list,dict）等都必须在这里初始化，否则不同的实例会共享一个对象
+        self.actions_bak = self.actions_bak.copy()
         for i in self.actions_bak.keys():
-            self.actions[i]=self.actions_bak[i].copy()
-        self.life=self.max_life
-        self.energy=self.max_energy
+            self.actions_bak[i] = self.actions_bak[i].copy()
+        self.life = self.max_life
+        self.energy = self.max_energy
+        self.init_custom()
+        for i in self.actions_bak.keys():
+            self.actions[i] = self.actions_bak[i].copy()
+
     def round(self):
-        global random_step
-        self.random_step=random_step
-        global error_hint
-        error_hint=""
-        if len(cards)>get_cards:
-            print("="*10)
-            for i in range(get_cards):
-                selected=random.choice(cards)
-                print("你摸到了1张"+selected.name+"！")
-                cards.remove(selected)
-                self.item.append(selected)
-            print("="*10)
-        while self.actions["end"]["count"]:
-            if error_hint!="":
+        global random_step, players
+        self.random_step = random_step
+        global action_result
+        action_result = ""
+        print("="*10)
+        for i in mopai(get_cards):
+            self.item.append(i)
+            print("你摸到了1张"+i.name+"！")
+        print("="*10)
+        while self.actions["end"]["count"] and len([i for i in players if i.alive]) >= 2:
+            if action_result != "":
                 print("="*10)
-                print(error_hint)
+                print(action_result)
                 print("="*10)
             drawAll()
+            action_result = ""
             self.action()
             cls()
         self.end_of_round()
+
     def action(self):
-        global players,DEBUG,error_hint
+        global players, DEBUG, action_result
         for i in list(self.actions.keys()):
-            if self.actions[i]["count"]!=0:
-                print("{}：{} {}".format(self.actions[i]["name"],i,self.actions[i]["arg"]))
-        if self.actions["goto"]["count"]!=0:
-            print("你可以走的距离为："+str(self.random_step+shoes[self.shoe]["value"]+self.speed_add))
-        command=input().split(' ',1)
-        if (command[0] not in list(self.actions.keys())) and command[0].find("debug")==-1:
-            error_hint="未知命令"
+            if self.actions[i]["count"] != 0:
+                print("{}：{} {}".format(
+                    self.actions[i]["name"], i, self.actions[i]["arg"]))
+        if self.actions["goto"]["count"] != 0:
+            print("*你可以走的距离为："+str(self.random_step +
+                                   shoes[self.shoe]["value"]+self.speed_add))
+        max_card = (self.life+cards_limit-1)//cards_limit
+        if len(self.item) > max_card:
+            print("*回合结束时，你需要弃{}张牌".format(len(self.item)-max_card))
+        command = input().split(' ', 1)
+        if command[0].find("debug") != -1:  # handle debug commands
+            self.debug_handle(command)
             return
-        if command[0].find("debug")=="-1" and self.actions[command[0]]["count"]==0:
-            error_hint="你已经进行过此操作了！"
+        if command[0] not in list(self.actions.keys()):
+            action_result = "未知命令"
             return
-        if command[0]=='attack':
-            if players[int(command[1])-1]==self:
-                self.attack(self)
-                self.actions[command[0]]["count"]-=1
-                error_hint="最好不要自刀，当然你要真想也可以..."
-                return
-            route=(astar.astar(gameMapWithPlayers(self,players[int(command[1])-1]),self.pos[0],self.pos[1],players[int(command[1])-1].pos[0],players[int(command[1])-1].pos[1]))
-            if route==list():
-                error_hint="无法到达！"
-                return
-            if len(route)>weapons[self.weapon]["distance"]:
-                error_hint="太远了！"
-                return
-            self.attack(players[int(command[1])-1])
-            self.actions[command[0]]["count"]-=1
-        elif command[0]=='goto':
+        if self.actions[command[0]]["count"] == 0:
+            action_result = "你已经进行过此操作了！"
+            return
+        try:
+            eval("self.{}_(command)".format(command[0]))
+        except AttributeError:
+            action_result = "你遇到bug了！告诉作者！（详情：命令对应的函数不存在）"
+        except IndexError as e:
+            if str(e) == "list index out of range":
+                action_result = "命令参数过少！"
+
+    def debug_handle(self, command):
+        if command[0] == 'debug_eval':
+            command = command[1]
             try:
-                command[1]=command[1].replace("(","").replace(")","")
-                command[1]=command[1].replace(","," ")
-                a,b=[int(i) for i in command[1].split()]
-            except:
-                return
-            if (not isBlockEmpty(a,b)) and self.pos!=(a,b):
-                error_hint="此位置已被占用，请换一个位置。"
-                return
-            if self.pos==(a,b):
-                self.actions[command[0]]["count"]-=1
-                return
-            route=(astar.astar(gameMapWithPlayers(self),self.pos[0],self.pos[1],a,b))
-            if route==list():
-                error_hint="无法到达！"
-                return
-            if len(route)>(self.random_step+shoes[self.shoe]["value"]+self.speed_add):
-                error_hint="太远了！"
-                return
-            error_hint="走法：\n"
-            for i in route:
-                error_hint+=i
-            self.pos=(a,b)
-            self.actions[command[0]]["count"]-=1
-        elif command[0]=='end':
-            self.actions[command[0]]["count"]-=1
-            return
-        elif command[0]=='item':
-            if self.item==list():
-                error_hint="你的背包什么都没有！"
-            else:
-                error_hint="你的背包的物品为：\n"
-                unnamed_id=1
-                for i in self.item:
-                    error_hint+=str(unnamed_id)+' '
-                    unnamed_id+=1
-                    error_hint+=i.name+'\n'
-        elif command[0]=='use':
-            command=command[1].split()
-            command[0]=int(command[0])
-            if command[0]>len(self.item):
-                error_hint="此ID的物品不存在！"
-                return
-            if int(command[1])-1<0:
-                error_hint="玩家ID错误！"
-                return
-            return_value=True
+                eval(command)
+            except Exception as e:
+                print("[debug_eval] 命令执行时出错。详情：")
+                print(e)
+        elif command[0] == 'debug_exec':  # exec比eval强大，可以进行赋值等操作，但没有返回值
+            command = command[1]
             try:
-                return_value=self.item[command[0]-1].use(self,players[int(command[1])-1])
-            except IndexError:
-                try:
-                    return_value=self.item[command[0]-1].use(self)
-                except IOError:
-                    error_hint="你没有指定目标！"
-            if return_value!=True:
-                self.item.pop(command[0]-1)
-        elif command[0]=='debug_eval':
-            command=command[1]
-            eval(command)
-        elif command[0]=='debug_showitem':
-            command=command[1].split()
-            command[0]=int(command[0])
-            target=players[command[0]-1]
-            if target.item==list():
-                error_hint="他的背包什么都没有！"
+                exec(command)
+            except Exception as e:
+                print("[debug_exec] 命令执行时出错。详情：")
+                print(e)
+        elif command[0] == 'debug_showbuff':
+            print(self.buff)
+        elif command[0] == 'debug_showitem':
+            command = command[1].split()
+            command[0] = int(command[0])
+            target = players[command[0]-1]
+            if target.item == list():
+                action_result = "他的背包什么都没有！"
             else:
-                error_hint="他的背包的物品为：\n"
-                unnamed_id=1
+                action_result = "他的背包的物品为：\n"
+                unnamed_id = 1
                 for i in target.item:
-                    error_hint+=str(unnamed_id)+' '
-                    unnamed_id+=1
-                    error_hint+=i.name+'\n'
+                    action_result += str(unnamed_id)+' '
+                    unnamed_id += 1
+                    action_result += i.name+'\n'
+        return
+
+    def end_(self, command):
+        self.actions[command[0]]["count"] -= 1
+
+    def attack_(self, command):
+        global action_result
+        try:
+            target = players[int(command[1])-1]
+        except ValueError:
+            action_result = "命令非法！"
+            return
+        if "chanzhang_cd_2" in self.buff and self.weapon == "禅杖":
+            action_result = "禅杖冷却中..."
+            self.actions[command[0]]["count"] -= 1
+            return
+        if target == self:
+            self.attack(self)
+            self.actions[command[0]]["count"] -= 1
+            action_result = "最好不要自刀，当然你要真想也可以..."
+            return
+        route = (astar.astar(gameMapWithPlayers(self, target),
+                             self.pos[0], self.pos[1], target.pos[0], target.pos[1]))
+        if route == list():
+            action_result = "无法到达！"
+            return
+        if "remote" in weapons[self.weapon].keys() and weapons[self.weapon]["remote"]:
+            if getDistance_ou(self.pos, target.pos) > weapons[self.weapon]["distance"]+self.attack_range_add:
+                action_result = "太远了！"
+                return
+            if not lineAvaibale(self.pos, target.pos):
+                action_result = "与目标间存在障碍物！"
+                return
+        elif len(route) > weapons[self.weapon]["distance"]+self.attack_range_add:
+            action_result = "太远了！"
+            return
+        self.attack(target)
+        self.actions[command[0]]["count"] -= 1
+
+    def goto_(self, command):
+        global action_result
+        try:
+            command[1] = command[1].replace("(", "").replace(")", "")
+            command[1] = command[1].replace(",", " ")
+            a, b = [int(i) for i in command[1].split()]
+        except:
+            action_result = "命令非法！"
+            return
+        if (not isBlockEmpty(a, b)) and self.pos != (a, b):
+            action_result = "此位置已被占用，请换一个位置。"
+            return
+        if self.pos == (a, b):
+            self.actions[command[0]]["count"] -= 1
+            return
+        route = (astar.astar(gameMapWithPlayers(
+            self), self.pos[0], self.pos[1], a, b))
+        if route == list():
+            action_result = "无法到达！"
+            return
+        if len(route) > (self.random_step+shoes[self.shoe]["value"]+self.speed_add):
+            action_result = "太远了！"
+            return
+        action_result = "走法：\n"
+        for i in route:
+            action_result += i
+        self.pos = (a, b)
+        self.actions[command[0]]["count"] -= 1
+
+    def item_(self, command=None):
+        global action_result
+        if self.item == list():
+            action_result = "你的背包什么都没有！"
         else:
-            error_hint="你遇到bug了！告诉作者！"
+            action_result = "你的背包的物品为：\n"
+            unnamed_id = 1
+            for i in self.item:
+                action_result += str(unnamed_id)+' '
+                unnamed_id += 1
+                action_result += i.name+'\n'
+            action_result = action_result[:-1]
+
+    def use_(self, command):
+        global action_result
+        command = command[1].split()
+        try:
+            command[0] = int(command[0])
+            if len(command) >= 2:
+                command[1] = int(command[1])
+        except ValueError:
+            action_result = "命令非法！"
+            return
+        if command[0] > len(self.item):
+            action_result = "此ID的物品不存在！"
+            return
+        if len(command) >= 2:
+            if command[1]-1 < 0:
+                action_result = "玩家ID错误！"
+                return
+        return_value = True
+        try:
+            return_value = self.item[command[0] -
+                                     1].use(self, players[int(command[1])-1])
+        except IndexError:
+            try:
+                return_value = self.item[command[0]-1].use(self)
+            except TypeError:
+                action_result = "你没有指定目标！"
+        if return_value != True:
+            self.item.pop(command[0]-1)
+
+    def use_by_content(self, content):
+        return self.use_(["use", str(self.item.index(content)+1)])
+
     def attack(self, target):
-        target.damage((weapons[self.weapon]["value"]+self.attack_add)*self.attack_percent//100)
+        if self.weapon == "禅杖":
+            self.buff.append("chanzhang_cd")
+        hurt = target.damage((weapons[self.weapon]["value"] +
+                              self.attack_add)*self.attack_percent//100)
         self.update()
-    def damage(self,value):
-        if ((value-shields[self.shield]["value"]-self.damage_minus)*self.damage_percent//100)>0:
-            self.life-=(value-shields[self.shield]["value"]-self.damage_minus)*self.damage_percent//100
+        return hurt
+
+    def damage(self, value):
+        hurt = 0
+        if ((value-shields[self.shield]["value"]-self.damage_minus)*self.damage_percent//100) > 0:
+            hurt = round(
+                (value-shields[self.shield]["value"] - self.damage_minus)*self.damage_percent//100)
+        self.life -= hurt
         self.update()
+        return hurt
+
     def update(self):
-        if self.life<=0:
-            self.alive=False
-        if self.life>self.max_life:
-            self.life=self.max_life
-        self.max_energy=self.max_energy_bak+energy_books[self.energy_book]["value"]
-        if self.energy>self.max_energy:
-            self.energy=self.max_energy
+        if not self.alive:
+            return
+        if self.life <= 0:
+            self.zhiliao()
+        if self.life > self.max_life:
+            self.life = self.max_life
+        self.max_energy = self.max_energy_bak + \
+            energy_books[self.energy_book]["value"]
+        if self.energy > self.max_energy:
+            self.energy = self.max_energy
+
+    def zhiliao(self):
+        global players, action_result
+        myid = players.index(self)
+        print("玩家{}({})失败了！".format(myid+1, self.name))
+        print("你当前的血量为{}".format(self.life))
+        if self.life <= 0:
+            has_drug = True
+            drug_index = -999
+            while self.life <= 0:
+                drugs = [i for i in self.item if type(i) == drug]
+                if len(drugs) == 0:
+                    break
+                input_str = ""
+                while input_str != "yes" and input_str != "no":
+                    input_str = input("你要使用背包里的药吗？(yes/no)")
+                if input_str == "yes":
+                    self.life += drugs[0].value
+                    self.item.remove(drugs[0])
+                    drugs.pop(0)
+                else:
+                    break
+            for i in players:
+                if self.life >= 1:
+                    break
+                if (not i.alive) or i == self:
+                    continue
+                input_str = ""
+                end_round = False
+                has_drug = False
+                print("*玩家{}({})操作".format(players.index(i)+1, i.name))
+                print("item:列出物品\nuse:对他用药\nend:结束操作")
+                while not end_round and self.life <= 0:
+                    while input_str not in ["item", "use", "end"]:
+                        input_str = input("输入你的操作：")
+                    if input_str == "end":
+                        end_round = True
+                        cls()
+                        break
+                    if input_str == "item":
+                        i.item_()
+                        print(action_result)
+                    if input_str == "use":
+                        for k in i.item:
+                            if k.name == "药":
+                                has_drug = True
+                                self.life += k.value
+                                i.item.remove(k)
+                                if self.life >= 1:
+                                    break
+                        if not has_drug:
+                            print("你的背包里没有药！")
+                        has_drug = False
+                    input_str = ""
+                if self.life >= 1:
+                    break
+                if end_round:
+                    cls()
+                    continue
+        if self.life <= 0:
+            print("玩家{}({})彻底无了！".format(myid+1, self.name))
+            self.alive = False
+        else:
+            self.update()
+
     def end_of_round(self):
-        self.energy+=10
+        if not self.alive:
+            return
+        self.energy += 10
         for i in self.actions_bak.keys():
-            self.actions[i]=self.actions_bak[i].copy()
+            self.actions[i] = self.actions_bak[i].copy()
         self.update()
-        
+        if "chanzhang_cd_2" in self.buff:
+            self.buff = [i for i in self.buff if (
+                i != "chanzhang_cd" and i != "chanzhang_cd_2")]
+        if "chanzhang_cd" in self.buff:
+            self.buff.append("chanzhang_cd_2")
+        self.qipai()
+
+    def qipai(self):
+        global players
+        if len([i for i in players if i.alive]) <= 1:
+            return
+        global action_result
+        max_card = (self.life+cards_limit-1)//cards_limit
+        if len(self.item) <= max_card:
+            return
+        while len(self.item) > max_card:
+            print("你还需要弃{}张牌".format(len(self.item)-max_card))
+            self.item_()
+            print("="*10+"\n"+action_result+"\n"+"="*10)
+            remove_list = -1
+            realremove = list()
+            while remove_list == -1:
+                rawstr = input().split()
+                try:
+                    remove_list = [int(i) for i in rawstr]
+                    for i in remove_list:
+                        if i <= 0 or i > len(self.item):
+                            raise ValueError
+                except ValueError:
+                    remove_list = -1
+                    print("输入非法，请重输：", end="")
+                    continue
+                if len(remove_list) > len(self.item)-max_card:
+                    remove_list = -1
+                    print("你只能弃{}张牌，请重输：".format(
+                        len(self.item)-max_card), end="")
+            for i in remove_list:
+                realremove.append(self.item[i-1])
+            for i in realremove:
+                qipai.append(i)
+                self.item.remove(i)
+            realremove = list()
+            cls()
+
+    def showzhuangbei_(self, command, in_code_call=False):
+        global players, action_result, zhuangbei_list
+        if in_code_call:
+            target = command
+        else:
+            action_result += "他的装备栏为：\n"
+        if type(command) == int:
+            target = players[command]
+        if type(command) == list:
+            try:
+                target = players[int(command[1])-1]
+            except:
+                action_result = "参数非法！"
+                return
+            if not 0 <= int(command[1])-1 < player_count:
+                action_result = "参数非法！"
+                return
+        for i in zhuangbei_list:
+            my_item = eval("target."+zhuangbei_list[i]["code"])
+            if my_item != None:
+                my_item = '"'+my_item+'"'
+            my_name = eval("{}s[{}][\"name\"]".format(
+                zhuangbei_list[i]["code"], my_item))
+            my_value = eval("{}s[{}][\"value\"]".format(
+                zhuangbei_list[i]["code"], my_item))
+            action_result += "({}) {}\t:{}(+{})\n".format(
+                zhuangbei_list[i]["key"],
+                i,
+                my_name,
+                my_value
+            )
+        action_result = action_result[:-1]
+        if in_code_call:
+            tmp = action_result[:]
+            action_result = ""
+            return tmp
+
+    def zhuangbei_(self, command):
+        # WARNING:要是变量更名了，此函数很可能会出错
+        global zhuangbei_list, action_result
+        operations = [zhuangbei_list[i]["key"] for i in zhuangbei_list]+["c"]
+        while True:
+            input_str = str()
+            print("你的装备栏为：")
+            print(self.showzhuangbei_(self, True))
+            print("(c) 返回")
+            while input_str not in operations:
+                input_str = input("输入你的操作：")
+            if input_str == "c":
+                break
+            current_type = [
+                i for i in zhuangbei_list][operations.index(input_str)]
+            input_str = ""
+            current_item = eval("self."+zhuangbei_list[current_type]["code"])
+            if current_item != None:
+                current_item = '"'+current_item+'"'
+            current_name = eval("{}s[{}][\"name\"]".format(
+                zhuangbei_list[current_type]["code"], current_item))
+            current_value = eval("{}s[{}][\"value\"]".format(
+                zhuangbei_list[current_type]["code"], current_item))
+            print("当前{}:{}(+{})".format(current_type, current_name, current_value))
+            avaibale_changes = [i for i in self.item if type(
+                i).__base__.__name__ == zhuangbei_list[current_type]["code"]+"_base"]
+            avaibale_values = [eval("{}s[\"{}\"][\"value\"]"
+                                    .format(zhuangbei_list[current_type]["code"], i.value)) for i in avaibale_changes]
+            print("可用的选择：")
+            print("(0) 返回")
+            for i in range(len(avaibale_changes)):
+                print("({}) {}:{}({:+})".format(i+1,
+                                                avaibale_changes[i].name,
+                                                avaibale_values[i],
+                                                avaibale_values[i]-current_value))
+            while True:
+                input_str = input("输入你的操作：")
+                try:
+                    input_str = int(input_str)
+                except:
+                    continue
+                if 0 <= input_str <= len(avaibale_changes):
+                    break
+            if input_str == 0:
+                continue
+            else:
+                if current_item != None:
+                    qipai.append(mopai_by_value(current_item))
+                self.use_by_content(avaibale_changes[input_str-1])
 
 
-#@# Code from try1.py:
+###############
+#     Code from characters/gaoqiu:
+###############
+class gaoqiu(Player):
+    name = "高俅"
+    max_life = 50
+    max_energy = 100
+    attack_range_add = 1
 
-class tryyy:
-    life = 1#@# Code from 李逵.py:
+    def attack(self, target):
+        if self.weapon == "禅杖":
+            self.buff.append("chanzhang_cd")
+        hurt = target.damage((weapons[self.weapon]["value"] +
+                              self.attack_add)*self.attack_percent//100)
+        self.life += hurt
+        self.update()
+        return hurt
 
+
+###############
+#     Code from characters/likui:
+###############
 class likui(Player):
-    life=80
-    max_life=80
-    energy=0
-    max_energy=0
-    max_energy_bak=0
-    def update(self):
-        if life<=0:
-            self.alive=False
-        energy=0
-        max_energy=0
-    actions_bak={"attack":{"name":"攻击","arg":"玩家序号","count":3},"goto":{"name":"移动","arg":"坐标","count":1},"info":{"name":"查看","arg":"","count":-1},"use":{"name":"使用","arg":"物品ID","count":-1},"end":{"name":"结束回合","arg":"","count":1}}
+    name = "李逵"
+    life = 8000
+    max_life = 8000
+    energy = 0
+    max_energy = 0
+    max_energy_bak = 0
 
-#@# Items:
+    def init_custom(self):
+        self.actions_bak["attack"]["count"] = 3
+
+    def update(self):
+        if self.life <= 0:
+            self.alive = False
+        self.energy = 0
+        self.max_energy = 0
+
+
+###############
+#     Code from characters/try1:
+###############
+class try1(Player):
+    name = "测试工具人1-回复"
+    life = 10000
+
+    def init_custom(self):
+        self.actions_bak["zhudong1"] = {"name": "回复", "arg": "", "count": 1}
+
+    def zhudong1_(self, command):
+        self.actions["zhudong1"]["count"] -= 1
+        self.life += 1000
+        self.update()
+
+
+###############
+#     Code from characters/try2:
+###############
+class try2(Player):
+    name = "测试工具人2-给牌"
+
+    def init_custom(self):
+        self.actions_bak["zhudong1"] = {
+            "name": "给牌", "arg": "目标角色", "count": 1}
+
+    def zhudong1_(self, command):
+        global action_result
+        try:
+            target_index = int(command[1])
+        except IndexError:
+            action_result = "参数过少！"
+            return
+        except ValueError:
+            action_result = "参数错误！"
+            return
+        if not 1 <= target_index <= player_count:
+            action_result = "玩家不存在！"
+            return
+        target = players[target_index-1]
+        self.actions["zhudong1"]["count"] -= 1
+        get_card = mopai(1)
+        for i in get_card:
+            action_result = "你给了他一张 {}！".format(i.name)
+            target.item.append(i)
+        self.update()
+
+
+###############
+#     Code from characters/try3:
+###############
+class try3(Player):
+    name = "测试工具人3"
+
+
+###############
+#     Code from inits:
+###############
+import platform
+import sys
+import os
+import codecs
+from time import sleep
+import random
+from math import sqrt, degrees, acos
+
+import astar
+
+
+chess_list = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
+current_file = os.path.abspath(__file__)
+current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
+os.chdir(current_dir)
+players = list()
+special_blocks = list()
+action_result = str()
+qipai = list()
+
+running = False
+turn = 1
+random_step = 0
+current_player_id = 0
+
+
+print("你正在使用的系统是：{}".format(platform.platform()))
+is_windows = (platform.platform().find("Windows")) != -1
+print("Python版本：{}".format(platform.python_version()))
+print("程序目录：{}".format(current_dir))
+
+
+characters_file = [i for i in os.listdir(os.path.join(
+    os.getcwd(), "characters")) if i[-3:] == '.py' and i != "tempCodeRunnerFile.py"]
+characters = list()
+for i in characters_file:
+    with codecs.open("characters/"+i, "r", encoding='utf-8') as f:
+        cont = f.read().replace("\xef\xbb\xbf", '')
+        if cont.find("class") == -1:
+            continue
+        cont = cont.replace("(Player)", "")
+        name_1 = cont.find("class ")+6
+        name_2 = cont.find(":")
+        characters.append(cont[name_1:name_2])
+
+characters = [i for i in characters if i != 'Player']
+
+error_list_ch = list()
+for i in range(len(characters)):
+    try:
+        characters[i] = eval(characters[i]+"()")
+    except NameError as ne:
+        print("[警告]", ne, "请将警告信息发给作者")
+        error_list_ch.append(characters[i])
+for i in error_list_ch:
+    characters.remove(i)
+
+
+###############
+#     Code from functions:
+###############
+class GameError(RuntimeError):
+    pass
+
+
+class MapError(GameError):
+    pass
+
+
+def exit(code: int):
+    print("\n**********")
+    if code > 100:
+        print("[致命错误] 退出代码"+str(code))
+        print("**********\n")
+        sys.exit(code)
+    if code == 0:
+        print("[正常退出]")
+        print("**********\n")
+        sys.exit(0)
+    if code == 1:
+        print("[程序错误] 退出代码1（请将报错截图提交给作者）")
+        print("**********\n")
+        sys.exit(1)
+    else:
+        print("[未知错误] 退出代码"+str(code)+"（请将报错截图提交给作者）")
+        print("**********\n")
+        sys.exit(code)
+
+
+def cls():
+    global is_windows
+    global DEBUG
+    if DEBUG:
+        print("######cls#####")
+        return
+    if is_windows:
+        cls_return_value_handler = os.system("cls")
+    else:
+        cls_return_value_handler = os.system("clear")
+
+
+def str2coordinates(s: str):
+    try:
+        s = s.replace("(", "").replace(")", "")
+        s = s.replace(",", " ")
+        a, b = [int(i) for i in s.split()]
+        return (a, b)
+    except:
+        return inputCoordinates(msg="坐标非法，请重输：")
+
+
+def inputCoordinates(msg: str = ""):
+    rawstr = input(msg)
+    return str2coordinates(rawstr)
+
+
+def inputJuese(avaibale: list, msg: str = ""):
+    rawstr = input(msg)
+    try:
+        val = int(rawstr)
+    except ValueError:
+        return inputJuese(avaibale, msg="角色非法，请重输：")
+    if val <= 0 or val > len(characters):
+        return inputJuese(avaibale, msg="角色非法，请重输：")
+    return avaibale[val-1]
+
+
+def drawAll():
+    drawInfo()
+    print("")
+    drawPlayers()
+    print("")
+    drawMap()
+
+
+def drawInfo():
+    global turn, players, current_player_id
+    print("* 第{}轮".format(turn), "玩家{}操作".format(current_player_id+1))
+    print(
+        "* 玩家数:{}/{}".format(len([i for i in players if i.alive]), player_count))
+
+
+def drawPlayers():
+    global players
+    display_index = 1
+    for i in players:
+        print("玩家{}  {}\t".format(display_index, i.name), end=":")
+        if i.alive:
+            print("生命 {}/{};能量 {}/{}".format(i.life,
+                                             i.max_life, i.energy, i.max_energy))
+        else:
+            print("已死亡")
+        display_index += 1
+
+
+def drawMap():
+    global game_map, special_blocks
+    display_map = [i[:] for i in game_map]
+    for i in range(len(players)):
+        if players[i].alive:
+            setblock(display_map, players[i].pos[0],
+                     players[i].pos[1], chess_list[i])
+    for i in special_blocks:
+        if display_map[i[0]][i[1]] == '0':
+            setblock(display_map, i[0], i[1], 'O')
+    display_map = [i.replace("0", "□").replace("1", "■") for i in display_map]
+    for i in display_map:
+        print(i)
+
+
+def isBlockEmpty(a, b=None):
+    global chang, kuan
+    if a >= kuan or b >= chang:
+        return False
+    if type(a) == tuple or type(a) == list:
+        a, b = a
+    global players, game_map
+    if game_map[a][b] == '1':
+        return False
+    for i in players:
+        if i.alive:
+            if i.pos == (a, b):  # type((a,b))==tuple
+                return False
+    return True
+
+
+def gameMapWithPlayers(*paichu):
+    global game_map, players
+    paichu = list(paichu)
+    gen_map = [i[:] for i in game_map]
+    for i in players:
+        if i.alive and (i not in paichu):
+            setblock(gen_map, i.pos[0], i.pos[1], "1")
+    return gen_map
+
+
+def inputPlayerCount():
+    try:
+        return int(input("输入玩家数量："))
+    except ValueError:
+        return inputPlayerCount()
+
+
+def getDistance_man(pos1: tuple, pos2: tuple):  # 曼哈顿距离
+    return abs(pos1[0]-pos2[0])+abs(pos1[1]-pos2[1])
+
+
+def getDistance_ou(pos1: tuple, pos2: tuple):  # 欧几里得距离
+    return sqrt(abs(pos1[0]-pos2[0])**2+abs(pos1[1]-pos2[1])**2)
+
+
+def setblock(mapp: list, x: int, y: int, to):
+    x = round(x)
+    y = round(y)
+    cchang = len(mapp[0])
+    ckuan = len(mapp)
+    if x >= ckuan:
+        x = ckuan-1
+    if y >= cchang:
+        y = cchang-1
+    mapp[x] = mapp[x][:y]+str(to)+mapp[x][y+1:]
+
+
+def cal_ang(point_1, point_2, point_3):
+    """
+    根据三点坐标计算夹角
+    :param point_1: 点1坐标
+    :param point_2: 点2坐标
+    :param point_3: 点3坐标
+    :return: 返回任意角的夹角值，这里只是返回点2的夹角
+    """
+    a = sqrt((point_2[0]-point_3[0])*(point_2[0]-point_3[0]) +
+             (point_2[1]-point_3[1])*(point_2[1] - point_3[1]))
+    b = sqrt((point_1[0]-point_3[0])*(point_1[0]-point_3[0]) +
+             (point_1[1]-point_3[1])*(point_1[1] - point_3[1]))
+    c = sqrt((point_1[0]-point_2[0])*(point_1[0]-point_2[0]) +
+             (point_1[1]-point_2[1])*(point_1[1] - point_2[1]))
+    A = degrees(acos((a*a-b*b-c*c)/(-2*b*c)))
+    B = degrees(acos((b*b-a*a-c*c)/(-2*a*c)))
+    C = degrees(acos((c*c-a*a-b*b)/(-2*a*b)))
+    return B
+
+
+def posOnLine(mapp: list, a: tuple, b: tuple):
+    chang = len(mapp[0])
+    kuan = len(mapp)
+    result = list()
+    chax = abs(a[0]-b[0])
+    chay = abs(a[1]-b[1])
+    if (chax == 0 or chay == 0) and chax+chay == 1:
+        return list()
+    if a[1] > b[1]:
+        a, b = b, a  # 保证a在左b在右
+    if a[0] == b[0]:
+        return [(a[0], i) for i in range(a[1] + 1, b[1])]
+    if a[1] == b[1]:
+        if a[0] < b[0]:
+            return [(i, a[1]) for i in range(a[0] + 1, b[0])]
+        else:
+            return [(i, a[1]) for i in range(b[0] + 1, a[0])]
+    k = (a[1]-b[1])/(a[0]-b[0])  # y=kx+d
+    d = a[1] - a[0] * k
+    # print("函数解析式：y={}x+{}".format(k, d))
+    if a[0] > b[0]:
+        # print("qingkuang 1")#"/"((6,0),(0,7))
+        for i in range(a[1]+1, b[1]+1):  # 枚举方格左边的竖线
+            cury = i - 0.5
+            curx = (cury-d)/k
+            curx = round(curx * 1000) / 1000  # 防止精度问题
+            if abs(curx - (floor(curx) + 0.5)) <= 0.0001:
+                result.append([(round(curx - 0.5), i-1),
+                               (round(curx + 0.5), i)])
+                result.append((round(curx + 0.5), i-1))
+                result.append((round(curx - 0.5), i))
+            else:
+                result.append((round(curx), i))
+        for i in range(b[0], a[0]):
+            curx = i + 0.5
+            cury = curx*k+d
+            cury = round(cury * 1000) / 1000  # 防止精度问题
+            if abs(cury - (floor(cury) + 0.5)) <= 0.0001:
+                result.append([(i, round(cury - 0.5)),
+                               (i+1, round(cury + 0.5))])
+                result.append((i+1, round(cury - 0.5)))
+                result.append((i, round(cury + 0.5)))
+            else:
+                result.append((i, round(cury)))
+        final_result = list()
+        for i in result:
+            if type(i) == tuple:
+                if not (a[0] >= i[0] >= b[0] and a[1] <= i[1] <= b[1]):
+                    continue
+                if a == i or b == i:
+                    continue
+                final_result.append(i)
+            else:
+                cur_list = list()
+                for j in i:
+                    if not (a[0] >= j[0] >= b[0] and a[1] <= j[1] <= b[1]):
+                        continue
+                    if a == j or b == j:
+                        continue
+                    cur_list.append(j)
+                if len(cur_list) == 1:
+                    final_result.append(cur_list[0])
+                elif len(cur_list) == 0:
+                    continue
+                else:
+                    final_result.append(cur_list)
+    else:
+        # print("qingkuang 2")#"\" (0,0),(7,1)
+        for i in range(a[1]+1, b[1]+1):  # 枚举方格左边的竖线
+            cury = i - 0.5
+            curx = (cury-d)/k
+            curx = round(curx * 1000) / 1000  # 防止精度问题
+            if abs(curx - (floor(curx) + 0.5)) <= 0.0001:
+                result.append([(round(curx + 0.5), i-1),
+                               (round(curx - 0.5), i)])
+                result.append((round(curx + 0.5), i))
+                result.append((round(curx - 0.5), i-1))
+            else:
+                result.append((round(curx), i))
+        for i in range(a[0]+1, b[0]+1):
+            curx = i - 0.5
+            cury = curx*k+d
+            cury = round(cury * 1000) / 1000  # 防止精度问题
+            if abs(cury - (floor(cury) + 0.5)) <= 0.0001:
+                result.append([(i, round(cury - 0.5)),
+                               (i-1, round(cury + 0.5))])
+                result.append((i-1, round(cury - 0.5)))
+                result.append((i, round(cury + 0.5)))
+            else:
+                result.append((i, round(cury)))
+        final_result = list()
+        for i in result:
+            if type(i) == tuple:
+                if not (a[0] <= i[0] <= b[0] and a[1] <= i[1] <= b[1]):
+                    continue
+                if a == i or b == i:
+                    continue
+                final_result.append(i)
+            else:
+                cur_list = list()
+                for j in i:
+                    if not (a[0] <= j[0] <= b[0] and a[1] <= j[1] <= b[1]):
+                        continue
+                    if a == j or b == j:
+                        continue
+                    cur_list.append(j)
+                if len(cur_list) == 1:
+                    final_result.append(cur_list[0])
+                elif len(cur_list) == 0:
+                    continue
+                else:
+                    final_result.append(cur_list)
+    return final_result
+
+
+def lineAvaibale(a: tuple, b: tuple):
+    global game_map
+    poss = posOnLine(game_map, a, b)
+    for i in poss:
+        if type(i) == list:
+            cur = False
+            for j in i:
+                if game_map[j[0]][j[1]] == '0':
+                    cur = True
+                    break
+            if not cur:
+                return False
+        else:
+            if game_map[i[0]][i[1]] != '0':
+                return False
+    return True
+
+
+def getFangXiang(source: tuple, target: tuple):
+    """
+    返回一个形如(1,1)的元组，表示source元组x、y坐标的偏移
+    """
+    chax = abs(source[0]-target[0])
+    chay = abs(source[1]-target[1])
+    if chax == chay == 0:
+        raise Exception("所给坐标错误！（反馈作者）")
+    if chax == 0:
+        return (0, 1) if (target[1]-source[1]) > 0 else (0, -1)
+    if chay == 0:
+        return (1, 0) if (target[0]-source[0]) > 0 else (-1, 0)
+    if chax == chay == 1:
+        return(target[0]-source[0], target[1]-source[1])
+    k = (source[1]-target[1])/(source[0]-target[0])  # y=kx+d
+    d = source[1]-source[0]*k
+    #print("函数解析式：y={}x+{}".format(k, d))
+    if chax > chay:
+        # print("x>y")
+        if source[0] > target[0]:
+            step = -1
+        else:
+            step = 1
+        for i in range(source[0], target[0], step):  # i is x in function y=kx+d
+            if i == source[0]:
+                continue
+            return tuple([i-source[0], round(k*i+d)-source[1]])
+    else:
+        # print("y>x")
+        if source[1] > target[1]:
+            step = -1
+        else:
+            step = 1
+        for i in range(source[1], target[1], step):  # i is y in function y=kx+d
+            if i == source[1]:
+                continue
+            return tuple([round((i-d)/k)-source[0], i-source[1]])
+
+
+def getFangXiangPos(source: tuple, target: tuple):
+    fx = getFangXiang(source, target)
+    return (source[0]+fx[0], source[1]+fx[1])
+
+
+def mopai(count):
+    global qipai, cards
+    result_mopai = list()
+    if len(cards) < count:
+        for i in qipai:
+            cards.append(i)
+        qipai = list()
+    for i in range(count):
+        try:
+            selected = random.choice(cards)
+        except IndexError:
+            print("[警告] 你牌堆里的牌设置的太少了")
+            return result_mopai
+        cards.remove(selected)
+        result_mopai.append(selected)
+    return result_mopai
+
+
+def mopai_by_value(value):
+    global qipai, cards
+    for i in qipai:
+        try:
+            val = i.value
+        except:
+            continue
+        if val == value:
+            val = i
+            qipai.remove(i)
+            return val
+    for i in cards:
+        try:
+            val = i.value
+        except:
+            continue
+        if val == value:
+            val = i
+            cards.remove(i)
+            return val
+    print("你遇到bug了！详情：要摸的牌不存在")
+    return -1
+
+
+###############
+#     Code from items:
+###############
 import astar
 import random
 
+zhuangbei_list = {"武器": {"code": "weapon", "key": "w"},
+                  "护盾": {"code": "shield", "key": "h"},
+                  "能量书": {"code": "energy_book", "key": "n"},
+                  "鞋子": {"code": "shoe", "key": "s"}}
+# use in function zhuangbei_(),characters/base.py
+
 weapons = {
-    None: {"name": "无", "value": 5, "distance": 1},
-    "测试-伤害10": {"name": "测试1", "value": 10, "distance": 3},
+    None: {"name": "空手", "value": 5, "distance": 1},
     "测试-伤害15": {"name": "测试2", "value": 15, "distance": 5},
-    "屠龙宝刀": {"name": "屠龙宝刀1", "value": 1000, "distance": 100}
+    "禅杖": {"name": "禅杖", "value": 20, "distance": 100},
+    "屠龙宝刀": {"name": "屠龙宝刀", "value": 100, "distance": 100},
+    "板斧": {"name": "板斧", "value": 12, "distance": 1},
+    "朴刀": {"name": "朴刀", "value": 10, "distance": 2},
+    "弓": {"name": "弓", "value": 8, "distance": 6, "remote": True}
 }
 shields = {
     None: {"name": "无", "value": 0},
-    "盾牌": {"name": "盾牌", "value": 1},
-    "测试-防御3": {"name": "测试2", "value": 3}
+    "盾牌": {"name": "盾牌", "value": 5}
 }
 shoes = {
     None: {"name": "无", "value": 0},
-    "鞋子": {"name": "鞋子", "value": 3},
-    "测试-加速1": {"name": "测试1", "value": 1},
+    "鞋子": {"name": "鞋子", "value": 1},
     "测试-加速3": {"name": "测试2", "value": 3}
 }
 energy_books = {
     None: {"name": "无", "value": 0},
-    "魔法书": {"name": "魔法书", "value": 3}
+    "典籍": {"name": "典籍", "value": 30}
 }
 # -药- -武器- -鞋子- -盾牌- -能量书- ~钩爪~ ~偷窃~ -五雷天罡法- ~无懈可击(被动)~
 
 
 class drug:
     name = "药"
-    value = 5
+    value = 10
 
     def use(self, sender, *arg):
         sender.life += self.value
         sender.update()
 
 
-class weapon:
+class mhy:
+    name = "蒙汗药"
+    value = -1
+
+    def use(self, sender, target, *arg):
+        global action_result, mhy_chance
+        if sender == target:
+            action_result = "别对自己下手！"
+            return True
+        if target.disabled:
+            action_result = "他已经有这个标记了！（TODO：修改提示语）"
+            return True
+        if random.randint(1, 100) <= mhy_chance:  # 蒙汗药可以生效
+            action_result = "蒙汗药使用成功！"
+            target.disabled = True
+        else:
+            action_result = "蒙汗药使用失败！"
+
+
+class weapon_base:
     name = "武器_父类"
-    value = "测试-伤害10"
+    value = "测试-伤害15"
 
     def use(self, sender, *arg):
+        if sender.weapon != None:
+            qipai.append(mopai_by_value(sender.weapon))
         sender.weapon = self.value
+        self.use_custom(sender)
+
+    def use_custom(self, sender):
+        pass
 
 
-class weapon_None(weapon):
+class weapon_None(weapon_base):
     name = "不使用武器"
     value = None
 
 
-class tlbd(weapon):
+class tlbd(weapon_base):
     name = "屠龙宝刀"
     value = "屠龙宝刀"
 
 
-class shoe:
-    name = "鞋子"
-    value = "鞋子"
+class bf(weapon_base):
+    name = "板斧"
+    value = "板斧"
+
+
+class pd(weapon_base):
+    name = "朴刀"
+    value = "朴刀"
+
+
+class bow(weapon_base):
+    name = "弓"
+    value = "弓"
+
+
+class cz(weapon_base):
+    name = "禅杖"
+    value = "禅杖"
+
+    def use_custom(self, sender):
+        sender.buff = [i for i in sender.buff if (
+            i != "chanzhang_cd" and i != "chanzhang_cd_2")]
+
+
+class shoe_base:
+    name = "鞋子_父类"
+    value = "测试-加速3"
 
     def use(self, sender, *arg):
+        if sender.shoe != None:
+            qipai.append(mopai_by_value(sender.shoe))
         sender.shoe = self.value
 
 
-class shoe_None(shoe):
+class shoe_None(shoe_base):
     name = "不使用鞋子"
     value = None
 
 
-class shield:
-    name = "盾牌"
-    value = "盾牌"
+class shoe(shoe_base):
+    name = "鞋子"
+    value = "鞋子"
+
+
+class shield_base:
+    name = "盾牌_父类"
+    value = "盾牌_父类"
 
     def use(self, sender, *arg):
+        if sender.shield != None:
+            qipai.append(mopai_by_value(sender.shield))
         sender.shield = self.value
 
 
-class shield_None(shield):
+class shield(shield_base):
+    name = "盾牌"
+    value = "盾牌"
+
+
+class shield_None(shield_base):
     name = "不使用盾牌"
     value = None
 
 
-class energy_book:
-    name = "魔法书"
-    value = "魔法书"
+class energy_book_base:
+    name = "能量书_父类"
+    value = "能量书_父类"
 
     def use(self, sender, *arg):
+        if sender.energy_book != None:
+            qipai.append(mopai_by_value(sender.energy_book))
         sender.energy_book = self.value
 
 
-class energy_book_None(energy_book):
-    name = "不使用能量书"
+class energy_book_base:
+    name = "典籍"
+    value = "典籍"
+
+
+class energy_book_None(energy_book_base):
+    name = "不使用典籍"
     value = None
 
 # 直线上没有障碍物：偷窃必须，五雷天罡法可以没有
 
 
-class remote_attack:
+class remote_attack_base:
     name = "远程攻击_父类"
     value = 1
     distance = 1
 
     def use(self, sender, target, *arg):
+        global action_result
         route = (astar.astar(gameMapWithPlayers(sender, target),
                              sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
         if route == list():
-            error_hint="无法到达！"
+            action_result = "无法到达！"
             return True
         if len(route) > self.distance:
-            error_hint="太远了！"
+            action_result = "太远了！"
             return True
         target.damage(self.value)
         sender.update()
 
 
-class wltg(remote_attack):
+class wltg(remote_attack_base):
     name = "五雷天罡法"
     value = 30
     distance = 5
 
     def use(self, sender, target, *arg):
+        global action_result
         if sender == target:
-            error_hint="别对自己下手！"
+            action_result = "别对自己下手！"
             return True
-        if getDistance(sender.pos, target.pos) > self.distance:
-            error_hint="太远了！"
+        if getDistance_ou(sender.pos, target.pos) > self.distance:
+            action_result = "太远了！"
             return True
         target.damage(self.value)
         sender.update()
 
 
-class gz(remote_attack):
+class gz(remote_attack_base):
     name = "钩爪"
-    value = 10
+    value = 5
     distance = 4
 
     def use(self, sender, target, *arg):
         global game_map
+        global action_result
         if sender == target:
-            error_hint="别对自己下手！"
+            action_result = "别对自己下手！"
             return True
-        #error_hint="***几何什么的最烦了 钩爪拐弯就随他吧！"
+        #action_result="***几何什么的最烦了 钩爪拐弯就随他吧！"
         route = (astar.astar(gameMapWithPlayers(sender, target),
                              sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
         if route == list():
-            error_hint="无法到达！"
+            action_result = "无法到达！"
             return True
-        distance= getDistance(sender.pos, target.pos)
-        if distance>self.distance:
-            error_hint="太远了！"
+        distance = getDistance_ou(sender.pos, target.pos)
+        if distance > self.distance:
+            action_result = "太远了！"
             return True
         target.damage(self.value)
-        if distance == 1 or (distance == 2 and (abs(sender.pos[0]-target.pos[0]) == 1)):#即target在sender附近8格
+        # 即target在sender附近8格
+        if distance == 1 or (distance == 2 and (abs(sender.pos[0]-target.pos[0]) == 1)):
             pass
         else:
-            poss=posOnLine(game_map,sender.pos, target.pos)
-            for i in poss:
-                if game_map[i[0]][i[1]]!='0':
-                    error_hint="直线上存在障碍物！"
-                    return True
-            target.pos=poss[0]
+            if not lineAvaibale(sender.pos, target.pos):
+                action_result = "直线上存在障碍物！"
+                return True
+            target.pos = getFangXiangPos(sender.pos, target.pos)
         sender.update()
+        target.update()
 
 
 class steal:
     name = "偷窃"
-    value = 2
-    distance = 5
+    value = 1
+    distance = 2
 
     def use(self, sender, target, *arg):
+        global action_result, zhuangbei_list
         if sender == target:
-            error_hint="别对自己下手！"
+            action_result = "别对自己下手！"
             return True
         route = (astar.astar(gameMapWithPlayers(sender, target),
                              sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
         if route == list():
-            error_hint="无法到达！"
+            action_result = "无法到达！"
             return True
         if len(route) > self.distance:
-            error_hint="太远了！"
+            action_result = "太远了！"
             return True
-        i = 0
-        if len(target.item) == 0:
-            error_hint="他的背包什么都没有！"
+        selectable = []
+        for i in zhuangbei_list:
+            my_item = eval("target."+zhuangbei_list[i]["code"])
+            if my_item != None:
+                selectable.append((i, my_item))
+        if len(selectable)+len(target.item) == 0:
+            action_result = "他什么都没有！"
             return True
-        while len(target.item) != 0 and i < self.value:
-            selected = random.choice(target.item)
-            while selected.value == None:
-                selected = random.choice(target.item)
-            error_hint="* 你偷到了他的"+selected.name+"!"
-            i += 1
-            sender.item.append(selected)
-            target.item.remove(selected)
-            sender.update()
-            target.update()
+        for i in target.item:
+            selectable.append(("beibao", i))
+        card_count = 0
+        beibao = 1
+        while len(selectable) != 0 and card_count < self.value:
+            print("他的物品为：")
+            for i in range(len(selectable)):
+                if selectable[i][0] != "beibao":
+                    print("({}) {}\t:{}".format(
+                        i+1, selectable[i][0], selectable[i][1]))
+                else:
+                    print("({}) 背包物品{}\t:???".format(i+1, beibao))
+                    beibao += 1
+            select = ""
+            while True:
+                select = input("请选择你要偷窃的牌：")
+                try:
+                    if 1 <= int(select) <= len(selectable):
+                        break
+                except:
+                    pass
+            card_count += 1
+            selected = selectable[int(select)-1]
+            selectable.remove(selected)
+            if selected[0] == "beibao":
+                selected = selected[1]
+                action_result = "* 你偷到了他的"+selected.name+"!"
+                sender.item.append(selected)
+                target.item.remove(selected)
+            else:
+                the_card = mopai_by_value(selected[1])
+                exec("target."+zhuangbei_list[selected[0]]["code"]+"="+"None")
+                sender.item.append(the_card)
 
 
 class kp:
@@ -402,11 +1349,14 @@ class kp:
     value = 1
 
     def use(self, *arg):
-        error_hint="这张牌属于被动牌！"
+        global action_result
+        action_result = "这张牌属于被动牌！"
         return True
 
 
-#@# Configs:
+###############
+#     Code from game_config:
+###############
 # “#”号后面的内容没有实际作用，只用于说明
 # GUI设置
 screen_width = 640
@@ -419,19 +1369,20 @@ GRID_Y_LEN = 12
 REC_SIZE = 50
 
 # 游戏设置
-random_steps = [1, 2, 3, 4, 5, 6]  # 这里是可能随机得到的步数列表
-player_count = 2  # 这是固定的玩家数，如果要固定就将None改为玩家数，否则写None
+DEBUG = True  # 是否开启调试模式，True是“是”，False是“否”
+DEBUG_AUTO_SELECT = True  # 是否自动选择坐标和玩家，True是“是”，False是“否”
+random_steps = [1, 2, 3, 4, 5, 6]  # 可能随机得到的步数列表
+random_characters = 3  # 随机给出的角色数量
+player_count = 2  # 固定的玩家数，如果要固定就将None改为玩家数，否则写None
 get_cards = 2  # 每局摸牌数
-DEBUG = False  # 是否开启调试模式，True是“是”，False是“否”
-cards_dict = {"drug": 1,
-              "tlbd": 2,
-              "shoe": 2,
+cards_limit = 20  # 手牌上限每多少血增加1张，如：
+# 当此值为20时，1~20血可持1张，21~40血可持2张，依此类推
+mhy_chance = 30  # 蒙汗药成功的概率（百分比）
+cards_dict = {"drug": 3,
+              "tlbd": 3,
+              "steal": 5,
               "shield": 2,
-              "energy_book": 2,
-              "wltg": 2,
-              "steal": 2,
-              "gz": 2,
-              "kp": 2
+              "bow": 2
               }
 # 这是牌堆
 
@@ -479,218 +1430,9 @@ GOLD = (255, 215,   0)
 GREEN = (0, 255,   0)
 
 
-#@# Core code:
-# -*- coding: UTF-8 -*-
-
-import platform
-
-import sys
-import os
-import codecs
-from time import sleep
-import random
-try:
-    import pygame
-except ModuleNotFoundError:
-    print("你需要安装pygame模块！")
-    error(155)
-
-import astar
-chesslist=["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"]
-current_file = os.path.abspath(__file__)
-current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
-os.chdir(current_dir)
-players=list()
-special_blocks=list()
-error_hint=str()
-
-pygame.init()
-screen = pygame.display.set_mode(SCREEN_SIZE)
-pygame.display.set_caption("桌游")  # 标题
-pygame.font.Font("./msyh.ttc", 20)#微软雅黑
-bg_img = pygame.image.load(bg_img_file)  # 相对路径
-
-
-
-class GameError(RuntimeError):
-    pass
-
-
-class MapError(GameError):
-    pass
-
-
-def exit(code):
-    print("\n**********")
-    if code > 100:
-        print("[致命错误] 退出代码"+str(code))
-        print("**********\n")
-        sys.exit(code)
-    if code == 0:
-        print("[正常退出]")
-        print("**********\n")
-        sys.exit(0)
-    if code == 1:
-        print("[程序错误] 退出代码1（请将报错截图提交给作者）")
-        print("**********\n")
-        sys.exit(1)
-    else:
-        print("[未知错误] 退出代码"+str(code)+"（请将报错截图提交给作者）")
-        print("**********\n")
-        sys.exit(code)
-
-
-def cls():
-    global is_windows
-    global DEBUG
-    if DEBUG:
-        print("######cls#####")
-        return
-    if is_windows:
-        cls_return_value_handler = os.system("cls")
-    else:
-        cls_return_value_handler = os.system("clear")
-
-
-def str2coordinates(s):
-    try:
-        s=s.replace("(","").replace(")","")
-        s=s.replace(","," ")
-        a,b=[int(i) for i in s.split()]
-        return (a,b)
-    except:
-        return inputCoordinates(msg="坐标非法，请重输：")
-
-def inputCoordinates(msg=""):
-    rawstr=input(msg)
-    return str2coordinates(rawstr)
-def drawAll():
-    drawInfo()
-    print("")
-    drawPlayers()
-    print("")
-    drawMap()
-def drawInfo():
-    global turn,players,current_player_id
-    print("* 第{}轮".format(turn))
-    print("* 玩家数:{}/{}".format(len([i for i in players if i.alive]),len(players)))
-def drawPlayers():
-    global players
-    display_index=1
-    for i in players:
-        print("玩家"+str(display_index)+"  "+i.name,end="\t:")
-        if i.alive:
-            print("生命 {};能量 {}".format(i.life,i.energy))
-        else:
-            print("已死亡")
-        display_index+=1
-def drawMap():
-    pygame.display.flip()
-    global game_map,special_blocks
-    pygame.draw.rect(screen, LIGHTYELLOW, pygame.Rect(0, 0, MAP_WIDTH, MAP_HEIGHT))    
-    print((GRID_X_LEN,GRID_Y_LEN))
-    for x in range(GRID_X_LEN):
-        for y in range(GRID_Y_LEN):
-            if game_map[y][x]=='0':
-                color = GOLD
-            else:
-                color = GREY
-            pygame.draw.rect(screen, color, (x * REC_SIZE, y * REC_SIZE, 
-                    REC_SIZE, REC_SIZE))
-    
-    for y in range(GRID_Y_LEN):
-        # draw a horizontal line
-        start_pos = (0, 0 + REC_SIZE * y)
-        end_pos = (MAP_WIDTH, REC_SIZE * y)
-        pygame.draw.line(screen, BLACK, start_pos, end_pos, 1)
-
-    for x in range(GRID_X_LEN):
-        # draw a horizontal line
-        start_pos = (REC_SIZE * x, 0) 
-        end_pos = (REC_SIZE * x, MAP_HEIGHT)
-        pygame.draw.line(screen, BLACK, start_pos, end_pos, 1)
-    display_map=[i[:] for i in game_map]
-    for i in range(len(players)):
-        if players[i].alive:
-            setblock(display_map,players[i].pos[0],players[i].pos[1],chesslist[i])
-            textSurfaceObj = pygame.font.Font.render(chesslist[i], True, BLACK, background=None)
-            textRectObj = textSurfaceObj.get_rect()
-            textRectObj.topleft = (players[i].pos[0]*REC_SIZE, players[i].pos[1]*REC_SIZE)
-    for i in special_blocks:
-        if display_map[i[0]][i[1]]=='0':
-            setblock(display_map,i[0],i[1],'O')
-    display_map=[i.replace("0", "□").replace("1", "■") for i in display_map]
-    #for i in display_map:
-    #    print(i)
-    
-    
-def isBlockEmpty(a,b=None):
-    global chang,kuan
-    if a>=kuan or b>=chang:
-        return False
-    if type(a)==tuple or type(a)==list:
-        a,b=a
-    global players,game_map
-    if game_map[a][b]=='1':
-        return False
-    for i in players:
-        if i.alive:
-            if i.pos==(a,b):#type((a,b))==tuple
-                return False
-    return True
-def gameMapWithPlayers(*paichu):
-    global game_map,players
-    paichu=list(paichu)
-    gen_map=[i[:] for i in game_map]
-    for i in players:
-        if i.alive and (i not in paichu):
-            setblock(gen_map,i.pos[0],i.pos[1],"1")
-    return gen_map
-def inputPlayerCount():
-    try:
-        return int(input("输入玩家数量："))
-    except:
-        return inputPlayerCount()
-def getDistance(pos1,pos2):
-    return abs(pos1[0]-pos2[0])+abs(pos1[1]-pos2[1])
-
-def setblock(mapp, x, y, to):
-    x=round(x)
-    y=round(y)
-    cchang = len(mapp[0])
-    ckuan = len(mapp)
-    if x>=ckuan:
-        x=ckuan
-    if y>=cchang:
-        y=cchang
-    mapp[x] = mapp[x][:y]+to+mapp[x][y+1:]
-
-def posOnLine(mapp,a, b):
-    result=list()
-    chax = abs(a[0]-b[0])
-    chay = abs(a[1]-b[1])
-    k = (a[1]-b[1])/(a[0]-b[0])  # y=kx+d
-    d = a[1]-a[0]*k
-    #print("函数解析式：y={}x+{}".format(k, d))
-    if chax > chay:
-        #print("x>y")
-        for i in range(a[0], b[0]):#i is x in function y=kx+d
-            if i == a[0]:
-                continue
-            result.append(tuple([round(i,k*i)+round(d)]))
-    else:
-        #print("y>x")
-        for i in range(a[1], b[1]):#i is y in function y=kx+d
-            if i == a[1]:
-                continue
-            result.append(tuple([round((i-d)/k),round(i)]))
-    return result
-
-print("你正在使用的系统是：{}".format(platform.platform()))
-is_windows = (platform.platform().find("Windows")) != -1
-print("Python版本：{}".format(platform.python_version()))
-print("程序目录：{}".format(current_dir))
-
+###############
+#     Code from core:
+###############
 try:
     map_file = open("map.txt", "r")
     game_map = [i.strip() for i in map_file.readlines()]
@@ -723,7 +1465,7 @@ except MapError:
     print("[错误]map.txt格式错误！")
     exit(103)
 
-if player_count==None:
+if player_count == None:
     player_count = inputPlayerCount()
 if player_count <= 1:
     print("[错误]玩家过少")
@@ -745,62 +1487,54 @@ print("[信息]成功加载大小为{}x{}的地图".format(chang, kuan))
 set_map(chang,kuan)
 cls()
 drawMap()
-
-
-while True:
-    for event in pygame.event.get():
-        # 每次循环都会重新绘制屏幕
-        if event.type==pygame.MOUSEMOTION:
-            continue
-        if event.type == pygame.QUIT:  # QUIT用户请求程序关闭
-            sys.exit()
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            pass
-        elif event.type == pygame.KEYDOWN:
-            if event.unicode=='d':
-                drawMap()
-    pygame.display.flip()
-
-
+random_characters_new = random_characters
 for i in range(player_count):
-    a,b=inputCoordinates("请输入玩家"+str(i+1)+"的坐标：")
-    while not isBlockEmpty(a,b):
-        a,b=inputCoordinates("此位置已被占用，请换一个位置：")
-    current_player_id=Player()
-    current_player_id.pos=(a,b)
-    players.append(current_player_id)
+    a, b = inputCoordinates("请输入玩家"+str(i+1)+"的坐标：")
+    while not isBlockEmpty(a, b):
+        a, b = inputCoordinates("此位置已被占用，请换一个位置：")
+    if random_characters_new > len(characters):
+        random_characters_new = len(characters)
+    avaibale = random.sample(characters, random_characters_new)
+    print("请选择你的角色：")
+    for i in range(len(avaibale)):
+        print("({}) {}".format(i+1, avaibale[i].name))
+    juese = inputJuese(avaibale)
+    characters.remove(juese)
+    current_player = juese
+    current_player.pos = (a, b)
+    players.append(current_player)
     cls()
     drawMap()
 cls()
 print("#############")
 print("#  游戏开始 #")
 print("#############")
-running=True
-turn = 1
-current_player_id=0
+running = True
 while running:
-    random_step=random.choice(random_steps)
-    current_player=players[current_player_id]
-    print("玩家{}操作".format(current_player_id+1))
-    current_player.random_step=random_step
+    random_step = random.choice(random_steps)
+    current_player = players[current_player_id]
+    current_player.random_step = random_step
     current_player.round()
-    current_player_id+=1
-    if current_player_id==len(players):
-        current_player_id=0
-        turn+=1
-    if len([i for i in players if i.alive])==0:
+    current_player_id += 1
+    if current_player_id == player_count:
+        current_player_id = 0
+        turn += 1
+    if len([i for i in players if i.alive]) == 0:
         print("？？？你们是怎么做到所有人都死亡的，能给我（作者）康康吗")
-        running=False
+        running = False
         break
-    if len([i for i in players if i.alive])==1:
-        print("游戏结束！\r\n玩家{} {}胜利！\r\n".format(players.index([i for i in players if i.alive][0])+1,[i for i in players if i.alive][0].name))
-        running=False
+    if len([i for i in players if i.alive]) == 1:
+        print("游戏结束！\r\n玩家{} {}胜利！\r\n".format(players.index(
+            [i for i in players if i.alive][0])+1, [i for i in players if i.alive][0].name))
+        running = False
         break
-    while not players[current_player_id].alive:
-        current_player_id+=1
-        if current_player_id==len(players):
-            current_player_id=0
-            turn+=1
+    while (not players[current_player_id].alive) or (players[current_player_id].disabled):
+        if players[current_player_id].disabled:
+            players[current_player_id].disabled = False
+        current_player_id += 1
+        if current_player_id == player_count:
+            current_player_id = 0
+            turn += 1
 os.system("pause")
 exit(0)
 
