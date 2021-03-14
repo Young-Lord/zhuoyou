@@ -574,64 +574,395 @@ class try3(Player):
 
 
 ###############
-#     Code from inits:
+#     Code from items:
 ###############
-import platform
-import sys
-import os
-import codecs
-from time import sleep
-import random
-from math import sqrt, degrees, acos
-
 import astar
+import random
+
+zhuangbei_list = {"武器": {"code": "weapon", "key": "w"},
+                  "护盾": {"code": "shield", "key": "h"},
+                  "能量书": {"code": "energy_book", "key": "n"},
+                  "鞋子": {"code": "shoe", "key": "s"}}
+# use in function zhuangbei_(),characters/base.py
+
+weapons = {
+    None: {"name": "空手", "value": 5, "distance": 1},
+    "测试-伤害15": {"name": "测试2", "value": 15, "distance": 5},
+    "禅杖": {"name": "禅杖", "value": 20, "distance": 100},
+    "屠龙宝刀": {"name": "屠龙宝刀", "value": 100, "distance": 100},
+    "板斧": {"name": "板斧", "value": 12, "distance": 1},
+    "朴刀": {"name": "朴刀", "value": 10, "distance": 2},
+    "弓": {"name": "弓", "value": 8, "distance": 6, "remote": True}
+}
+shields = {
+    None: {"name": "无", "value": 0},
+    "盾牌": {"name": "盾牌", "value": 5}
+}
+shoes = {
+    None: {"name": "无", "value": 0},
+    "鞋子": {"name": "鞋子", "value": 1},
+    "测试-加速3": {"name": "测试2", "value": 3}
+}
+energy_books = {
+    None: {"name": "无", "value": 0},
+    "典籍": {"name": "典籍", "value": 30}
+}
+# -药- -武器- -鞋子- -盾牌- -能量书- ~钩爪~ ~偷窃~ -五雷天罡法- ~无懈可击(被动)~
 
 
-chess_list = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
-current_file = os.path.abspath(__file__)
-current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
-os.chdir(current_dir)
-players = list()
-special_blocks = list()
-action_result = str()
-qipai = list()
+class drug:
+    name = "药"
+    value = 10
 
-running = False
-turn = 1
-random_step = 0
-current_player_id = 0
+    def use(self, sender, *arg):
+        sender.life += self.value
+        sender.update()
 
 
-print("你正在使用的系统是：{}".format(platform.platform()))
-is_windows = (platform.platform().find("Windows")) != -1
-print("Python版本：{}".format(platform.python_version()))
-print("程序目录：{}".format(current_dir))
+class mhy:
+    name = "蒙汗药"
+    value = -1
+
+    def use(self, sender, target, *arg):
+        global action_result, mhy_chance
+        if sender == target:
+            action_result = "别对自己下手！"
+            return True
+        if target.disabled:
+            action_result = "他已经有这个标记了！（TODO：修改提示语）"
+            return True
+        if random.randint(1, 100) <= mhy_chance:  # 蒙汗药可以生效
+            action_result = "蒙汗药使用成功！"
+            target.disabled = True
+        else:
+            action_result = "蒙汗药使用失败！"
 
 
-characters_file = [i for i in os.listdir(os.path.join(
-    os.getcwd(), "characters")) if i[-3:] == '.py' and i != "tempCodeRunnerFile.py"]
-characters = list()
-for i in characters_file:
-    with codecs.open("characters/"+i, "r", encoding='utf-8') as f:
-        cont = f.read().replace("\xef\xbb\xbf", '')
-        if cont.find("class") == -1:
-            continue
-        cont = cont.replace("(Player)", "")
-        name_1 = cont.find("class ")+6
-        name_2 = cont.find(":")
-        characters.append(cont[name_1:name_2])
+class weapon_base:
+    name = "武器_父类"
+    value = "测试-伤害15"
 
-characters = [i for i in characters if i != 'Player']
+    def use(self, sender, *arg):
+        if sender.weapon != None:
+            qipai.append(mopai_by_value(sender.weapon))
+        sender.weapon = self.value
+        self.use_custom(sender)
 
-error_list_ch = list()
-for i in range(len(characters)):
-    try:
-        characters[i] = eval(characters[i]+"()")
-    except NameError as ne:
-        print("[警告]", ne, "请将警告信息发给作者")
-        error_list_ch.append(characters[i])
-for i in error_list_ch:
-    characters.remove(i)
+    def use_custom(self, sender):
+        pass
+
+
+class weapon_None(weapon_base):
+    name = "不使用武器"
+    value = None
+
+
+class tlbd(weapon_base):
+    name = "屠龙宝刀"
+    value = "屠龙宝刀"
+
+
+class bf(weapon_base):
+    name = "板斧"
+    value = "板斧"
+
+
+class pd(weapon_base):
+    name = "朴刀"
+    value = "朴刀"
+
+
+class bow(weapon_base):
+    name = "弓"
+    value = "弓"
+
+
+class cz(weapon_base):
+    name = "禅杖"
+    value = "禅杖"
+
+    def use_custom(self, sender):
+        sender.buff = [i for i in sender.buff if (
+            i != "chanzhang_cd" and i != "chanzhang_cd_2")]
+
+
+class shoe_base:
+    name = "鞋子_父类"
+    value = "测试-加速3"
+
+    def use(self, sender, *arg):
+        if sender.shoe != None:
+            qipai.append(mopai_by_value(sender.shoe))
+        sender.shoe = self.value
+
+
+class shoe_None(shoe_base):
+    name = "不使用鞋子"
+    value = None
+
+
+class shoe(shoe_base):
+    name = "鞋子"
+    value = "鞋子"
+
+
+class shield_base:
+    name = "盾牌_父类"
+    value = "盾牌_父类"
+
+    def use(self, sender, *arg):
+        if sender.shield != None:
+            qipai.append(mopai_by_value(sender.shield))
+        sender.shield = self.value
+
+
+class shield(shield_base):
+    name = "盾牌"
+    value = "盾牌"
+
+
+class shield_None(shield_base):
+    name = "不使用盾牌"
+    value = None
+
+
+class energy_book_base:
+    name = "能量书_父类"
+    value = "能量书_父类"
+
+    def use(self, sender, *arg):
+        if sender.energy_book != None:
+            qipai.append(mopai_by_value(sender.energy_book))
+        sender.energy_book = self.value
+
+
+class energy_book_base:
+    name = "典籍"
+    value = "典籍"
+
+
+class energy_book_None(energy_book_base):
+    name = "不使用典籍"
+    value = None
+
+# 直线上没有障碍物：偷窃必须，五雷天罡法可以没有
+
+
+class remote_attack_base:
+    name = "远程攻击_父类"
+    value = 1
+    distance = 1
+
+    def use(self, sender, target, *arg):
+        global action_result
+        route = (astar.astar(gameMapWithPlayers(sender, target),
+                             sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
+        if route == list():
+            action_result = "无法到达！"
+            return True
+        if len(route) > self.distance:
+            action_result = "太远了！"
+            return True
+        target.damage(self.value)
+        sender.update()
+
+
+class wltg(remote_attack_base):
+    name = "五雷天罡法"
+    value = 30
+    distance = 5
+
+    def use(self, sender, target, *arg):
+        global action_result
+        if sender == target:
+            action_result = "别对自己下手！"
+            return True
+        if getDistance_ou(sender.pos, target.pos) > self.distance:
+            action_result = "太远了！"
+            return True
+        target.damage(self.value)
+        sender.update()
+
+
+class gz(remote_attack_base):
+    name = "钩爪"
+    value = 5
+    distance = 4
+
+    def use(self, sender, target, *arg):
+        global game_map
+        global action_result
+        if sender == target:
+            action_result = "别对自己下手！"
+            return True
+        #action_result="***几何什么的最烦了 钩爪拐弯就随他吧！"
+        route = (astar.astar(gameMapWithPlayers(sender, target),
+                             sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
+        if route == list():
+            action_result = "无法到达！"
+            return True
+        distance = getDistance_ou(sender.pos, target.pos)
+        if distance > self.distance:
+            action_result = "太远了！"
+            return True
+        target.damage(self.value)
+        # 即target在sender附近8格
+        if distance == 1 or (distance == 2 and (abs(sender.pos[0]-target.pos[0]) == 1)):
+            pass
+        else:
+            if not lineAvaibale(sender.pos, target.pos):
+                action_result = "直线上存在障碍物！"
+                return True
+            target.pos = getFangXiangPos(sender.pos, target.pos)
+        sender.update()
+        target.update()
+
+
+class steal:
+    name = "偷窃"
+    value = 1
+    distance = 2
+
+    def use(self, sender, target, *arg):
+        global action_result, zhuangbei_list
+        if sender == target:
+            action_result = "别对自己下手！"
+            return True
+        route = (astar.astar(gameMapWithPlayers(sender, target),
+                             sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
+        if route == list():
+            action_result = "无法到达！"
+            return True
+        if len(route) > self.distance:
+            action_result = "太远了！"
+            return True
+        selectable = []
+        for i in zhuangbei_list:
+            my_item = eval("target."+zhuangbei_list[i]["code"])
+            if my_item != None:
+                selectable.append((i, my_item))
+        if len(selectable)+len(target.item) == 0:
+            action_result = "他什么都没有！"
+            return True
+        for i in target.item:
+            selectable.append(("beibao", i))
+        card_count = 0
+        beibao = 1
+        while len(selectable) != 0 and card_count < self.value:
+            print("他的物品为：")
+            for i in range(len(selectable)):
+                if selectable[i][0] != "beibao":
+                    print("({}) {}\t:{}".format(
+                        i+1, selectable[i][0], selectable[i][1]))
+                else:
+                    print("({}) 背包物品{}\t:???".format(i+1, beibao))
+                    beibao += 1
+            select = ""
+            while True:
+                select = input("请选择你要偷窃的牌：")
+                try:
+                    if 1 <= int(select) <= len(selectable):
+                        break
+                except:
+                    pass
+            card_count += 1
+            selected = selectable[int(select)-1]
+            selectable.remove(selected)
+            if selected[0] == "beibao":
+                selected = selected[1]
+                action_result = "* 你偷到了他的"+selected.name+"!"
+                sender.item.append(selected)
+                target.item.remove(selected)
+            else:
+                the_card = mopai_by_value(selected[1])
+                exec("target."+zhuangbei_list[selected[0]]["code"]+"="+"None")
+                sender.item.append(the_card)
+
+
+class kp:
+    name = "看破"
+    value = 1
+
+    def use(self, *arg):
+        global action_result
+        action_result = "这张牌属于被动牌！"
+        return True
+
+
+###############
+#     Code from game_config:
+###############
+# “#”号后面的内容没有实际作用，只用于说明
+# GUI设置
+screen_width = 640
+screen_height = 480
+bg_img_file = "./imgs/bg_img.png"
+
+GRID_X_LEN = 10
+GRID_Y_LEN = 12
+
+REC_SIZE = 50
+
+# 游戏设置
+DEBUG = True  # 是否开启调试模式，True是“是”，False是“否”
+DEBUG_AUTO_SELECT = True  # 是否自动选择坐标和玩家，True是“是”，False是“否”
+random_steps = [1, 2, 3, 4, 5, 6]  # 可能随机得到的步数列表
+random_characters = 3  # 随机给出的角色数量
+player_count = 2  # 固定的玩家数，如果要固定就将None改为玩家数，否则写None
+get_cards = 2  # 每局摸牌数
+cards_limit = 20  # 手牌上限每多少血增加1张，如：
+# 当此值为20时，1~20血可持1张，21~40血可持2张，依此类推
+mhy_chance = 30  # 蒙汗药成功的概率（百分比）
+cards_dict = {"drug": 3,
+              "tlbd": 3,
+              "steal": 5,
+              "shield": 2,
+              "bow": 2
+              }
+# 这是牌堆
+
+
+# 不要修改下面的内容
+if type(random_steps) == int:
+    random_steps = list(random_steps)
+cards = "["
+for i in cards_dict.keys():
+    cards += (i+"(),")*cards_dict[i]
+cards += "]"
+cards = eval(cards)
+
+
+def set_map(changg, kuann):
+    global GRID_X_LEN, GRID_Y_LEN, MAP_WIDTH, MAP_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHTSCREEN_SIZE, screen
+    GRID_X_LEN = changg
+    GRID_Y_LEN = kuann
+    MAP_WIDTH = GRID_X_LEN * REC_SIZE
+    MAP_HEIGHT = GRID_Y_LEN * REC_SIZE
+    SCREEN_WIDTH = MAP_WIDTH
+    SCREEN_HEIGHT = MAP_HEIGHT
+    SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
+    screen = pygame.display.set_mode(SCREEN_SIZE)
+
+
+MAP_WIDTH = GRID_X_LEN * REC_SIZE
+MAP_HEIGHT = GRID_Y_LEN * REC_SIZE
+
+
+SCREEN_WIDTH = MAP_WIDTH
+SCREEN_HEIGHT = MAP_HEIGHT
+SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
+
+
+WHITE = (255, 255, 255)
+NAVYBLUE = (60,  60, 100)
+SKY_BLUE = (39, 145, 251)
+BLACK = (0,   0,   0)
+GREY = (127,   127,   127)
+LIGHTYELLOW = (247, 238, 214)
+RED = (255,   0,   0)
+PURPLE = (255,   0, 255)
+GOLD = (255, 215,   0)
+GREEN = (0, 255,   0)
 
 
 ###############
@@ -1039,395 +1370,64 @@ def mopai_by_value(value):
 
 
 ###############
-#     Code from items:
+#     Code from inits:
 ###############
-import astar
+import platform
+import sys
+import os
+import codecs
+from time import sleep
 import random
-
-zhuangbei_list = {"武器": {"code": "weapon", "key": "w"},
-                  "护盾": {"code": "shield", "key": "h"},
-                  "能量书": {"code": "energy_book", "key": "n"},
-                  "鞋子": {"code": "shoe", "key": "s"}}
-# use in function zhuangbei_(),characters/base.py
-
-weapons = {
-    None: {"name": "空手", "value": 5, "distance": 1},
-    "测试-伤害15": {"name": "测试2", "value": 15, "distance": 5},
-    "禅杖": {"name": "禅杖", "value": 20, "distance": 100},
-    "屠龙宝刀": {"name": "屠龙宝刀", "value": 100, "distance": 100},
-    "板斧": {"name": "板斧", "value": 12, "distance": 1},
-    "朴刀": {"name": "朴刀", "value": 10, "distance": 2},
-    "弓": {"name": "弓", "value": 8, "distance": 6, "remote": True}
-}
-shields = {
-    None: {"name": "无", "value": 0},
-    "盾牌": {"name": "盾牌", "value": 5}
-}
-shoes = {
-    None: {"name": "无", "value": 0},
-    "鞋子": {"name": "鞋子", "value": 1},
-    "测试-加速3": {"name": "测试2", "value": 3}
-}
-energy_books = {
-    None: {"name": "无", "value": 0},
-    "典籍": {"name": "典籍", "value": 30}
-}
-# -药- -武器- -鞋子- -盾牌- -能量书- ~钩爪~ ~偷窃~ -五雷天罡法- ~无懈可击(被动)~
-
-
-class drug:
-    name = "药"
-    value = 10
-
-    def use(self, sender, *arg):
-        sender.life += self.value
-        sender.update()
-
-
-class mhy:
-    name = "蒙汗药"
-    value = -1
-
-    def use(self, sender, target, *arg):
-        global action_result, mhy_chance
-        if sender == target:
-            action_result = "别对自己下手！"
-            return True
-        if target.disabled:
-            action_result = "他已经有这个标记了！（TODO：修改提示语）"
-            return True
-        if random.randint(1, 100) <= mhy_chance:  # 蒙汗药可以生效
-            action_result = "蒙汗药使用成功！"
-            target.disabled = True
-        else:
-            action_result = "蒙汗药使用失败！"
-
-
-class weapon_base:
-    name = "武器_父类"
-    value = "测试-伤害15"
-
-    def use(self, sender, *arg):
-        if sender.weapon != None:
-            qipai.append(mopai_by_value(sender.weapon))
-        sender.weapon = self.value
-        self.use_custom(sender)
-
-    def use_custom(self, sender):
-        pass
-
-
-class weapon_None(weapon_base):
-    name = "不使用武器"
-    value = None
-
-
-class tlbd(weapon_base):
-    name = "屠龙宝刀"
-    value = "屠龙宝刀"
-
-
-class bf(weapon_base):
-    name = "板斧"
-    value = "板斧"
-
-
-class pd(weapon_base):
-    name = "朴刀"
-    value = "朴刀"
-
-
-class bow(weapon_base):
-    name = "弓"
-    value = "弓"
-
-
-class cz(weapon_base):
-    name = "禅杖"
-    value = "禅杖"
-
-    def use_custom(self, sender):
-        sender.buff = [i for i in sender.buff if (
-            i != "chanzhang_cd" and i != "chanzhang_cd_2")]
-
-
-class shoe_base:
-    name = "鞋子_父类"
-    value = "测试-加速3"
-
-    def use(self, sender, *arg):
-        if sender.shoe != None:
-            qipai.append(mopai_by_value(sender.shoe))
-        sender.shoe = self.value
-
-
-class shoe_None(shoe_base):
-    name = "不使用鞋子"
-    value = None
-
-
-class shoe(shoe_base):
-    name = "鞋子"
-    value = "鞋子"
-
-
-class shield_base:
-    name = "盾牌_父类"
-    value = "盾牌_父类"
-
-    def use(self, sender, *arg):
-        if sender.shield != None:
-            qipai.append(mopai_by_value(sender.shield))
-        sender.shield = self.value
-
-
-class shield(shield_base):
-    name = "盾牌"
-    value = "盾牌"
-
-
-class shield_None(shield_base):
-    name = "不使用盾牌"
-    value = None
-
-
-class energy_book_base:
-    name = "能量书_父类"
-    value = "能量书_父类"
-
-    def use(self, sender, *arg):
-        if sender.energy_book != None:
-            qipai.append(mopai_by_value(sender.energy_book))
-        sender.energy_book = self.value
-
-
-class energy_book_base:
-    name = "典籍"
-    value = "典籍"
-
-
-class energy_book_None(energy_book_base):
-    name = "不使用典籍"
-    value = None
-
-# 直线上没有障碍物：偷窃必须，五雷天罡法可以没有
-
-
-class remote_attack_base:
-    name = "远程攻击_父类"
-    value = 1
-    distance = 1
-
-    def use(self, sender, target, *arg):
-        global action_result
-        route = (astar.astar(gameMapWithPlayers(sender, target),
-                             sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
-        if route == list():
-            action_result = "无法到达！"
-            return True
-        if len(route) > self.distance:
-            action_result = "太远了！"
-            return True
-        target.damage(self.value)
-        sender.update()
-
-
-class wltg(remote_attack_base):
-    name = "五雷天罡法"
-    value = 30
-    distance = 5
-
-    def use(self, sender, target, *arg):
-        global action_result
-        if sender == target:
-            action_result = "别对自己下手！"
-            return True
-        if getDistance_ou(sender.pos, target.pos) > self.distance:
-            action_result = "太远了！"
-            return True
-        target.damage(self.value)
-        sender.update()
-
-
-class gz(remote_attack_base):
-    name = "钩爪"
-    value = 5
-    distance = 4
-
-    def use(self, sender, target, *arg):
-        global game_map
-        global action_result
-        if sender == target:
-            action_result = "别对自己下手！"
-            return True
-        #action_result="***几何什么的最烦了 钩爪拐弯就随他吧！"
-        route = (astar.astar(gameMapWithPlayers(sender, target),
-                             sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
-        if route == list():
-            action_result = "无法到达！"
-            return True
-        distance = getDistance_ou(sender.pos, target.pos)
-        if distance > self.distance:
-            action_result = "太远了！"
-            return True
-        target.damage(self.value)
-        # 即target在sender附近8格
-        if distance == 1 or (distance == 2 and (abs(sender.pos[0]-target.pos[0]) == 1)):
-            pass
-        else:
-            if not lineAvaibale(sender.pos, target.pos):
-                action_result = "直线上存在障碍物！"
-                return True
-            target.pos = getFangXiangPos(sender.pos, target.pos)
-        sender.update()
-        target.update()
-
-
-class steal:
-    name = "偷窃"
-    value = 1
-    distance = 2
-
-    def use(self, sender, target, *arg):
-        global action_result, zhuangbei_list
-        if sender == target:
-            action_result = "别对自己下手！"
-            return True
-        route = (astar.astar(gameMapWithPlayers(sender, target),
-                             sender.pos[0], sender.pos[1], target.pos[0], target.pos[1]))
-        if route == list():
-            action_result = "无法到达！"
-            return True
-        if len(route) > self.distance:
-            action_result = "太远了！"
-            return True
-        selectable = []
-        for i in zhuangbei_list:
-            my_item = eval("target."+zhuangbei_list[i]["code"])
-            if my_item != None:
-                selectable.append((i, my_item))
-        if len(selectable)+len(target.item) == 0:
-            action_result = "他什么都没有！"
-            return True
-        for i in target.item:
-            selectable.append(("beibao", i))
-        card_count = 0
-        beibao = 1
-        while len(selectable) != 0 and card_count < self.value:
-            print("他的物品为：")
-            for i in range(len(selectable)):
-                if selectable[i][0] != "beibao":
-                    print("({}) {}\t:{}".format(
-                        i+1, selectable[i][0], selectable[i][1]))
-                else:
-                    print("({}) 背包物品{}\t:???".format(i+1, beibao))
-                    beibao += 1
-            select = ""
-            while True:
-                select = input("请选择你要偷窃的牌：")
-                try:
-                    if 1 <= int(select) <= len(selectable):
-                        break
-                except:
-                    pass
-            card_count += 1
-            selected = selectable[int(select)-1]
-            selectable.remove(selected)
-            if selected[0] == "beibao":
-                selected = selected[1]
-                action_result = "* 你偷到了他的"+selected.name+"!"
-                sender.item.append(selected)
-                target.item.remove(selected)
-            else:
-                the_card = mopai_by_value(selected[1])
-                exec("target."+zhuangbei_list[selected[0]]["code"]+"="+"None")
-                sender.item.append(the_card)
-
-
-class kp:
-    name = "看破"
-    value = 1
-
-    def use(self, *arg):
-        global action_result
-        action_result = "这张牌属于被动牌！"
-        return True
-
-
-###############
-#     Code from game_config:
-###############
-# “#”号后面的内容没有实际作用，只用于说明
-# GUI设置
-screen_width = 640
-screen_height = 480
-bg_img_file = "./imgs/bg_img.png"
-
-GRID_X_LEN = 10
-GRID_Y_LEN = 12
-
-REC_SIZE = 50
-
-# 游戏设置
-DEBUG = True  # 是否开启调试模式，True是“是”，False是“否”
-DEBUG_AUTO_SELECT = True  # 是否自动选择坐标和玩家，True是“是”，False是“否”
-random_steps = [1, 2, 3, 4, 5, 6]  # 可能随机得到的步数列表
-random_characters = 3  # 随机给出的角色数量
-player_count = 2  # 固定的玩家数，如果要固定就将None改为玩家数，否则写None
-get_cards = 2  # 每局摸牌数
-cards_limit = 20  # 手牌上限每多少血增加1张，如：
-# 当此值为20时，1~20血可持1张，21~40血可持2张，依此类推
-mhy_chance = 30  # 蒙汗药成功的概率（百分比）
-cards_dict = {"drug": 3,
-              "tlbd": 3,
-              "steal": 5,
-              "shield": 2,
-              "bow": 2
-              }
-# 这是牌堆
-
-
-# 不要修改下面的内容
-if type(random_steps) == int:
-    random_steps = list(random_steps)
-cards = "["
-for i in cards_dict.keys():
-    cards += (i+"(),")*cards_dict[i]
-cards += "]"
-cards = eval(cards)
-
-
-def set_map(changg, kuann):
-    global GRID_X_LEN, GRID_Y_LEN, MAP_WIDTH, MAP_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHTSCREEN_SIZE, screen
-    GRID_X_LEN = changg
-    GRID_Y_LEN = kuann
-    MAP_WIDTH = GRID_X_LEN * REC_SIZE
-    MAP_HEIGHT = GRID_Y_LEN * REC_SIZE
-    SCREEN_WIDTH = MAP_WIDTH
-    SCREEN_HEIGHT = MAP_HEIGHT
-    SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
-    screen = pygame.display.set_mode(SCREEN_SIZE)
-
-
-MAP_WIDTH = GRID_X_LEN * REC_SIZE
-MAP_HEIGHT = GRID_Y_LEN * REC_SIZE
-
-
-SCREEN_WIDTH = MAP_WIDTH
-SCREEN_HEIGHT = MAP_HEIGHT
-SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
-
-
-WHITE = (255, 255, 255)
-NAVYBLUE = (60,  60, 100)
-SKY_BLUE = (39, 145, 251)
-BLACK = (0,   0,   0)
-GREY = (127,   127,   127)
-LIGHTYELLOW = (247, 238, 214)
-RED = (255,   0,   0)
-PURPLE = (255,   0, 255)
-GOLD = (255, 215,   0)
-GREEN = (0, 255,   0)
+from math import sqrt, degrees, acos
+
+import astar
+
+
+chess_list = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
+current_file = os.path.abspath(__file__)
+current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
+os.chdir(current_dir)
+players = list()
+special_blocks = list()
+action_result = str()
+qipai = list()
+
+running = False
+turn = 1
+random_step = 0
+current_player_id = 0
+
+
+print("你正在使用的系统是：{}".format(platform.platform()))
+is_windows = (platform.platform().find("Windows")) != -1
+print("Python版本：{}".format(platform.python_version()))
+print("程序目录：{}".format(current_dir))
+
+
+characters_file = [i for i in os.listdir(os.path.join(
+    os.getcwd(), "characters")) if i[-3:] == '.py' and i != "tempCodeRunnerFile.py"]
+characters = list()
+for i in characters_file:
+    with codecs.open("characters/"+i, "r", encoding='utf-8') as f:
+        cont = f.read().replace("\xef\xbb\xbf", '')
+        if cont.find("class") == -1:
+            continue
+        cont = cont.replace("(Player)", "")
+        name_1 = cont.find("class ")+6
+        name_2 = cont.find(":")
+        characters.append(cont[name_1:name_2])
+
+characters = [i for i in characters if i != 'Player']
+
+error_list_ch = list()
+for i in range(len(characters)):
+    try:
+        characters[i] = eval(characters[i]+"()")
+    except NameError as ne:
+        print("[警告]", ne, "请将警告信息发给作者")
+        error_list_ch.append(characters[i])
+for i in error_list_ch:
+    characters.remove(i)
 
 
 ###############
