@@ -30,7 +30,6 @@ for i in range(player_count):
     current_player = juese
     current_player.pos = (a, b)
     players.append(current_player)
->>>>>>> origin/master
     cls()
     drawMap()
 cls()
