@@ -1429,10 +1429,6 @@ for i in range(len(characters)):
 for i in error_list_ch:
     characters.remove(i)
 
-
-###############
-#     Code from core:
-###############
 try:
     map_file = open("map.txt", "r")
     game_map = [i.strip() for i in map_file.readlines()]
@@ -1485,6 +1481,11 @@ except MapError:
 
 print("[信息]成功加载大小为{}x{}的地图".format(chang, kuan))
 cls()
+
+
+###############
+#     Code from core:
+###############
 drawMap()
 random_characters_new = random_characters
 for i in range(player_count):
