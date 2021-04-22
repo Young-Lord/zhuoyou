@@ -35,6 +35,10 @@ class Player:
         pass
 
     def __init__(self):
+        self.weapon = weapon_None()
+        self.shield = shield_None()
+        self.shoe = shoe_None()
+        self.energy_book = energy_book_None()
         self.actions = dict()
         self.item = list()
         self.buff = list()
@@ -77,7 +81,7 @@ class Player:
                     self.actions[i]["name"], i, self.actions[i]["arg"]))
         if self.actions["goto"]["count"] != 0:
             print("*你可以走的距离为："+str(self.random_step +
-                                   shoes[self.shoe]["value"]+self.speed_add))
+                                   self.shoe.value+self.speed_add))
         max_card = (self.life+cards_limit-1)//cards_limit
         if len(self.item) > max_card:
             print("*回合结束时，你需要弃{}张牌".format(len(self.item)-max_card))
@@ -141,7 +145,7 @@ class Player:
         except ValueError:
             action_result = "命令非法！"
             return
-        if "chanzhang_cd_2" in self.buff and self.weapon == "禅杖":
+        if "chanzhang_cd_2" in self.buff and type(self.weapon) == cz:
             action_result = "禅杖冷却中..."
             self.actions[command[0]]["count"] -= 1
             return
@@ -155,14 +159,14 @@ class Player:
         if route == list():
             action_result = "无法到达！"
             return
-        if "remote" in weapons[self.weapon].keys() and weapons[self.weapon]["remote"]:
-            if getDistance_ou(self.pos, target.pos) > weapons[self.weapon]["distance"]+self.attack_range_add:
+        if "remote" in type(self.weapon).__dict__ and self.weapon.remote:
+            if getDistance_ou(self.pos, target.pos) > self.weapon.distance+self.attack_range_add:
                 action_result = "太远了！"
                 return
             if not lineAvaibale(self.pos, target.pos):
                 action_result = "与目标间存在障碍物！"
                 return
-        elif len(route) > weapons[self.weapon]["distance"]+self.attack_range_add:
+        elif len(route) > self.weapon.distance+self.attack_range_add:
             action_result = "太远了！"
             return
         self.attack(target)
@@ -188,7 +192,7 @@ class Player:
         if route == list():
             action_result = "无法到达！"
             return
-        if len(route) > (self.random_step+shoes[self.shoe]["value"]+self.speed_add):
+        if len(route) > (self.random_step+self.shoe.value+self.speed_add):
             action_result = "太远了！"
             return
         action_result = "走法：\n"
@@ -243,18 +247,18 @@ class Player:
         return self.use_(["use", str(self.item.index(content)+1)])
 
     def attack(self, target):
-        if self.weapon == "禅杖":
+        if type(self.weapon) == cz and "chanzhang_cd" not in self.buff:
             self.buff.append("chanzhang_cd")
-        hurt = target.damage((weapons[self.weapon]["value"] +
+        hurt = target.damage((self.weapon.value +
                               self.attack_add)*self.attack_percent//100)
         self.update()
         return hurt
 
     def damage(self, value):
         hurt = 0
-        if ((value-shields[self.shield]["value"]-self.damage_minus)*self.damage_percent//100) > 0:
+        if ((value-self.shield.value-self.damage_minus)*self.damage_percent//100) > 0:
             hurt = round(
-                (value-shields[self.shield]["value"] - self.damage_minus)*self.damage_percent//100)
+                (value-self.shield.value - self.damage_minus)*self.damage_percent//100)
         self.life -= hurt
         self.update()
         return hurt
@@ -264,10 +268,12 @@ class Player:
             return
         if self.life <= 0:
             self.zhiliao()
+        if not self.alive:
+            return
         if self.life > self.max_life:
             self.life = self.max_life
         self.max_energy = self.max_energy_bak + \
-            energy_books[self.energy_book]["value"]
+            self.energy_book.value
         if self.energy > self.max_energy:
             self.energy = self.max_energy
 
@@ -405,12 +411,8 @@ class Player:
                 return
         for i in zhuangbei_list:
             my_item = eval("target."+zhuangbei_list[i]["code"])
-            if my_item != None:
-                my_item = '"'+my_item+'"'
-            my_name = eval("{}s[{}][\"name\"]".format(
-                zhuangbei_list[i]["code"], my_item))
-            my_value = eval("{}s[{}][\"value\"]".format(
-                zhuangbei_list[i]["code"], my_item))
+            my_name = my_item.name
+            my_value = my_item.value
             action_result += "({}) {}\t:{}(+{})\n".format(
                 zhuangbei_list[i]["key"],
                 i,
@@ -440,17 +442,12 @@ class Player:
                 i for i in zhuangbei_list][operations.index(input_str)]
             input_str = ""
             current_item = eval("self."+zhuangbei_list[current_type]["code"])
-            if current_item != None:
-                current_item = '"'+current_item+'"'
-            current_name = eval("{}s[{}][\"name\"]".format(
-                zhuangbei_list[current_type]["code"], current_item))
-            current_value = eval("{}s[{}][\"value\"]".format(
-                zhuangbei_list[current_type]["code"], current_item))
+            current_name = current_item.name
+            current_value = current_item.value
             print("当前{}:{}(+{})".format(current_type, current_name, current_value))
             avaibale_changes = [i for i in self.item if type(
                 i).__base__.__name__ == zhuangbei_list[current_type]["code"]+"_base"]
-            avaibale_values = [eval("{}s[\"{}\"][\"value\"]"
-                                    .format(zhuangbei_list[current_type]["code"], i.value)) for i in avaibale_changes]
+            avaibale_values = [i.value for i in avaibale_changes]
             print("可用的选择：")
             print("(0) 返回")
             for i in range(len(avaibale_changes)):
@@ -469,6 +466,6 @@ class Player:
             if input_str == 0:
                 continue
             else:
-                if current_item != None:
-                    qipai.append(mopai_by_value(current_item))
+                if type(current_item).__name__.find("_None")!=-1:
+                    qipai.append(current_item)
                 self.use_by_content(avaibale_changes[input_str-1])

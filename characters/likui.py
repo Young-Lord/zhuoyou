@@ -10,7 +10,13 @@ class likui(Player):
         self.actions_bak["attack"]["count"] = 3
 
     def update(self):
+        if not self.alive:
+            return
         if self.life <= 0:
-            self.alive = False
+            self.zhiliao()
+        if not self.alive:
+            return
+        if self.life > self.max_life:
+            self.life = self.max_life
         self.energy = 0
         self.max_energy = 0

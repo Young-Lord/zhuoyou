@@ -7,30 +7,6 @@ zhuangbei_list = {"武器": {"code": "weapon", "key": "w"},
                   "鞋子": {"code": "shoe", "key": "s"}}
 # use in function zhuangbei_(),characters/base.py
 
-weapons = {
-    None: {"name": "空手", "value": 5, "distance": 1},
-    "测试-伤害15": {"name": "测试2", "value": 15, "distance": 5},
-    "禅杖": {"name": "禅杖", "value": 20, "distance": 100},
-    "屠龙宝刀": {"name": "屠龙宝刀", "value": 100, "distance": 100},
-    "板斧": {"name": "板斧", "value": 12, "distance": 1},
-    "朴刀": {"name": "朴刀", "value": 10, "distance": 2},
-    "弓": {"name": "弓", "value": 8, "distance": 6, "remote": True}
-}
-shields = {
-    None: {"name": "无", "value": 0},
-    "盾牌": {"name": "盾牌", "value": 5}
-}
-shoes = {
-    None: {"name": "无", "value": 0},
-    "鞋子": {"name": "鞋子", "value": 1},
-    "测试-加速3": {"name": "测试2", "value": 3}
-}
-energy_books = {
-    None: {"name": "无", "value": 0},
-    "典籍": {"name": "典籍", "value": 30}
-}
-# -药- -武器- -鞋子- -盾牌- -能量书- ~钩爪~ ~偷窃~ -五雷天罡法- ~无懈可击(被动)~
-
 
 class drug:
     name = "药"
@@ -62,12 +38,13 @@ class mhy:
 
 class weapon_base:
     name = "武器_父类"
-    value = "测试-伤害15"
+    value = -1
+    distance= -1
 
     def use(self, sender, *arg):
-        if sender.weapon != None:
-            qipai.append(mopai_by_value(sender.weapon))
-        sender.weapon = self.value
+        if type(sender.weapon) != weapon_None:
+            qipai.append(sender.weapon)
+        sender.weapon = self
         self.use_custom(sender)
 
     def use_custom(self, sender):
@@ -75,33 +52,40 @@ class weapon_base:
 
 
 class weapon_None(weapon_base):
-    name = "不使用武器"
-    value = None
+    name = "无"
+    value = 5
+    distance=1
 
 
 class tlbd(weapon_base):
     name = "屠龙宝刀"
-    value = "屠龙宝刀"
+    value = 100
+    distance = 100
 
 
 class bf(weapon_base):
     name = "板斧"
-    value = "板斧"
+    value = 12
+    distance=1
 
 
 class pd(weapon_base):
     name = "朴刀"
-    value = "朴刀"
+    value = 10
+    distance=2
 
 
 class bow(weapon_base):
     name = "弓"
-    value = "弓"
+    value = 8
+    distance = 6
+    remote=True
 
 
 class cz(weapon_base):
     name = "禅杖"
-    value = "禅杖"
+    value = 20
+    distance=100 #TODO
 
     def use_custom(self, sender):
         sender.buff = [i for i in sender.buff if (
@@ -110,62 +94,62 @@ class cz(weapon_base):
 
 class shoe_base:
     name = "鞋子_父类"
-    value = "测试-加速3"
+    value = -1
 
     def use(self, sender, *arg):
-        if sender.shoe != None:
-            qipai.append(mopai_by_value(sender.shoe))
-        sender.shoe = self.value
+        if type(sender.shoe) != shoe_None:
+            qipai.append(sender.shoe)
+        sender.shoe = self
 
 
 class shoe_None(shoe_base):
-    name = "不使用鞋子"
-    value = None
+    name = "无"
+    value = 0
 
 
 class shoe(shoe_base):
     name = "鞋子"
-    value = "鞋子"
+    value = 1
 
 
 class shield_base:
     name = "盾牌_父类"
-    value = "盾牌_父类"
+    value = -1
 
     def use(self, sender, *arg):
-        if sender.shield != None:
-            qipai.append(mopai_by_value(sender.shield))
-        sender.shield = self.value
+        if type(sender.shield) != shield_None:
+            qipai.append(sender.shield)
+        sender.shield = self
 
 
 class shield(shield_base):
     name = "盾牌"
-    value = "盾牌"
+    value = 5
 
 
 class shield_None(shield_base):
-    name = "不使用盾牌"
-    value = None
+    name = "无"
+    value = 0
 
 
 class energy_book_base:
     name = "能量书_父类"
-    value = "能量书_父类"
+    value = -1
 
     def use(self, sender, *arg):
-        if sender.energy_book != None:
-            qipai.append(mopai_by_value(sender.energy_book))
-        sender.energy_book = self.value
+        if type(sender.energy_book) != energy_book_None:
+            qipai.append(sender.energy_book)
+        sender.energy_book = self
 
 
-class energy_book_base:
+class energy_book:
     name = "典籍"
-    value = "典籍"
+    value = 30
 
 
 class energy_book_None(energy_book_base):
-    name = "不使用典籍"
-    value = None
+    name = "无"
+    value = 0
 
 # 直线上没有障碍物：偷窃必须，五雷天罡法可以没有
 
@@ -296,8 +280,8 @@ class steal:
                 sender.item.append(selected)
                 target.item.remove(selected)
             else:
-                the_card = mopai_by_value(selected[1])
-                exec("target."+zhuangbei_list[selected[0]]["code"]+"="+"None")
+                the_card = selected[1]
+                exec("target.{}={}_None()".format(zhuangbei_list[selected[0]]["code"],zhuangbei_list[selected[0]]["code"]))
                 sender.item.append(the_card)
 
 
