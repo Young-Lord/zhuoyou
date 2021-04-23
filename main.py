@@ -1,7 +1,7 @@
 import sys
 import os
 import codecs
-file_list = ["game_config", "inits", "functions", "items", "core"]
+file_list = ["items", "game_config", "functions", "inits", "core"]
 # 注意：此列表中的每项不带扩展名(.py)
 
 current_file = os.path.abspath(__file__)
