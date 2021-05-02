@@ -397,10 +397,7 @@ class Player:
         if in_code_call:
             target = command
         else:
-            action_result += "他的装备栏为：\n"
-        if type(command) == int:
-            target = players[command]
-        if type(command) == list:
+            action_result = "他的装备栏为：\n"
             try:
                 target = players[int(command[1])-1]
             except:
@@ -413,12 +410,15 @@ class Player:
             my_item = eval("target."+zhuangbei_list[i]["code"])
             my_name = my_item.name
             my_value = my_item.value
-            action_result += "({}) {}\t:{}(+{})\n".format(
+            action_result += "({}) {}\t:{}(+{})".format(
                 zhuangbei_list[i]["key"],
                 i,
                 my_name,
                 my_value
             )
+            if i == "武器":
+                action_result += "(距离：{})".format(my_item.distance)
+            action_result += '\n'
         action_result = action_result[:-1]
         if in_code_call:
             tmp = action_result[:]
@@ -438,13 +438,16 @@ class Player:
                 input_str = input("输入你的操作：")
             if input_str == "c":
                 break
-            current_type = [
-                i for i in zhuangbei_list][operations.index(input_str)]
+            current_type = list(zhuangbei_list.keys())[operations.index(input_str)]
             input_str = ""
             current_item = eval("self."+zhuangbei_list[current_type]["code"])
             current_name = current_item.name
             current_value = current_item.value
-            print("当前{}:{}(+{})".format(current_type, current_name, current_value))
+            print("当前{}:{}(+{})".format(current_type,
+                                        current_name, current_value), end="")
+            if current_type == "武器":
+                print("(距离：{})".format(current_item.distance), end="")
+            print("\n", end="")
             avaibale_changes = [i for i in self.item if type(
                 i).__base__.__name__ == zhuangbei_list[current_type]["code"]+"_base"]
             avaibale_values = [i.value for i in avaibale_changes]
@@ -454,7 +457,12 @@ class Player:
                 print("({}) {}:{}({:+})".format(i+1,
                                                 avaibale_changes[i].name,
                                                 avaibale_values[i],
-                                                avaibale_values[i]-current_value))
+                                                avaibale_values[i]-current_value), end="")
+                if current_type == "武器":
+                    print("(距离:{}({:+}))".format(
+                        avaibale_changes[i].distance,
+                        avaibale_changes[i].distance-current_item.distance), end="")
+                print("\n", end="")
             while True:
                 input_str = input("输入你的操作：")
                 try:
@@ -466,6 +474,6 @@ class Player:
             if input_str == 0:
                 continue
             else:
-                if type(current_item).__name__.find("_None")!=-1:
+                if type(current_item).__name__.find("_None") != -1:
                     qipai.append(current_item)
                 self.use_by_content(avaibale_changes[input_str-1])
