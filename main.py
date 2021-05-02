@@ -23,8 +23,10 @@ sum_code = codecs.open("cache_sum_code.py", "w", encoding='utf-8')
 sum_code.write("# 警告：本文件是在每次运行时自动生成的，修改此文件没有任何意义\r\n")
 
 # generating characters
-characters_file = [i.replace(".py", "") for i in os.listdir(os.path.join(
-    os.getcwd(), "characters")) if i[-3:] == '.py' and i != "tempCodeRunnerFile.py"]
+characters_file =["Player",]
+for i in os.listdir(os.path.join(os.getcwd(), "characters")):
+    if i[-3:] == '.py' and i != "tempCodeRunnerFile.py":
+        characters_file.append(i.rstrip(".py"))
 
 for i in characters_file:
     addfile("characters/"+i)
