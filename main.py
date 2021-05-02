@@ -24,8 +24,9 @@ sum_code.write("# 警告：本文件是在每次运行时自动生成的，修�
 
 # generating characters
 characters_file =["Player",]
+filter_files=["tempCodeRunnerFile","Player"]
 for i in os.listdir(os.path.join(os.getcwd(), "characters")):
-    if i[-3:] == '.py' and i != "tempCodeRunnerFile.py":
+    if i[-3:] == '.py' and (i.rstrip(".py") not in filter_files):
         characters_file.append(i.rstrip(".py"))
 
 for i in characters_file:
