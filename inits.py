@@ -67,14 +67,6 @@ for i in error_list_ch:
     characters.remove(i)
 
 try:
-    map_file = open("map.txt", "r")
-    game_map = [i.strip() for i in map_file.readlines()]
-    map_file.close()
-except IOError:
-    print("[错误]请将map.txt放在程序目录下！")
-    exit(101)
-
-try:
     if len(game_map) <= 2:
         raise MapError
     else:
