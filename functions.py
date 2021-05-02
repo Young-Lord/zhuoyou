@@ -403,26 +403,3 @@ def mopai(count):
         result_mopai.append(selected)
     return result_mopai
 
-
-def mopai_by_value(value):
-    global qipai, cards
-    for i in qipai:
-        try:
-            val = i.value
-        except:
-            continue
-        if val == value:
-            val = i
-            qipai.remove(i)
-            return val
-    for i in cards:
-        try:
-            val = i.value
-        except:
-            continue
-        if val == value:
-            val = i
-            cards.remove(i)
-            return val
-    print("你遇到bug了！详情：要摸的牌不存在")
-    return -1
