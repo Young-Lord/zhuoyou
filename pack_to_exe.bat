@@ -1,1 +1,1 @@
-pyinstaller main.py -F --distpath . --clean
+pyinstaller cache_sum_code.py -F --distpath . --clean -n game.exe

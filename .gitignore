@@ -1,12 +1,7 @@
 __pycache__
 build
-main.spec
-cache_sum_code.spec
-zhuoyou.zip
-zhuoyou.rar
-zhuoyou-dev.zip
-zhuoyou-dev.rar
 .vscode
 tempCodeRunnerFile.py
 cache_sum_code.py
-main.exe
+game.exe
+game.exe.spec
