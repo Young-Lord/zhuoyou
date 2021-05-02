@@ -65,6 +65,8 @@ def inputJuese(avaibale: list, msg: str = ""):
 
 
 def drawAll():
+    for event in pygame.event.get():
+        pass
     drawInfo()
     print("")
     drawPlayers()
@@ -97,7 +99,6 @@ def drawMap():
     global game_map, special_blocks
     pygame.draw.rect(screen, LIGHTYELLOW, pygame.Rect(
         0, 0, MAP_WIDTH, MAP_HEIGHT))
-    print((GRID_X_LEN, GRID_Y_LEN))
     for x in range(GRID_X_LEN):
         for y in range(GRID_Y_LEN):
             if game_map[y][x] == '0':
@@ -119,21 +120,19 @@ def drawMap():
         end_pos = (REC_SIZE * x, MAP_HEIGHT)
         pygame.draw.line(screen, BLACK, start_pos, end_pos, 1)
     display_map = [i[:] for i in game_map]
-    for i in range(len(players)):
-        if players[i].alive:
-            setblock(display_map, players[i].pos[0],
-                     players[i].pos[1], chesslist[i])
-            textSurfaceObj = pygame.font.Font.render(
-                chesslist[i], True, BLACK, background=None)
-            textRectObj = textSurfaceObj.get_rect()
-            textRectObj.topleft = (
-                players[i].pos[0]*REC_SIZE, players[i].pos[1]*REC_SIZE)
+    for i in players:
+        if i.alive:
+            tp = pygame.image.load('imgs/characters/'+type(i).__name__+'.png')
+            tp = pygame.transform.smoothscale(tp, [REC_SIZE-1, REC_SIZE-1])
+            screen.blit(tp, (i.pos[1]*REC_SIZE+1, i.pos[0]*REC_SIZE+1))
+            #这句真的没错，pygame的坐标轴和代码里的xy互换
     for i in special_blocks:
         if display_map[i[0]][i[1]] == '0':
             setblock(display_map, i[0], i[1], 'O')
     display_map = [i.replace("0", "□").replace("1", "■") for i in display_map]
     # for i in display_map:
     #    print(i)
+    pygame.display.update()
 
 
 def isBlockEmpty(a, b=None):
@@ -402,4 +401,3 @@ def mopai(count):
         cards.remove(selected)
         result_mopai.append(selected)
     return result_mopai
-

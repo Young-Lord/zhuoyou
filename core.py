@@ -1,5 +1,5 @@
 drawMap()
-while True:
+'''while True:
     for event in pygame.event.get():
         # 每次循环都会重新绘制屏幕
         if event.type==pygame.MOUSEMOTION:
@@ -13,7 +13,7 @@ while True:
                 drawMap()
     pygame.display.flip()
 
-
+'''
 random_characters_new = random_characters
 for i in range(player_count):
     a, b = inputCoordinates("请输入玩家"+str(i+1)+"的坐标：")
@@ -32,6 +32,7 @@ for i in range(player_count):
     players.append(current_player)
     cls()
     drawMap()
+    drawPlayers()
 cls()
 print("#############")
 print("#  游戏开始 #")

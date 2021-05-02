@@ -86,5 +86,5 @@ except MapError:
     exit(104)
 
 print("[信息]成功加载大小为{}x{}的地图".format(chang, kuan))
-set_map(chang,kuan)
+set_map(chang, kuan)
 cls()

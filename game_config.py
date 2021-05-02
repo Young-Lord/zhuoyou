@@ -45,7 +45,7 @@ cards = eval(cards)
 
 
 def set_map(changg, kuann):
-    global GRID_X_LEN, GRID_Y_LEN, MAP_WIDTH, MAP_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHTSCREEN_SIZE, screen
+    global GRID_X_LEN, GRID_Y_LEN, MAP_WIDTH, MAP_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_SIZE, screen
     GRID_X_LEN = changg
     GRID_Y_LEN = kuann
     MAP_WIDTH = GRID_X_LEN * REC_SIZE
