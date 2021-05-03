@@ -4,7 +4,7 @@ import os
 import codecs
 from time import sleep
 import random
-from math import sqrt, degrees, acos
+from math import sqrt, degrees, acos, floor
 import astar
 
 try:
