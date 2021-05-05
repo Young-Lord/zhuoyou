@@ -15,7 +15,6 @@ except ModuleNotFoundError:
     sys.exit(155)
 
 pygame.init()
-screen = pygame.display.set_mode(SCREEN_SIZE)
 pygame.display.set_caption("桌游")  # 标题
 pygame.font.Font("./msyh.ttc", 20)  # 微软雅黑
 bg_img = pygame.image.load(bg_img_file)  # 相对路径
@@ -87,4 +86,5 @@ except MapError:
 
 print("[信息]成功加载大小为{}x{}的地图".format(chang, kuan))
 set_map(chang, kuan)
+screen = pygame.display.set_mode(SCREEN_SIZE)
 cls()
