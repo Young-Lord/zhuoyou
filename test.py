@@ -12,8 +12,8 @@ screen = pygame.display.set_mode((1440//2, 1024//2))  # 大小为1000px乘以600
 screen.fill([255, 255, 205])
 
 
-def rect(color, place, fill=0):
-    pygame.draw.rect(screen, color, [i/2 for i in place], fill)
+def rect(color, place):
+    pygame.draw.rect(screen, color, [i/2 for i in place])
 
 
 rect(FIGMA, (358, 0, 724, 89))
