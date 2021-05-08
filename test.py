@@ -1,14 +1,50 @@
 import pygame
 import sys
 
-BLACK = [0, 0, 0]
-GREY = [127, 127, 127]
-YELLOW = [255, 255, 0]
-BLUE = [0, 0, 255]
-FIGMA = [196, 196, 196]  # 0xc4
+WHITE = (255, 255, 255)
+NAVYBLUE = (60,  60, 100)
+SKY_BLUE = (39, 145, 251)
+BLACK = (0,   0,   0)
+GREY = (127,   127,   127)
+LIGHTYELLOW = (247, 238, 214)
+RED = (255,   0,   0)
+PURPLE = (255,   0, 255)
+GOLD = (255, 215,   0)
+GREEN = (0, 255,   0
+YELLOW=(255, 255, 0)
+BLUE=(0, 0, 255)
+FIGMA=(196, 196, 196)  # 0xc9
 
 pygame.init()
-screen = pygame.display.set_mode((1440//2, 1024//2))  # 大小为1000px乘以600px
+
+# 参数
+REC_SIZE=50
+MAP_LEFT_SPACING=130
+MAP_UP_SPACING=80
+# 参数
+
+
+# CONFIG
+game_map=[
+    "0000000000",
+    "0110000000",
+    "0110001000",
+    "0000000000"
+    ]
+chang=len(game_map[0])
+GRID_X_LEN=chang
+kuan=len(game_map)
+GRID_Y_LEN=kuan
+MAP_WIDTH=GRID_X_LEN * REC_SIZE
+MAP_HEIGHT=GRID_Y_LEN * REC_SIZE
+
+SCREEN_WIDTH=MAP_WIDTH+MAP_LEFT_SPACING*2
+SCREEN_HEIGHT=MAP_HEIGHT+MAP_UP_SPACING*2
+SCREEN_SIZE=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2)
+# CONFIG END
+
+
+screen=pygame.display.set_mode(SCREEN_SIZE)
 screen.fill([255, 255, 205])
 
 
