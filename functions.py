@@ -65,8 +65,6 @@ def inputJuese(avaibale: list, msg: str = ""):
 
 
 def drawAll():
-    for event in pygame.event.get():
-        pass
     drawInfo()
     print("")
     drawPlayers()
@@ -108,13 +106,13 @@ def drawMap():
             pygame.draw.rect(screen, color, (x * REC_SIZE, y * REC_SIZE,
                                              REC_SIZE, REC_SIZE))
 
-    for y in range(GRID_Y_LEN):
+    for y in range(GRID_Y_LEN+1):
         # draw a horizontal line
         start_pos = (0, 0 + REC_SIZE * y)
         end_pos = (MAP_WIDTH, REC_SIZE * y)
         pygame.draw.line(screen, BLACK, start_pos, end_pos, 1)
 
-    for x in range(GRID_X_LEN):
+    for x in range(GRID_X_LEN+1):
         # draw a horizontal line
         start_pos = (REC_SIZE * x, 0)
         end_pos = (REC_SIZE * x, MAP_HEIGHT)

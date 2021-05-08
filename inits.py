@@ -87,4 +87,5 @@ except MapError:
 print("[信息]成功加载大小为{}x{}的地图".format(chang, kuan))
 set_map(chang, kuan)
 screen = pygame.display.set_mode(SCREEN_SIZE)
+pygame.event.pump()
 cls()
