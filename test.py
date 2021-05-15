@@ -16,14 +16,16 @@ BLUE = (0, 0, 255)
 FIGMA = (196, 196, 196)  # 0xc9
 
 pygame.init()
-
+clicked=(-1,-1)
+choosen=list()
 # 参数
 infoObject = pygame.display.Info()
 SCREEN_SIZE = (infoObject.current_w, infoObject.current_h)
 REC_SIZE = 50
-底栏高度 = 250
+底栏高度 = 250*infoObject.current_h//1080
 技能数 = 3
 底栏各元素比例 = [96,20, 21, 20, 25,10]
+地图与底栏最小距离 = 20
 # 参数
 
 
@@ -49,9 +51,13 @@ MAP_HEIGHT = GRID_Y_LEN * REC_SIZE
 SCREEN_WIDTH, SCREEN_HEIGHT = SCREEN_SIZE
 MAP_LEFTUP = ((SCREEN_WIDTH-MAP_WIDTH)//2, (SCREEN_HEIGHT-MAP_HEIGHT)//2)
 MAP_LEFT_SPACING, MAP_UP_SPACING = MAP_LEFTUP
+if MAP_UP_SPACING-底栏高度<地图与底栏最小距离:
+    MAP_UP_SPACING-=(地图与底栏最小距离-(MAP_UP_SPACING-底栏高度))
+    MAP_LEFTUP = (MAP_LEFT_SPACING, MAP_UP_SPACING)
 MAP_RIGHTDOWN=(MAP_LEFT_SPACING+MAP_WIDTH,MAP_UP_SPACING+MAP_HEIGHT)
 底栏上 = SCREEN_HEIGHT - 底栏高度
 底栏各元素坐标 = [i*SCREEN_WIDTH//(sum(底栏各元素比例)) for i in 底栏各元素比例]
+
 # CONFIG END
 
 
@@ -63,12 +69,15 @@ def rect(color, place):
     pygame.draw.rect(screen, color, place)
 
 
-def drawMap(clicked=(-1,-1)):
+def drawMap():
+    global clicked,choosen
     pygame.draw.rect(screen, LIGHTYELLOW, pygame.Rect(
         MAP_LEFT_SPACING, MAP_UP_SPACING, MAP_WIDTH, MAP_HEIGHT))
     for x in range(GRID_X_LEN):
         for y in range(GRID_Y_LEN):
-            if clicked==(x,y):
+            if (x,y) in choosen:
+                color=RED
+            elif clicked==(x,y):
                 color = BLUE
             elif game_map[y][x] == '0':
                 color = GOLD
@@ -122,9 +131,16 @@ rect((0xb1, 0x9d, 0x9d), (sum(底栏各元素坐标[0:4])+底栏高度, 底栏�
 pygame.display.flip()
 while True:
     for event in pygame.event.get():
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEMOTION:
             clicked=getBlock(event.pos)
-            drawMap(clicked=clicked)
+            drawMap()
+            pygame.display.flip()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if getBlock(event.pos) in choosen:
+                choosen.remove(getBlock(event.pos))
+            else:
+                choosen.append(getBlock(event.pos))
+            drawMap()
             pygame.display.flip()
         if event.type == pygame.QUIT:  # QUIT用户请求程序关闭
             sys.exit()
