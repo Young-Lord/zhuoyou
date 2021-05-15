@@ -18,19 +18,27 @@ FIGMA = (196, 196, 196)  # 0xc9
 pygame.init()
 
 # 参数
-REC_SIZE = 60
-MAP_LEFT_SPACING = 130
-MAP_UP_SPACING = 100
-# (50,470,412)
+infoObject = pygame.display.Info()
+SCREEN_SIZE = (infoObject.current_w, infoObject.current_h)
+REC_SIZE = 50
+底栏高度 = 250
+技能数 = 3
+底栏各元素比例 = [96,20, 21, 20, 25,10]
 # 参数
 
 
 # CONFIG
 game_map = [
-    "0000000000",
-    "0110000000",
-    "0110001000",
-    "0000000000"
+    "000000010000000",
+    "000111000111000",
+    "000111000111000",
+    "000111000111000",
+    "000000000000000",
+    "000000000000110",
+    "000000000000110",
+    "000001110000000",
+    "000001110000000",
+    "000001110000000"
 ]
 chang = len(game_map[0])
 GRID_X_LEN = chang
@@ -38,14 +46,12 @@ kuan = len(game_map)
 GRID_Y_LEN = kuan
 MAP_WIDTH = GRID_X_LEN * REC_SIZE
 MAP_HEIGHT = GRID_Y_LEN * REC_SIZE
-
-SCREEN_WIDTH = MAP_WIDTH+MAP_LEFT_SPACING*2
-SCREEN_HEIGHT = MAP_HEIGHT+MAP_UP_SPACING*2
-SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
-SCREEN_SIZE = (1440, 1024)
-# print(SCREEN_SIZE)
-# print((MAP_WIDTH,MAP_HEIGHT))
-MAP_LEFTUP = (MAP_LEFT_SPACING, MAP_UP_SPACING)
+SCREEN_WIDTH, SCREEN_HEIGHT = SCREEN_SIZE
+MAP_LEFTUP = ((SCREEN_WIDTH-MAP_WIDTH)//2, (SCREEN_HEIGHT-MAP_HEIGHT)//2)
+MAP_LEFT_SPACING, MAP_UP_SPACING = MAP_LEFTUP
+MAP_RIGHTDOWN=(MAP_LEFT_SPACING+MAP_WIDTH,MAP_UP_SPACING+MAP_HEIGHT)
+底栏上 = SCREEN_HEIGHT - 底栏高度
+底栏各元素坐标 = [i*SCREEN_WIDTH//(sum(底栏各元素比例)) for i in 底栏各元素比例]
 # CONFIG END
 
 
@@ -57,12 +63,14 @@ def rect(color, place):
     pygame.draw.rect(screen, color, place)
 
 
-def drawMap():
+def drawMap(clicked=(-1,-1)):
     pygame.draw.rect(screen, LIGHTYELLOW, pygame.Rect(
         MAP_LEFT_SPACING, MAP_UP_SPACING, MAP_WIDTH, MAP_HEIGHT))
     for x in range(GRID_X_LEN):
         for y in range(GRID_Y_LEN):
-            if game_map[y][x] == '0':
+            if clicked==(x,y):
+                color = BLUE
+            elif game_map[y][x] == '0':
                 color = GOLD
             else:
                 color = GREY
@@ -81,34 +89,42 @@ def drawMap():
         end_pos = (REC_SIZE * x+MAP_LEFT_SPACING, MAP_HEIGHT+MAP_UP_SPACING)
         pygame.draw.line(screen, BLACK, start_pos, end_pos, 1)
 
-def getBlock(pos):
-    
 
-rect(FIGMA, (358, 0, 724, 89))
-rect(FIGMA, (0, 188, 89, 647))
-rect(FIGMA, (1351, 188, 89, 647))
+def getBlock(pos):
+    if not((MAP_LEFT_SPACING<pos[0]<MAP_LEFT_SPACING+MAP_WIDTH)and(MAP_UP_SPACING<pos[1]<MAP_UP_SPACING+MAP_HEIGHT)):
+        return (-1,-1)
+    clicked=((pos[0]-MAP_LEFT_SPACING)//REC_SIZE,(pos[1]-MAP_UP_SPACING)//REC_SIZE)
+    return clicked
+
+
+#rect(FIGMA, (358, 0, 724, 89))
+#rect(FIGMA, (0, 188, 89, 647))
+#rect(FIGMA, (1351, 188, 89, 647))
 # 其他玩家
 drawMap()
-#rect(YELLOW, (309, 289, 822, 446))
 # 地图
-rect((0xb1, 0x9d, 0x9d), (1037, 753, 188, 72))
-# 结束按钮
-rect((0, 128, 0), (0, 864, 864, 160))
+rect((0, 128, 0), (0, 底栏上, 底栏各元素坐标[0], 底栏高度))
 # 背包
-for i in range(864, 984+1, 40):
-    rect([k+(i-864)*20//40 for k in GREY], (864, i, 208, 40))
+for i in range(4):
+    rect([k+i*20 for k in GREY], (sum(底栏各元素坐标[0:1]), 底栏上+i*底栏高度//4, 底栏各元素坐标[1], 底栏高度//4+1))
 # 装备
-for i in range(864, 944+1, 80):
-    rect([k+(i-864)*20//80 for k in GREY], (1072, i, 208, 80))
+for i in range(技能数):
+    rect([k+i*20 for k in NAVYBLUE], (sum(底栏各元素坐标[0:2]), 底栏上+i*底栏高度//技能数, 底栏各元素坐标[2], 底栏高度//技能数+1))
 # 技能
-rect(BLUE, (1280, 864, 160, 160))
+rect(BLUE, (sum(底栏各元素坐标[0:3]), 底栏上, 底栏各元素坐标[3], 50))
+rect(YELLOW, (sum(底栏各元素坐标[0:3]), 底栏上+50, 底栏各元素坐标[3], 200))
+# 血量&buff
+rect(GREEN, (sum(底栏各元素坐标[0:4]), 底栏上, 底栏高度, 底栏高度))
 # 角色头像
+rect((0xb1, 0x9d, 0x9d), (sum(底栏各元素坐标[0:4])+底栏高度, 底栏上, SCREEN_WIDTH-(sum(底栏各元素坐标[0:4])+底栏高度), 底栏高度))
+# 结束按钮
 
 pygame.display.flip()
 while True:
     for event in pygame.event.get():
-        if event.type==pygame.MOUSEBUTTONDOWN:
-            print(event.pos)
-
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            clicked=getBlock(event.pos)
+            drawMap(clicked=clicked)
+            pygame.display.flip()
         if event.type == pygame.QUIT:  # QUIT用户请求程序关闭
             sys.exit()
