@@ -407,7 +407,7 @@ class Player:
                 action_result = "参数非法！"
                 return
         for i in zhuangbei_list:
-            my_item = eval("target."+zhuangbei_list[i]["code"])
+            my_item = target.__getattribute__(zhuangbei_list[i]["code"])
             my_name = my_item.name
             my_value = my_item.value
             action_result += "({}) {}\t:{}(+{})".format(
@@ -440,7 +440,7 @@ class Player:
                 break
             current_type = list(zhuangbei_list.keys())[operations.index(input_str)]
             input_str = ""
-            current_item = eval("self."+zhuangbei_list[current_type]["code"])
+            current_item = self.__getattribute__(zhuangbei_list[current_type]["code"])
             current_name = current_item.name
             current_value = current_item.value
             print("当前{}:{}(+{})".format(current_type,

@@ -244,7 +244,7 @@ class steal:
             return True
         selectable = []
         for i in zhuangbei_list:
-            my_item = type(eval("target."+zhuangbei_list[i]["code"])).__name__
+            my_item = type(target.__getattribute__(zhuangbei_list[i]["code"])).__name__
             if my_item.find("None")==-1:
                 selectable.append((i, my_item))
         if len(selectable)+len(target.item) == 0:
