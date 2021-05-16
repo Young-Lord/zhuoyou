@@ -2,6 +2,8 @@ import pygame
 import sys
 import math
 
+from pygame import surface
+
 WHITE = (255, 255, 255)
 NAVYBLUE = (60,  60, 100)
 SKY_BLUE = (39, 145, 251)
@@ -19,7 +21,9 @@ FIGMA = (196, 196, 196)  # 0xc9
 pygame.init()
 motioned = (-1, -1)
 choosen = list()
-font = lambda size:pygame.font.Font("./HanSansNormal.ttc", size)  # 思源黑体
+def font(size): return pygame.font.Font("./HanSansNormal.ttc", size)  # 思源黑体
+
+
 # 参数
 infoObject = pygame.display.Info()
 SCREEN_SIZE = (infoObject.current_w, infoObject.current_h)
@@ -59,7 +63,7 @@ if MAP_UP_SPACING-底栏高度 < 地图与底栏最小距离:
     MAP_LEFTUP = (MAP_LEFT_SPACING, MAP_UP_SPACING)
 MAP_RIGHTDOWN = (MAP_LEFT_SPACING+MAP_WIDTH, MAP_UP_SPACING+MAP_HEIGHT)
 底栏上 = SCREEN_HEIGHT - 底栏高度
-底栏各元素坐标 = [i*SCREEN_WIDTH//(sum(底栏各元素比例)) for i in 底栏各元素比例]
+底栏各元素长度 = [i*SCREEN_WIDTH//(sum(底栏各元素比例)) for i in 底栏各元素比例]
 # CONFIG END
 
 
@@ -132,13 +136,13 @@ def getBlock(pos):
 
 def getCard(pos):
     global card_bg_WIDTH
-    if not((0 < pos[0] < 底栏各元素坐标[0]) and (底栏上 < pos[1] < SCREEN_HEIGHT)):
+    if not((0 < pos[0] < 底栏各元素长度[0]) and (底栏上 < pos[1] < SCREEN_HEIGHT)):
         return "-1"  # 防止负数下标
     motioned = (pos[0]-0)//card_bg_WIDTH
     if motioned >= len(tester.item):
         return "-1"
     # 检查是否在点击区域内
-    pos = (pos[0] % (底栏各元素坐标[0]//max(len(tester.item), 背包物品数)), pos[1]-底栏上)
+    pos = (pos[0] % (底栏各元素长度[0]//max(len(tester.item), 背包物品数)), pos[1]-底栏上)
     # 我也不知道这个max是什么意思，大概是因为卡牌能缩放吧（
     if pygame.transform.smoothscale(pygame.image.load("imgs/card_bg.png"), [card_bg_WIDTH, 底栏高度]).get_at(pos)[3] == 0:
         return "-1"
@@ -150,7 +154,7 @@ def drawBag():
     背包物品数_bak = 背包物品数
     if len(tester.item) > 背包物品数:
         背包物品数 = len(tester.item)
-    rect((0, 128, 0), (0, 底栏上, 底栏各元素坐标[0], 底栏高度))
+    rect((0, 128, 0), (0, 底栏上, 底栏各元素长度[0], 底栏高度))
     for i in range(len(tester.item)):
         if ('card', i) in choosen:
             card_bg_path = "imgs/card_bg_select.png"
@@ -162,11 +166,11 @@ def drawBag():
         c_rect = card_bg.get_rect()
         card_bg_WIDTH = c_rect[2]*底栏高度//c_rect[3]
         card_bg = pygame.transform.smoothscale(card_bg, [card_bg_WIDTH, 底栏高度])
-        if card_bg_WIDTH*len(tester.item) > 底栏各元素坐标[0]:
-            card_bg_WIDTH = 底栏各元素坐标[0]//len(tester.item)
+        if card_bg_WIDTH*len(tester.item) > 底栏各元素长度[0]:
+            card_bg_WIDTH = 底栏各元素长度[0]//len(tester.item)
             card_bg = pygame.transform.smoothscale(
                 card_bg, [card_bg_WIDTH, 底栏高度])
-        screen.blit(card_bg, (0+i*底栏各元素坐标[0]//背包物品数, 底栏上))
+        screen.blit(card_bg, (0+i*底栏各元素长度[0]//背包物品数, 底栏上))
     for i in range(len(tester.item)):
         item_image = pygame.image.load(
             'imgs/items/%s.png' % tester.item[i])  # TODO
@@ -175,15 +179,15 @@ def drawBag():
         item_image = pygame.transform.smoothscale(
             item_image, [card_bg_WIDTH, item_HEIGHT])
         up_spacing = (底栏高度-item_HEIGHT)//2+底栏上
-        screen.blit(item_image, (0+i*(底栏各元素坐标[0])//背包物品数, up_spacing))
+        screen.blit(item_image, (0+i*(底栏各元素长度[0])//背包物品数, up_spacing))
     背包物品数 = 背包物品数_bak
 
 
 def drawEquiment():
     EACH_HEIGHT = 底栏高度//4
     for i in range(4):
-        rect([k+i*20 for k in GREY], (sum(底栏各元素坐标[0:1]),
-                                      底栏上+i*EACH_HEIGHT, 底栏各元素坐标[1], EACH_HEIGHT+1))
+        rect([k+i*20 for k in GREY], (sum(底栏各元素长度[0:1]),
+                                      底栏上+i*EACH_HEIGHT, 底栏各元素长度[1], EACH_HEIGHT+1))
         cur_ind = list(zhuangbei_list.keys())[i]
         cur_code = zhuangbei_list[cur_ind]["code"]
         item_icon = pygame.image.load(
@@ -192,21 +196,46 @@ def drawEquiment():
         item_width = item_rect[2]*EACH_HEIGHT//item_rect[3]
         item_icon = pygame.transform.smoothscale(
             item_icon, [item_width, EACH_HEIGHT])
-        screen.blit(item_icon, (sum(底栏各元素坐标[0:1]), 底栏上+i*EACH_HEIGHT))
+        screen.blit(item_icon, (sum(底栏各元素长度[0:1]), 底栏上+i*EACH_HEIGHT))
         text = font(EACH_HEIGHT//2).render('(+{})'.format(99), True, (0, 0, 0))
-        screen.blit(text, (sum(底栏各元素坐标[0:1])+item_width, 底栏上+i*EACH_HEIGHT))
-        if cur_ind=="武器":
+        screen.blit(text, (sum(底栏各元素长度[0:1])+item_width, 底栏上+i*EACH_HEIGHT))
+        if cur_ind == "武器":
             screen.blit(font(EACH_HEIGHT//4).render('(距{})'.format(10), True, (10, 10, 10)),
-            (sum(底栏各元素坐标[0:1])+item_width+text.get_size()[0], 底栏上+i*EACH_HEIGHT+text.get_size()[1]//2))
+                        (sum(底栏各元素长度[0:1])+item_width+text.get_size()[0], 底栏上+i*EACH_HEIGHT+text.get_size()[1]//2))
+
 
 def drawEndRound():
-    end_width=SCREEN_WIDTH-(sum(底栏各元素坐标[0:4])+底栏高度)
+    end_width = SCREEN_WIDTH-(sum(底栏各元素长度[0:4])+底栏高度)
     rect((0xb1, 0x9d, 0x9d), (sum(
-        底栏各元素坐标[0:4])+底栏高度, 底栏上, end_width, 底栏高度))
-    fontsize=end_width//2-10
+        底栏各元素长度[0:4])+底栏高度, 底栏上, end_width, 底栏高度))
+    fontsize = end_width//2-10
     screen.blit(font(fontsize).render("结束", True, (0, 0, 0)),
-            (sum(底栏各元素坐标[0:4])+底栏高度+20//2, 底栏上+底栏高度//2-fontsize//2-底栏高度//10))
-            #这个(-底栏高度//10)是视觉补偿 不然看着不像居中的
+                (sum(底栏各元素长度[0:4])+底栏高度+20//2, 底栏上+底栏高度//2-fontsize//2-底栏高度//10))
+    # 这个(-底栏高度//10)是视觉补偿 不然看着不像居中的
+
+
+def drawPlayerIcon():
+    rect(GREEN, (sum(底栏各元素长度[0:4]), 底栏上, 底栏高度, 底栏高度))
+    screen.blit(
+        pygame.transform.smoothscale(
+            pygame.image.load(
+                "imgs/characters/{}.png".format(type(tester).__name__)),
+            [底栏高度, 底栏高度]), (sum(底栏各元素长度[0:4]), 底栏上))
+
+
+def drawLifeAndEnergy():
+    #rect(YELLOW, (sum(底栏各元素长度[0:3]), 底栏上+50, 底栏各元素长度[3], 200))
+    life_img = pygame.transform.smoothscale(pygame.image.load("imgs/life.png"), (底栏各元素长度[3], 底栏高度*4//5))
+    life_rect = life_img.get_rect()
+    life_rect=life_rect.move(sum(底栏各元素长度[0:3]),底栏上+底栏高度-底栏各元素长度[3])
+    #TODO
+    screen.blit(life_img,life_rect)
+    screen.blit(pygame.transform.smoothscale(
+        pygame.image.load("imgs/life_energy_round.png"),
+        (底栏各元素长度[3], 底栏各元素长度[3])),
+        (sum(底栏各元素长度[0:3]),底栏上+底栏高度-底栏各元素长度[3]))
+    pygame.display.update()
+
 
 def drawAll():
     #rect(FIGMA, (358, 0, 724, 89))
@@ -220,34 +249,30 @@ def drawAll():
     drawEquiment()
     # 装备
     for i in range(技能数):
-        rect([k+i*20 for k in NAVYBLUE], (sum(底栏各元素坐标[0:2]),
-                                          底栏上+i*底栏高度//技能数, 底栏各元素坐标[2], 底栏高度//技能数+1))
+        rect([k+i*20 for k in NAVYBLUE], (sum(底栏各元素长度[0:2]),
+                                          底栏上+i*底栏高度//技能数, 底栏各元素长度[2], 底栏高度//技能数+1))
     # 技能
-    rect(BLUE, (sum(底栏各元素坐标[0:3]), 底栏上, 底栏各元素坐标[3], 50))
-    rect(YELLOW, (sum(底栏各元素坐标[0:3]), 底栏上+50, 底栏各元素坐标[3], 200))
-    # 血量&buff
-    rect(GREEN, (sum(底栏各元素坐标[0:4]), 底栏上, 底栏高度, 底栏高度))
-    item_icon = pygame.image.load(
-        "imgs/characters/{}.png".format(type(tester).__name__))
-    item_icon = pygame.transform.smoothscale(
-        item_icon, [底栏高度, 底栏高度])
-    screen.blit(item_icon, (sum(底栏各元素坐标[0:4]), 底栏上))
+    rect(BLUE, (sum(底栏各元素长度[0:3]), 底栏上, 底栏各元素长度[3], 底栏高度-底栏各元素长度[3]))
+    # buff
+    drawLifeAndEnergy()
+    # 血量&能量
+    drawPlayerIcon()
     # 角色头像
     drawEndRound()
     # 结束按钮
-    pygame.display.flip()
+    pygame.display.update()
 
 
 def handleMotion(pos):
     global motioned
     motioned = getBlock(pos)
     drawMap()
-    pygame.display.flip()
+    pygame.display.update()
     if motioned != (-1, -1):
         return
     motioned = getCard(pos)
     drawBag()
-    pygame.display.flip()
+    pygame.display.update()
     if motioned != "-1":
         return
 
@@ -260,7 +285,7 @@ def handlePress(pos, button=1):
         else:
             choosen.append(('block', block))
         drawMap()
-        pygame.display.flip()
+        pygame.display.update()
         return
     card = getCard(pos)
     if card != "-1":
@@ -269,7 +294,7 @@ def handlePress(pos, button=1):
         else:
             choosen.append(('card', card))
         drawBag()
-        pygame.display.flip()
+        pygame.display.update()
         return
 
 
