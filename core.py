@@ -11,7 +11,7 @@ drawMap()
         elif event.type == pygame.KEYDOWN:
             if event.unicode=='d':
                 drawMap()
-    pygame.display.flip()
+    pygame.display.update()
 
 '''
 random_characters_new = random_characters

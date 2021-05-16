@@ -93,7 +93,7 @@ def drawPlayers():
 
 
 def drawMap():
-    pygame.display.flip()
+    pygame.display.update()
     global game_map, special_blocks
     pygame.draw.rect(screen, LIGHTYELLOW, pygame.Rect(
         0, 0, MAP_WIDTH, MAP_HEIGHT))
@@ -123,7 +123,7 @@ def drawMap():
             tp = pygame.image.load('imgs/characters/'+type(i).__name__+'.png')
             tp = pygame.transform.smoothscale(tp, [REC_SIZE-1, REC_SIZE-1])
             screen.blit(tp, (i.pos[1]*REC_SIZE+1, i.pos[0]*REC_SIZE+1))
-            #这句真的没错，pygame的坐标轴和代码里的xy互换
+            # 这句真的没错，pygame的坐标轴和代码里的xy互换
     for i in special_blocks:
         if display_map[i[0]][i[1]] == '0':
             setblock(display_map, i[0], i[1], 'O')
