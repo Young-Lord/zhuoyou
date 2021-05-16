@@ -18,6 +18,8 @@ FIGMA = (196, 196, 196)  # 0xc9
 pygame.init()
 motioned = (-1, -1)
 choosen = list()
+font = pygame.font.Font("./HanSansNormal.ttc", 20)  # 思源黑体
+font_small = pygame.font.Font("./HanSansNormal.ttc", 10)  # 思源黑体
 # 参数
 infoObject = pygame.display.Info()
 SCREEN_SIZE = (infoObject.current_w, infoObject.current_h)
@@ -58,8 +60,28 @@ if MAP_UP_SPACING-底栏高度 < 地图与底栏最小距离:
 MAP_RIGHTDOWN = (MAP_LEFT_SPACING+MAP_WIDTH, MAP_UP_SPACING+MAP_HEIGHT)
 底栏上 = SCREEN_HEIGHT - 底栏高度
 底栏各元素坐标 = [i*SCREEN_WIDTH//(sum(底栏各元素比例)) for i in 底栏各元素比例]
-背包 = ['gz', 'kp', 'cz', 'wltg']
 # CONFIG END
+
+
+class try1():
+    pos = (-1, -1)
+    item = ['gz', 'kp', 'cz', 'wltg', 'kp', 'cz', 'wltg']
+    weapon = "cz"
+    shield = "shield"
+    shoe = "shoe"
+    energy_book = "energy_book_None"
+    life = 40
+    max_life = 100
+    energy = 40
+    max_energy = 100
+    buff = ["义", "义"]
+
+
+tester = try1()
+zhuangbei_list = {"武器": {"code": "weapon", "key": "w"},
+                  "护盾": {"code": "shield", "key": "h"},
+                  "能量书": {"code": "energy_book", "key": "n"},
+                  "鞋子": {"code": "shoe", "key": "s"}}
 
 
 screen = pygame.display.set_mode(SCREEN_SIZE)
@@ -76,7 +98,7 @@ def drawMap():
         MAP_LEFT_SPACING, MAP_UP_SPACING, MAP_WIDTH, MAP_HEIGHT))
     for x in range(GRID_X_LEN):
         for y in range(GRID_Y_LEN):
-            if ('block',(x, y)) in choosen:
+            if ('block', (x, y)) in choosen:
                 color = RED
             elif motioned == (x, y):
                 color = BLUE
@@ -104,38 +126,78 @@ def getBlock(pos):
     if not((MAP_LEFT_SPACING < pos[0] < MAP_LEFT_SPACING+MAP_WIDTH) and (MAP_UP_SPACING < pos[1] < MAP_UP_SPACING+MAP_HEIGHT)):
         return (-1, -1)
     motioned = ((pos[0]-MAP_LEFT_SPACING)//REC_SIZE,
-               (pos[1]-MAP_UP_SPACING)//REC_SIZE)
+                (pos[1]-MAP_UP_SPACING)//REC_SIZE)
     return motioned
+
 
 def getCard(pos):
+    global card_bg_WIDTH
     if not((0 < pos[0] < 底栏各元素坐标[0]) and (底栏上 < pos[1] < SCREEN_HEIGHT)):
-        return "-1"#防止负数下标
-    motioned = ((pos[0]-MAP_LEFT_SPACING)//REC_SIZE,
-               (pos[1]-MAP_UP_SPACING)//REC_SIZE)#TODO
+        return "-1"  # 防止负数下标
+    motioned = (pos[0]-0)//card_bg_WIDTH
+    if motioned >= len(tester.item):
+        return "-1"
+    # 检查是否在点击区域内
+    pos = (pos[0] % (底栏各元素坐标[0]//max(len(tester.item), 背包物品数)), pos[1]-底栏上)
+    # 我也不知道这个max是什么意思，大概是因为卡牌能缩放吧（
+    if pygame.transform.smoothscale(pygame.image.load("imgs/card_bg.png"), [card_bg_WIDTH, 底栏高度]).get_at(pos)[3] == 0:
+        return "-1"
     return motioned
 
+
 def drawBag():
-    global 背包物品数,card_bg_WIDTH
-    if len(背包)>背包物品数:
-        背包物品数=len(背包)
+    global 背包物品数, card_bg_WIDTH, motioned
+    背包物品数_bak = 背包物品数
+    if len(tester.item) > 背包物品数:
+        背包物品数 = len(tester.item)
     rect((0, 128, 0), (0, 底栏上, 底栏各元素坐标[0], 底栏高度))
-    card_bg = pygame.image.load('imgs/card_bg.png')
-    c_rect = card_bg.get_rect()
-    card_bg_WIDTH = c_rect[2]*底栏高度//c_rect[3]
-    card_bg = pygame.transform.smoothscale(card_bg, [card_bg_WIDTH, 底栏高度])
-    if card_bg_WIDTH*len(背包)>底栏各元素坐标[0]:
-        card_bg_WIDTH=底栏各元素坐标[0]//len(背包)
+    for i in range(len(tester.item)):
+        if ('card', i) in choosen:
+            card_bg_path = "imgs/card_bg_select.png"
+        elif i == motioned:
+            card_bg_path = "imgs/card_bg_motion.png"
+        else:
+            card_bg_path = "imgs/card_bg.png"
+        card_bg = pygame.image.load(card_bg_path)
+        c_rect = card_bg.get_rect()
+        card_bg_WIDTH = c_rect[2]*底栏高度//c_rect[3]
         card_bg = pygame.transform.smoothscale(card_bg, [card_bg_WIDTH, 底栏高度])
-    for i in range(len(背包)):
-        screen.blit(card_bg, (0+i*(底栏各元素坐标[0])//背包物品数, 底栏上))
-    for i in range(len(背包)):
-        item_image = pygame.image.load('imgs/items/%s.png' % 背包[i])  # TODO
+        if card_bg_WIDTH*len(tester.item) > 底栏各元素坐标[0]:
+            card_bg_WIDTH = 底栏各元素坐标[0]//len(tester.item)
+            card_bg = pygame.transform.smoothscale(
+                card_bg, [card_bg_WIDTH, 底栏高度])
+        screen.blit(card_bg, (0+i*底栏各元素坐标[0]//背包物品数, 底栏上))
+    for i in range(len(tester.item)):
+        item_image = pygame.image.load(
+            'imgs/items/%s.png' % tester.item[i])  # TODO
         item_rect = item_image.get_rect()
         item_HEIGHT = item_rect[3]*card_bg_WIDTH//item_rect[2]
         item_image = pygame.transform.smoothscale(
             item_image, [card_bg_WIDTH, item_HEIGHT])
         up_spacing = (底栏高度-item_HEIGHT)//2+底栏上
         screen.blit(item_image, (0+i*(底栏各元素坐标[0])//背包物品数, up_spacing))
+    背包物品数 = 背包物品数_bak
+
+
+def drawEquiment():
+    EACH_HEIGHT = 底栏高度//4
+    for i in range(4):
+        rect([k+i*20 for k in GREY], (sum(底栏各元素坐标[0:1]),
+                                      底栏上+i*EACH_HEIGHT, 底栏各元素坐标[1], EACH_HEIGHT+1))
+        cur_ind = list(zhuangbei_list.keys())[i]
+        cur_code = zhuangbei_list[cur_ind]["code"]
+        item_icon = pygame.image.load(
+            "imgs/items/{}.png".format(tester.__getattribute__(cur_code)))
+        item_rect = item_icon.get_rect()
+        item_width = item_rect[2]*EACH_HEIGHT//item_rect[3]
+        item_icon = pygame.transform.smoothscale(
+            item_icon, [item_width, EACH_HEIGHT])
+        screen.blit(item_icon, (sum(底栏各元素坐标[0:1]), 底栏上+i*EACH_HEIGHT))
+        text = font.render('(+{})'.format(99), True, (0, 0, 0))
+        screen.blit(text, (sum(底栏各元素坐标[0:1])+item_width, 底栏上+i*EACH_HEIGHT))
+        if cur_ind=="武器":
+            screen.blit(font_small.render('(距{})'.format(10), True, (10, 10, 10)),
+            (sum(底栏各元素坐标[0:1])+item_width+text.get_size()[0], 底栏上+i*EACH_HEIGHT+text.get_size()[1]//2))
 
 
 def drawAll():
@@ -147,9 +209,7 @@ def drawAll():
     # 地图
     drawBag()
     # 背包
-    for i in range(4):
-        rect([k+i*20 for k in GREY], (sum(底栏各元素坐标[0:1]),
-                                      底栏上+i*底栏高度//4, 底栏各元素坐标[1], 底栏高度//4+1))
+    drawEquiment()
     # 装备
     for i in range(技能数):
         rect([k+i*20 for k in NAVYBLUE], (sum(底栏各元素坐标[0:2]),
@@ -165,14 +225,41 @@ def drawAll():
     # 结束按钮
     pygame.display.flip()
 
+
 def handleMotion(pos):
     global motioned
     motioned = getBlock(pos)
-    if motioned!=(-1,-1):
+    drawMap()
+    pygame.display.flip()
+    if motioned != (-1, -1):
+        return
+    motioned = getCard(pos)
+    drawBag()
+    pygame.display.flip()
+    if motioned != "-1":
+        return
+
+
+def handlePress(pos, button=1):
+    block = getBlock(pos)
+    if block != (-1, -1):
+        if ('block', block) in choosen:
+            choosen.remove(('block', block))
+        else:
+            choosen.append(('block', block))
         drawMap()
         pygame.display.flip()
         return
-    if 
+    card = getCard(pos)
+    if card != "-1":
+        if ('card', card) in choosen:
+            choosen.remove(('card', card))
+        else:
+            choosen.append(('card', card))
+        drawBag()
+        pygame.display.flip()
+        return
+
 
 drawAll()
 while True:
@@ -180,11 +267,6 @@ while True:
         if event.type == pygame.MOUSEMOTION:
             handleMotion(event.pos)
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if getBlock(event.pos) in choosen:
-                choosen.remove(('block',getBlock(event.pos)))
-            else:
-                choosen.append(('block',getBlock(event.pos)))
-            drawMap()
-            pygame.display.flip()
+            handlePress(event.pos, button=event.button)
         if event.type == pygame.QUIT:  # QUIT用户请求程序关闭
             sys.exit()
