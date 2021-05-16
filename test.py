@@ -1,5 +1,6 @@
 import pygame
 import sys
+import math
 
 WHITE = (255, 255, 255)
 NAVYBLUE = (60,  60, 100)
@@ -18,8 +19,7 @@ FIGMA = (196, 196, 196)  # 0xc9
 pygame.init()
 motioned = (-1, -1)
 choosen = list()
-font = pygame.font.Font("./HanSansNormal.ttc", 20)  # 思源黑体
-font_small = pygame.font.Font("./HanSansNormal.ttc", 10)  # 思源黑体
+font = lambda size:pygame.font.Font("./HanSansNormal.ttc", size)  # 思源黑体
 # 参数
 infoObject = pygame.display.Info()
 SCREEN_SIZE = (infoObject.current_w, infoObject.current_h)
@@ -193,12 +193,20 @@ def drawEquiment():
         item_icon = pygame.transform.smoothscale(
             item_icon, [item_width, EACH_HEIGHT])
         screen.blit(item_icon, (sum(底栏各元素坐标[0:1]), 底栏上+i*EACH_HEIGHT))
-        text = font.render('(+{})'.format(99), True, (0, 0, 0))
+        text = font(EACH_HEIGHT//2).render('(+{})'.format(99), True, (0, 0, 0))
         screen.blit(text, (sum(底栏各元素坐标[0:1])+item_width, 底栏上+i*EACH_HEIGHT))
         if cur_ind=="武器":
-            screen.blit(font_small.render('(距{})'.format(10), True, (10, 10, 10)),
+            screen.blit(font(EACH_HEIGHT//4).render('(距{})'.format(10), True, (10, 10, 10)),
             (sum(底栏各元素坐标[0:1])+item_width+text.get_size()[0], 底栏上+i*EACH_HEIGHT+text.get_size()[1]//2))
 
+def drawEndRound():
+    end_width=SCREEN_WIDTH-(sum(底栏各元素坐标[0:4])+底栏高度)
+    rect((0xb1, 0x9d, 0x9d), (sum(
+        底栏各元素坐标[0:4])+底栏高度, 底栏上, end_width, 底栏高度))
+    fontsize=end_width//2-10
+    screen.blit(font(fontsize).render("结束", True, (0, 0, 0)),
+            (sum(底栏各元素坐标[0:4])+底栏高度+20//2, 底栏上+底栏高度//2-fontsize//2-底栏高度//10))
+            #这个(-底栏高度//10)是视觉补偿 不然看着不像居中的
 
 def drawAll():
     #rect(FIGMA, (358, 0, 724, 89))
@@ -219,9 +227,13 @@ def drawAll():
     rect(YELLOW, (sum(底栏各元素坐标[0:3]), 底栏上+50, 底栏各元素坐标[3], 200))
     # 血量&buff
     rect(GREEN, (sum(底栏各元素坐标[0:4]), 底栏上, 底栏高度, 底栏高度))
+    item_icon = pygame.image.load(
+        "imgs/characters/{}.png".format(type(tester).__name__))
+    item_icon = pygame.transform.smoothscale(
+        item_icon, [底栏高度, 底栏高度])
+    screen.blit(item_icon, (sum(底栏各元素坐标[0:4]), 底栏上))
     # 角色头像
-    rect((0xb1, 0x9d, 0x9d), (sum(
-        底栏各元素坐标[0:4])+底栏高度, 底栏上, SCREEN_WIDTH-(sum(底栏各元素坐标[0:4])+底栏高度), 底栏高度))
+    drawEndRound()
     # 结束按钮
     pygame.display.flip()
 
