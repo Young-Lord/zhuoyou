@@ -16,7 +16,7 @@ except ModuleNotFoundError:
 
 pygame.init()
 pygame.display.set_caption("桌游")  # 标题
-pygame.font.Font("./HanSansNormal.ttc", 20)  # 思源黑体
+font = pygame.font.Font("./HanSansNormal.ttc", 20)  # 思源黑体
 bg_img = pygame.image.load(bg_img_file)  # 相对路径
 
 chess_list = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
