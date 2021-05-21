@@ -85,7 +85,7 @@ class bow(weapon_base):
 class cz(weapon_base):
     name = "禅杖"
     value = 20
-    distance=100 #TODO
+    distance = 2
 
     def use_custom(self, sender):
         sender.buff = [i for i in sender.buff if (
