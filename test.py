@@ -4,6 +4,11 @@ import math
 
 from pygame import surface
 
+
+class GameError(RuntimeError):
+    pass
+
+
 WHITE = (255, 255, 255)
 NAVYBLUE = (60,  60, 100)
 SKY_BLUE = (39, 145, 251)
@@ -18,10 +23,28 @@ YELLOW = (255, 255, 0)
 BLUE = (0, 0, 255)
 FIGMA = (196, 196, 196)  # 0xc9
 
+
+class try1():
+    pos = (-1, -1)
+    item = ['gz', 'kp', 'cz', 'wltg', 'kp', 'cz', 'wltg']
+    weapon = "cz"
+    shield = "shield"
+    shoe = "shoe"
+    energy_book = "energy_book_None"
+    life = 40
+    max_life = 100
+    energy = 80
+    max_energy = 100
+    buff = ["义", "义"]
+    skills = ["技能A", "抓牌", "很长的技能名"]
+
+
+tester = try1()
+
 pygame.init()
 motioned = (-1, -1)
 choosen = list()
-def font(size): return pygame.font.Font("./HanSansNormal.ttc", size)  # 思源黑体
+def font(size): return pygame.font.Font("./HanSansNormal.ttc", round(size))  # 思源黑体
 
 
 # 参数
@@ -29,7 +52,6 @@ infoObject = pygame.display.Info()
 SCREEN_SIZE = (infoObject.current_w, infoObject.current_h)
 REC_SIZE = 50
 底栏高度 = 250*infoObject.current_h//1080
-技能数 = 3
 底栏各元素比例 = [96, 20, 21, 20, 25, 10]
 地图与底栏最小距离 = 20
 背包物品数 = 6
@@ -64,24 +86,10 @@ if MAP_UP_SPACING-底栏高度 < 地图与底栏最小距离:
 MAP_RIGHTDOWN = (MAP_LEFT_SPACING+MAP_WIDTH, MAP_UP_SPACING+MAP_HEIGHT)
 底栏上 = SCREEN_HEIGHT - 底栏高度
 底栏各元素长度 = [i*SCREEN_WIDTH//(sum(底栏各元素比例)) for i in 底栏各元素比例]
+技能数 = len(tester.skills)
 # CONFIG END
 
 
-class try1():
-    pos = (-1, -1)
-    item = ['gz', 'kp', 'cz', 'wltg', 'kp', 'cz', 'wltg']
-    weapon = "cz"
-    shield = "shield"
-    shoe = "shoe"
-    energy_book = "energy_book_None"
-    life = 40
-    max_life = 100
-    energy = 40
-    max_energy = 100
-    buff = ["义", "义"]
-
-
-tester = try1()
 zhuangbei_list = {"武器": {"code": "weapon", "key": "w"},
                   "护盾": {"code": "shield", "key": "h"},
                   "能量书": {"code": "energy_book", "key": "n"},
@@ -223,18 +231,80 @@ def drawPlayerIcon():
             [底栏高度, 底栏高度]), (sum(底栏各元素长度[0:4]), 底栏上))
 
 
-def drawLifeAndEnergy():
-    #rect(YELLOW, (sum(底栏各元素长度[0:3]), 底栏上+50, 底栏各元素长度[3], 200))
-    life_img = pygame.transform.smoothscale(pygame.image.load("imgs/life.png"), (底栏各元素长度[3], 底栏高度*4//5))
+def drawSkills():
+    each_height = 底栏高度//技能数+1
+    fontsize = int(each_height*2//3)
+    for i in range(技能数):
+        rect([k+i*20 for k in NAVYBLUE],
+             (sum(底栏各元素长度[0:2]), 底栏上+i*each_height,
+              底栏各元素长度[2], each_height))
+        text_preview=font(fontsize).render(tester.skills[i], True, (0, 0, 0))
+        if text_preview.get_rect()[2]>底栏各元素长度[2]:
+            text_preview=pygame.transform.smoothscale(text_preview,
+                (底栏各元素长度[2],text_preview.get_rect()[3]*底栏各元素长度[2]//text_preview.get_rect()[2]))
+        my_rect=text_preview.get_rect(center=(sum(底栏各元素长度[0:2])+底栏各元素长度[2]//2,底栏上+each_height//2+i*each_height))
+        screen.blit(text_preview,my_rect)
+
+
+def drawOneOfLifeAndEnergy(name):
+    MY_UP = 底栏上+底栏高度-底栏各元素长度[3]
+    MY_LEFT = sum(底栏各元素长度[0:3])
+    mid_up = MY_UP+底栏各元素长度[3]/2
+    if name == "life":
+        angle = 360-180*tester.life/tester.max_life
+    elif name == "energy":
+        angle = 180*tester.energy/tester.max_energy
+    else:
+        raise GameError
+    life_img = pygame.transform.smoothscale(
+        pygame.image.load("imgs/{}.png".format(name)), (底栏各元素长度[3]+2, 底栏各元素长度[3]+2))
+    # WARNING:我也不知道这个+2为什么会出现
     life_rect = life_img.get_rect()
-    life_rect=life_rect.move(sum(底栏各元素长度[0:3]),底栏上+底栏高度-底栏各元素长度[3])
-    #TODO
-    screen.blit(life_img,life_rect)
+    life_rect = life_rect.move(MY_LEFT, MY_UP)
+    new_life_img = pygame.transform.rotate(life_img, angle)
+    new_life_rect = new_life_img.get_rect(center=life_rect.center)
+    up_to_mid = mid_up-new_life_rect[1]
+    left_to_left = MY_LEFT-new_life_rect[0]
+    if name == "life":
+        to_chop_1 = ((0, new_life_rect[3]-up_to_mid, left_to_left, up_to_mid))
+        new_life_img = pygame.transform.chop(new_life_img, to_chop_1)
+        screen.blit(
+            new_life_img, (new_life_rect[0]+left_to_left, new_life_rect[1]))
+    else:
+        to_chop_1 = ((0, 0, left_to_left, up_to_mid))
+        new_life_img = pygame.transform.chop(new_life_img, to_chop_1)
+        screen.blit(
+            new_life_img, (new_life_rect[0]+left_to_left, new_life_rect[1]+up_to_mid))
+
+
+def drawLifeAndEnergy():
+    MY_UP = 底栏上+底栏高度-底栏各元素长度[3]
+    MY_LEFT = sum(底栏各元素长度[0:3])
+    drawOneOfLifeAndEnergy("life")
+    drawOneOfLifeAndEnergy("energy")
     screen.blit(pygame.transform.smoothscale(
         pygame.image.load("imgs/life_energy_round.png"),
         (底栏各元素长度[3], 底栏各元素长度[3])),
-        (sum(底栏各元素长度[0:3]),底栏上+底栏高度-底栏各元素长度[3]))
+        (MY_LEFT, MY_UP))
     pygame.display.update()
+
+def drawBuffs():
+    my_height=底栏高度-底栏各元素长度[3]
+    rect(BLUE, (sum(底栏各元素长度[0:3]), 底栏上, 底栏各元素长度[3], my_height))
+    img=pygame.image.load("imgs/buff_round.png")
+    img=pygame.transform.smoothscale(img, (my_height, my_height))
+    i=0
+    for k in tester.buff:
+        if not len(k)==1:
+            print("警告：buff \"{}\" 名字过长".format(k))
+            continue
+        screen.blit(img,(sum(底栏各元素长度[0:3])+i*my_height,底栏上))
+        text_preview=font(my_height-15).render(k, True, (0, 0, 0))
+        my_rect=text_preview.get_rect(center=
+            (sum(底栏各元素长度[0:3])+i*my_height+my_height//2,
+                底栏上+my_height//2))
+        screen.blit(text_preview,my_rect)
+        i+=1
 
 
 def drawAll():
@@ -248,14 +318,12 @@ def drawAll():
     # 背包
     drawEquiment()
     # 装备
-    for i in range(技能数):
-        rect([k+i*20 for k in NAVYBLUE], (sum(底栏各元素长度[0:2]),
-                                          底栏上+i*底栏高度//技能数, 底栏各元素长度[2], 底栏高度//技能数+1))
+    drawSkills()
     # 技能
-    rect(BLUE, (sum(底栏各元素长度[0:3]), 底栏上, 底栏各元素长度[3], 底栏高度-底栏各元素长度[3]))
-    # buff
     drawLifeAndEnergy()
     # 血量&能量
+    drawBuffs()
+    # buff
     drawPlayerIcon()
     # 角色头像
     drawEndRound()
