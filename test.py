@@ -246,10 +246,10 @@ def drawSkills():
         screen.blit(text_preview,my_rect)
 
 
-def drawOneOfLifeAndEnergy(name):
+def drawOneOfLifeAndEnergyRound(name):
     MY_UP = 底栏上+底栏高度-底栏各元素长度[3]
     MY_LEFT = sum(底栏各元素长度[0:3])
-    mid_up = MY_UP+底栏各元素长度[3]/2
+    mid_up = MY_UP+底栏各元素长度[3]//2
     if name == "life":
         angle = 360-180*tester.life/tester.max_life
     elif name == "energy":
@@ -276,16 +276,32 @@ def drawOneOfLifeAndEnergy(name):
         screen.blit(
             new_life_img, (new_life_rect[0]+left_to_left, new_life_rect[1]+up_to_mid))
 
+def drawOneOfLifeAndEnergyText(name):
+    if name not in ["life","energy"]:
+        raise GameError
+    MY_UP = 底栏上+底栏高度-底栏各元素长度[3]
+    MY_LEFT = sum(底栏各元素长度[0:3])
+    mid_left = MY_LEFT+底栏各元素长度[3]//2
+    mid_up = MY_UP+底栏各元素长度[3]//2
+    y_offset = 底栏各元素长度[3]//10 * (-1 if name=="life" else 1)
+    color=RED if name=="life" else BLUE
+    text_preview=font(底栏各元素长度[3]//10).render(str("{} / {}".format(tester.__getattribute__(name),tester.__getattribute__("max_"+name))), True, (0, 0, 0))
+    my_rect=text_preview.get_rect(center=(mid_left,mid_up+y_offset))
+    screen.blit(text_preview,my_rect)
+    
+
 
 def drawLifeAndEnergy():
     MY_UP = 底栏上+底栏高度-底栏各元素长度[3]
     MY_LEFT = sum(底栏各元素长度[0:3])
-    drawOneOfLifeAndEnergy("life")
-    drawOneOfLifeAndEnergy("energy")
+    drawOneOfLifeAndEnergyRound("life")
+    drawOneOfLifeAndEnergyRound("energy")
     screen.blit(pygame.transform.smoothscale(
         pygame.image.load("imgs/life_energy_round.png"),
         (底栏各元素长度[3], 底栏各元素长度[3])),
         (MY_LEFT, MY_UP))
+    drawOneOfLifeAndEnergyText("life")
+    drawOneOfLifeAndEnergyText("energy")
     pygame.display.update()
 
 def drawBuffs():
