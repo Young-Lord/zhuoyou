@@ -37,6 +37,9 @@ for i in file_list:
 
 sum_code.close()
 
+if "--genonly" in sys.argv:
+    sys.exit()
+
 try:
     from cache_sum_code import *
 except Exception as e:
