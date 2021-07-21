@@ -5,9 +5,7 @@ from time import sleep
 import random
 from math import sqrt, degrees, acos, floor
 import astar
-import pyperclip
 
-pyperclip.copy(1)
 try:
     import pygame
 except ModuleNotFoundError:
@@ -26,8 +24,7 @@ def font(size): return pygame.font.Font(
 bg_img = pygame.image.load(bg_img_file)  # 相对路径
 
 chess_list = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
-current_file = os.path.abspath(__file__)
-current_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
+current_dir=sys.path [0]
 os.chdir(current_dir)
 players = list()
 special_blocks = list()
