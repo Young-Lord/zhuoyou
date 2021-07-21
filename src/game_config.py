@@ -2,7 +2,7 @@
 # GUI设置
 screen_width = 640
 screen_height = 480
-bg_img_file = "./imgs/bg_img.png"
+bg_img_file = "./resources/imgs/bg_img.png"
 
 GRID_X_LEN = 10
 GRID_Y_LEN = 12
@@ -26,12 +26,12 @@ cards_dict = {"drug": 3,
               "bow": 2
               }
 # 这是牌堆
-game_map=[
+game_map = [
     "0000000000",
     "0110000000",
     "0110001000",
     "0000000000"
-    ]
+]
 # 游戏地图
 
 # 不要修改下面的内容

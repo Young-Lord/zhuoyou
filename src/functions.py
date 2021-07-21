@@ -120,7 +120,8 @@ def drawMap():
     display_map = [i[:] for i in game_map]
     for i in players:
         if i.alive:
-            tp = pygame.image.load('imgs/characters/'+type(i).__name__+'.png')
+            tp = pygame.image.load(
+                'resources/imgs/characters/'+type(i).__name__+'.png')
             tp = pygame.transform.smoothscale(tp, [REC_SIZE-1, REC_SIZE-1])
             screen.blit(tp, (i.pos[1]*REC_SIZE+1, i.pos[0]*REC_SIZE+1))
             # 这句真的没错，pygame的坐标轴和代码里的xy互换

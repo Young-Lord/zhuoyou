@@ -47,7 +47,7 @@ choosen = list()
 
 
 def font(size): return pygame.font.Font(
-    "./HanSansNormal.ttc", round(size))  # 思源黑体
+    "./resources/HanSansNormal.ttc", round(size))  # 思源黑体
 
 
 # 参数
@@ -155,7 +155,7 @@ def getCard(pos):
     # 检查是否在点击区域内
     pos = (pos[0] % (底栏各元素长度[0]//max(len(tester.item), 背包物品数)), pos[1]-底栏上)
     # 我也不知道这个max是什么意思，大概是因为卡牌能缩放吧（
-    if pygame.transform.smoothscale(pygame.image.load("imgs/card_bg.png"), [card_bg_WIDTH, 底栏高度]).get_at(pos)[3] == 0:
+    if pygame.transform.smoothscale(pygame.image.load("resources/imgs/card_bg.png"), [card_bg_WIDTH, 底栏高度]).get_at(pos)[3] == 0:
         return "-1"
     return motioned
 
@@ -168,11 +168,11 @@ def drawBag():
     rect((0, 128, 0), (0, 底栏上, 底栏各元素长度[0], 底栏高度))
     for i in range(len(tester.item)):
         if ('card', i) in choosen:
-            card_bg_path = "imgs/card_bg_select.png"
+            card_bg_path = "resources/imgs/card_bg_select.png"
         elif i == motioned:
-            card_bg_path = "imgs/card_bg_motion.png"
+            card_bg_path = "resources/imgs/card_bg_motion.png"
         else:
-            card_bg_path = "imgs/card_bg.png"
+            card_bg_path = "resources/imgs/card_bg.png"
         card_bg = pygame.image.load(card_bg_path)
         c_rect = card_bg.get_rect()
         card_bg_WIDTH = c_rect[2]*底栏高度//c_rect[3]
@@ -184,7 +184,7 @@ def drawBag():
         screen.blit(card_bg, (0+i*底栏各元素长度[0]//背包物品数, 底栏上))
     for i in range(len(tester.item)):
         item_image = pygame.image.load(
-            'imgs/items/%s.png' % tester.item[i])  # TODO
+            'resources/imgs/items/%s.png' % tester.item[i])  # TODO
         item_rect = item_image.get_rect()
         item_HEIGHT = item_rect[3]*card_bg_WIDTH//item_rect[2]
         item_image = pygame.transform.smoothscale(
@@ -202,7 +202,7 @@ def drawEquiment():
         cur_ind = list(zhuangbei_list.keys())[i]
         cur_code = zhuangbei_list[cur_ind]["code"]
         item_icon = pygame.image.load(
-            "imgs/items/{}.png".format(tester.__getattribute__(cur_code)))
+            "resources/imgs/items/{}.png".format(tester.__getattribute__(cur_code)))
         item_rect = item_icon.get_rect()
         item_width = item_rect[2]*EACH_HEIGHT//item_rect[3]
         item_icon = pygame.transform.smoothscale(
@@ -230,7 +230,7 @@ def drawPlayerIcon():
     screen.blit(
         pygame.transform.smoothscale(
             pygame.image.load(
-                "imgs/characters/{}.png".format(type(tester).__name__)),
+                "resources/imgs/characters/{}.png".format(type(tester).__name__)),
             [底栏高度, 底栏高度]), (sum(底栏各元素长度[0:4]), 底栏上))
 
 
@@ -261,7 +261,7 @@ def drawOneOfLifeAndEnergyRound(name):
     else:
         raise GameError
     life_img = pygame.transform.smoothscale(
-        pygame.image.load("imgs/{}.png".format(name)), (底栏各元素长度[3]+2, 底栏各元素长度[3]+2))
+        pygame.image.load("resources/imgs/{}.png".format(name)), (底栏各元素长度[3]+2, 底栏各元素长度[3]+2))
     # WARNING:我也不知道这个+2为什么会出现
     life_rect = life_img.get_rect()
     life_rect = life_rect.move(MY_LEFT, MY_UP)
@@ -302,7 +302,7 @@ def drawLifeAndEnergy():
     drawOneOfLifeAndEnergyRound("life")
     drawOneOfLifeAndEnergyRound("energy")
     screen.blit(pygame.transform.smoothscale(
-        pygame.image.load("imgs/life_energy_round.png"),
+        pygame.image.load("resources/imgs/life_energy_round.png"),
         (底栏各元素长度[3], 底栏各元素长度[3])),
         (MY_LEFT, MY_UP))
     drawOneOfLifeAndEnergyText("life")
@@ -313,7 +313,7 @@ def drawLifeAndEnergy():
 def drawflagss():
     my_height = 底栏高度-底栏各元素长度[3]
     rect(BLUE, (sum(底栏各元素长度[0:3]), 底栏上, 底栏各元素长度[3], my_height))
-    img = pygame.image.load("imgs/flags_round.png")
+    img = pygame.image.load("resources/imgs/flags_round.png")
     img = pygame.transform.smoothscale(img, (my_height, my_height))
     i = 0
     for k in tester.flags:

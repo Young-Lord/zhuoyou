@@ -1,12 +1,13 @@
 import platform
 import sys
 import os
-import codecs
 from time import sleep
 import random
 from math import sqrt, degrees, acos, floor
 import astar
+import pyperclip
 
+pyperclip.copy(1)
 try:
     import pygame
 except ModuleNotFoundError:
@@ -16,7 +17,12 @@ except ModuleNotFoundError:
 
 pygame.init()
 pygame.display.set_caption("桌游")  # 标题
-def font(size): return pygame.font.Font("./HanSansNormal.ttc", round(size))  # 思源黑体
+
+
+def font(size): return pygame.font.Font(
+    "./resources/HanSansNormal.ttc", round(size))  # 思源黑体
+
+
 bg_img = pygame.image.load(bg_img_file)  # 相对路径
 
 chess_list = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
