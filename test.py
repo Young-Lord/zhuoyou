@@ -35,7 +35,7 @@ class try1():
     max_life = 100
     energy = 80
     max_energy = 100
-    buff = ["义", "义"]
+    flags = ["义", "义"]
     skills = ["技能A", "抓牌", "很长的技能名"]
 
 
@@ -44,7 +44,10 @@ tester = try1()
 pygame.init()
 motioned = (-1, -1)
 choosen = list()
-def font(size): return pygame.font.Font("./HanSansNormal.ttc", round(size))  # 思源黑体
+
+
+def font(size): return pygame.font.Font(
+    "./HanSansNormal.ttc", round(size))  # 思源黑体
 
 
 # 参数
@@ -238,12 +241,13 @@ def drawSkills():
         rect([k+i*20 for k in NAVYBLUE],
              (sum(底栏各元素长度[0:2]), 底栏上+i*each_height,
               底栏各元素长度[2], each_height))
-        text_preview=font(fontsize).render(tester.skills[i], True, (0, 0, 0))
-        if text_preview.get_rect()[2]>底栏各元素长度[2]:
-            text_preview=pygame.transform.smoothscale(text_preview,
-                (底栏各元素长度[2],text_preview.get_rect()[3]*底栏各元素长度[2]//text_preview.get_rect()[2]))
-        my_rect=text_preview.get_rect(center=(sum(底栏各元素长度[0:2])+底栏各元素长度[2]//2,底栏上+each_height//2+i*each_height))
-        screen.blit(text_preview,my_rect)
+        text_preview = font(fontsize).render(tester.skills[i], True, (0, 0, 0))
+        if text_preview.get_rect()[2] > 底栏各元素长度[2]:
+            text_preview = pygame.transform.smoothscale(text_preview,
+                                                        (底栏各元素长度[2], text_preview.get_rect()[3]*底栏各元素长度[2]//text_preview.get_rect()[2]))
+        my_rect = text_preview.get_rect(
+            center=(sum(底栏各元素长度[0:2])+底栏各元素长度[2]//2, 底栏上+each_height//2+i*each_height))
+        screen.blit(text_preview, my_rect)
 
 
 def drawOneOfLifeAndEnergyRound(name):
@@ -276,19 +280,20 @@ def drawOneOfLifeAndEnergyRound(name):
         screen.blit(
             new_life_img, (new_life_rect[0]+left_to_left, new_life_rect[1]+up_to_mid))
 
+
 def drawOneOfLifeAndEnergyText(name):
-    if name not in ["life","energy"]:
+    if name not in ["life", "energy"]:
         raise GameError
     MY_UP = 底栏上+底栏高度-底栏各元素长度[3]
     MY_LEFT = sum(底栏各元素长度[0:3])
     mid_left = MY_LEFT+底栏各元素长度[3]//2
     mid_up = MY_UP+底栏各元素长度[3]//2
-    y_offset = 底栏各元素长度[3]//10 * (-1 if name=="life" else 1)
-    color=RED if name=="life" else BLUE
-    text_preview=font(底栏各元素长度[3]//10).render(str("{} / {}".format(tester.__getattribute__(name),tester.__getattribute__("max_"+name))), True, (0, 0, 0))
-    my_rect=text_preview.get_rect(center=(mid_left,mid_up+y_offset))
-    screen.blit(text_preview,my_rect)
-    
+    y_offset = 底栏各元素长度[3]//10 * (-1 if name == "life" else 1)
+    color = RED if name == "life" else BLUE
+    text_preview = font(底栏各元素长度[3]//10).render(str("{} / {}".format(
+        tester.__getattribute__(name), tester.__getattribute__("max_"+name))), True, (0, 0, 0))
+    my_rect = text_preview.get_rect(center=(mid_left, mid_up+y_offset))
+    screen.blit(text_preview, my_rect)
 
 
 def drawLifeAndEnergy():
@@ -304,23 +309,23 @@ def drawLifeAndEnergy():
     drawOneOfLifeAndEnergyText("energy")
     pygame.display.update()
 
-def drawBuffs():
-    my_height=底栏高度-底栏各元素长度[3]
+
+def drawflagss():
+    my_height = 底栏高度-底栏各元素长度[3]
     rect(BLUE, (sum(底栏各元素长度[0:3]), 底栏上, 底栏各元素长度[3], my_height))
-    img=pygame.image.load("imgs/buff_round.png")
-    img=pygame.transform.smoothscale(img, (my_height, my_height))
-    i=0
-    for k in tester.buff:
-        if not len(k)==1:
-            print("警告：buff \"{}\" 名字过长".format(k))
+    img = pygame.image.load("imgs/flags_round.png")
+    img = pygame.transform.smoothscale(img, (my_height, my_height))
+    i = 0
+    for k in tester.flags:
+        if not len(k) == 1:
+            print("警告：flags \"{}\" 名字过长".format(k))
             continue
-        screen.blit(img,(sum(底栏各元素长度[0:3])+i*my_height,底栏上))
-        text_preview=font(my_height-15).render(k, True, (0, 0, 0))
-        my_rect=text_preview.get_rect(center=
-            (sum(底栏各元素长度[0:3])+i*my_height+my_height//2,
-                底栏上+my_height//2))
-        screen.blit(text_preview,my_rect)
-        i+=1
+        screen.blit(img, (sum(底栏各元素长度[0:3])+i*my_height, 底栏上))
+        text_preview = font(my_height-15).render(k, True, (0, 0, 0))
+        my_rect = text_preview.get_rect(center=(sum(底栏各元素长度[0:3])+i*my_height+my_height//2,
+                                                底栏上+my_height//2))
+        screen.blit(text_preview, my_rect)
+        i += 1
 
 
 def drawAll():
@@ -338,8 +343,8 @@ def drawAll():
     # 技能
     drawLifeAndEnergy()
     # 血量&能量
-    drawBuffs()
-    # buff
+    drawflagss()
+    # flags
     drawPlayerIcon()
     # 角色头像
     drawEndRound()

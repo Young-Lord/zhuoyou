@@ -9,7 +9,8 @@ class Player:
     alive = True
     team = 0
     item = list()
-    buff = list()  # 这是存各种技能的标记（如“义”）用的
+    buff = list()
+    flags = list()  # 这是存各种技能的标记（如“义”）用的
     weapon = None
     shield = None
     shoe = None
@@ -42,6 +43,7 @@ class Player:
         self.actions = dict()
         self.item = list()
         self.buff = list()
+        self.flags = list()
         # WARNING: 每个可变对象（list,dict）等都必须在这里初始化，否则不同的实例会共享一个对象
         self.actions_bak = self.actions_bak.copy()
         for i in self.actions_bak.keys():
