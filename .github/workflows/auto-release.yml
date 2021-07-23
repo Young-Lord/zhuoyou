@@ -1,0 +1,76 @@
+name: 使用PyInstaller自动打包
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 拉取代码
+      uses: actions/checkout@v2
+      with:
+        ref: gui
+
+    - name: 搭建 Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+
+    - name: 生成cache_sum_code.py
+      run: |
+        python src/main.py --genonly
+
+    - name: 复制文件
+      run: |
+        cp ./packer_tmp.py ./src/packer_tmp.py
+        cp ./game.exe.spec ./src/game.exe.spec
+        cp ./requirements.txt ./src/requirements.txt
+
+    - name: 运行PyInstaller
+      uses: JackMcKew/pyinstaller-action-windows@main
+      with:
+        path: src
+        spec: game.exe.spec
+        requirements: requirements.txt
+
+    - name: 移出game.exe
+      run: |
+        cp src/dist/windows/game.exe ./src/game.exe
+
+    - name: 压缩
+      run: |
+        cd src
+        zip -r build.zip resources config.py.txt game.exe
+        cd ..
+
+
+    - name: 上传附件
+      uses: actions/upload-artifact@v2
+      with:
+        name: build.zip
+        path: src/build.zip
+
+    - name: 创建release
+      id: create_release
+      uses: actions/create-release@v1.0.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: true
+
+    - name: 上传release
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./src/build.zip
+        asset_name: build.zip
+        asset_content_type: application/zip
+    
