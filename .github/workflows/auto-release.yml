@@ -59,10 +59,13 @@ jobs:
         retention-days: 10
     
     - name: 删除旧Release
-      uses: larryjoelane/delete-release-action@v1.0.24
-      with: 
-        release-name: auto-release
-        token: ${{ secrets.ACCESS_TOKEN }}
+      uses: actions/github-script@v4
+      with:
+        github-token: ${{ secrets.ACCESS_TOKEN }}
+        script: |
+          const { owner, repo } = context.repo
+          await github.repos.deleteRelease({ owner, repo, release_id: "auto-release" })
+
 
     - name: 上传Release
       uses: softprops/action-gh-release@v1
