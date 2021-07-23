@@ -102,7 +102,7 @@ def drawMap():
             if game_map[y][x] == '0':
                 color = GOLD
             else:
-                color = GREY
+                color = GOLD
             pygame.draw.rect(screen, color, (x * REC_SIZE, y * REC_SIZE,
                                              REC_SIZE, REC_SIZE))
 
