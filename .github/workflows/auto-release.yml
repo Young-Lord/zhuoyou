@@ -23,7 +23,8 @@ jobs:
 
     - name: 生成cache_sum_code.py
       run: |
-        python src/main.py --genonly
+        cd src
+        python main.py --genonly
 
     - name: 复制文件
       run: |
