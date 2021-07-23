@@ -51,6 +51,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: build.zip
+        tag: refs/heads/gui
       env:
         GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
     
