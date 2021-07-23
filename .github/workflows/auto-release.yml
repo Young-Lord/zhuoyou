@@ -64,7 +64,7 @@ jobs:
         github-token: ${{ secrets.ACCESS_TOKEN }}
         script: |
           const { owner, repo } = context.repo
-          const { data: { id } } = await github.repos.getReleaseByTag({ owner, repo, "auto-release" })
+          const { data: { id } } = await github.repos.getReleaseByTag({ owner, repo, tag: "auto-release" })
           await github.repos.deleteRelease({ owner, repo, release_id: id })
 
 
