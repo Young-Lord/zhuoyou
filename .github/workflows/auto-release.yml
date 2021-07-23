@@ -1,6 +1,9 @@
 name: 使用PyInstaller自动打包
 
-on: [push]
+on:
+  push:
+    branches:
+      - gui
 
 jobs:
   build:
@@ -43,14 +46,17 @@ jobs:
       run: |
         cd src
         zip -r build.zip resources config.py.txt game.exe
-        cd ..
 
 
     - name: 上传附件
       uses: actions/upload-artifact@v2
       with:
         name: build.zip
-        path: src/build.zip
+        path: |
+          resources
+          config.py.txt
+          game.exe
+        retention-days: 10
 
     - name: 创建release
       id: create_release
@@ -70,7 +76,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-        asset_path: ./src/build.zip
+        asset_path: ./build.zip
         asset_name: build.zip
         asset_content_type: application/zip
     
