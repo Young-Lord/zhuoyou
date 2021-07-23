@@ -47,11 +47,23 @@ jobs:
         cd src
         zip -r build.zip resources config.py.txt game.exe
 
+    - name: 上传附件
+      uses: actions/upload-artifact@v2
+      with:
+        name: build.zip
+        path: |
+          src/resources
+          src/config.py.txt
+          src/game.exe
+        retention-days: 10
+
     - name: 上传Release
       uses: softprops/action-gh-release@v1
       with:
-        files: build.zip
+        files: src/build.zip
         tag_name: refs/heads/gui
+        name: 自动构建
+        prerelease: true
       env:
         GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
     
