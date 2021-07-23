@@ -47,10 +47,10 @@ jobs:
         cd src
         zip -r build.zip resources config.py.txt game.exe
 
-      - name: 上传Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: build.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+    - name: 上传Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
     
