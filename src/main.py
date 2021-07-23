@@ -1,11 +1,10 @@
 import sys
 import os
 import codecs
+import time
 file_list = ["items", "game_config", "functions", "inits", "core"]
 # 注意：此列表中的每项不带扩展名(.py)
 
-current_dir=sys.path[0]
-os.chdir(current_dir)
 
 
 def addfile(path):
@@ -43,6 +42,10 @@ try:
     from cache_sum_code import *
 except Exception as e:
     import traceback
+    os.mkdir("logs")
+    os.chdir("logs")
+    with open("error-dump-"+time.strftime("%Y%m%d", time.localtime())+".txt","w",encoding="utf-8") as f:
+        traceback.print_exc(file=f)
     print("\n\n"+"#"*20+"\n[BUG] 带上以下信息向作者反馈：\n"+"#"*20+"\n\n")
     traceback.print_exc()
     os.system("pause")

@@ -24,8 +24,6 @@ def font(size): return pygame.font.Font(
 bg_img = pygame.image.load(bg_img_file)  # 相对路径
 
 chess_list = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
-current_dir=sys.path [0]
-os.chdir(current_dir)
 players = list()
 special_blocks = list()
 action_result = str()
@@ -40,7 +38,7 @@ current_player_id = 0
 print("你正在使用的系统是：{}".format(platform.platform()))
 is_windows = (platform.platform().find("Windows")) != -1
 print("Python版本：{}".format(platform.python_version()))
-print("程序目录：{}".format(current_dir))
+print("程序目录：{}".format(os.getcwd()))
 
 
 characters = [i() for i in Player.__subclasses__()]

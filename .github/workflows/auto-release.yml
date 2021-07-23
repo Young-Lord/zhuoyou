@@ -50,7 +50,7 @@ jobs:
     - name: 上传附件
       uses: actions/upload-artifact@v2
       with:
-        name: build.zip
+        name: build
         path: |
           src/resources
           src/config.py.txt
