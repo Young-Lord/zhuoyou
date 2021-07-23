@@ -57,12 +57,18 @@ jobs:
           src/config.py.txt
           src/game.exe
         retention-days: 10
+    
+    - name: 删除旧Release
+      uses: larryjoelane/delete-release-action@v1.0.24
+      with: 
+        release-name: auto-release
+        token: ${{ secrets.ACCESS_TOKEN }}
 
     - name: 上传Release
       uses: softprops/action-gh-release@v1
       with:
         files: src/build.zip
-        tag_name: refs/heads/gui
+        tag_name: auto-release
         name: 自动构建
         prerelease: true
       env:
